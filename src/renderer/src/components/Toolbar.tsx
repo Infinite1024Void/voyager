@@ -69,7 +69,7 @@ export function Toolbar(): React.JSX.Element {
       >
         <Star className={cn('h-4 w-4', isBookmarked && 'fill-accent text-accent')} />
       </IconButton>
-      <IconButton label="Downloads" disabled>
+      <IconButton label="Downloads" onClick={() => window.dispatchEvent(new Event('voyager:open-downloads'))}>
         <Download className="h-4 w-4" />
       </IconButton>
     </div>

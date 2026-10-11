@@ -12,10 +12,12 @@ import { useBrowserStore } from './state/browserStore'
 import { useDownloadsStore } from './state/downloadsStore'
 import { useHistoryStore } from './state/historyStore'
 import { useUiStore } from './state/uiStore'
+import { SettingsPage } from './components/SettingsPage'
 
 export default function App(): React.JSX.Element {
   const [historyOpen, setHistoryOpen] = useState(false)
   const [downloadsOpen, setDownloadsOpen] = useState(false)
+  const { settingsOpen, closeSettings } = useUiStore()
 
   useEffect(() => {
     const { applyState } = useBrowserStore.getState()
@@ -63,11 +65,14 @@ export default function App(): React.JSX.Element {
         return
       }
     }
+    const openDownloads = () => setDownloadsOpen(true)
     window.addEventListener('keydown', handleKey)
+    window.addEventListener('voyager:open-downloads', openDownloads)
     return () => {
       unsubFocus()
       unsubSearch()
       window.removeEventListener('keydown', handleKey)
+      window.removeEventListener('voyager:open-downloads', openDownloads)
     }
   }, [])
 
@@ -88,6 +93,7 @@ export default function App(): React.JSX.Element {
           void window.voyager.downloads.clear()
         }}
       />
+      <SettingsPage open={settingsOpen} onClose={closeSettings} />
     </ThemeProvider>
   )
 }
