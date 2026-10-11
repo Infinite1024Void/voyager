@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { ThemeProvider } from './components/providers/ThemeProvider'
+import { TabSearchPalette } from './components/TabSearchPalette'
 import { TitleBar } from './components/TitleBar'
 import { Toolbar } from './components/Toolbar'
 import { useBrowserStore } from './state/browserStore'
@@ -17,6 +18,7 @@ export default function App(): React.JSX.Element {
         <TitleBar />
         <Toolbar />
       </div>
+      <TabSearchPalette />
     </ThemeProvider>
   )
 }
