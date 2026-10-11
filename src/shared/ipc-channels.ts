@@ -32,6 +32,12 @@ export const IpcChannels = {
 
   TabsReopenLastClosed: 'tabs:reopen-last-closed',
 
+  BookmarksGetState: 'bookmarks:get-state',
+  BookmarksAdd: 'bookmarks:add',
+  BookmarksRemove: 'bookmarks:remove',
+  BookmarksToggleBar: 'bookmarks:toggle-bar',
+  BookmarksStateChanged: 'bookmarks:state-changed',
+
   UiFocusOmnibox: 'ui:focus-omnibox',
   UiOpenTabSearch: 'ui:open-tab-search'
 } as const

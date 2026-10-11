@@ -1,9 +1,11 @@
 import { useEffect } from 'react'
 import { ThemeProvider } from './components/providers/ThemeProvider'
+import { BookmarksBar } from './components/BookmarksBar'
 import { TabSearchPalette } from './components/TabSearchPalette'
 import { TitleBar } from './components/TitleBar'
 import { Toolbar } from './components/Toolbar'
 import { focusOmnibox, installChromeShortcuts } from './lib/shortcuts'
+import { useBookmarksStore } from './state/bookmarksStore'
 import { useBrowserStore } from './state/browserStore'
 import { useUiStore } from './state/uiStore'
 
@@ -12,6 +14,12 @@ export default function App(): React.JSX.Element {
     const { applyState } = useBrowserStore.getState()
     void window.voyager.tabs.getState().then(applyState)
     return window.voyager.tabs.onStateChanged(applyState)
+  }, [])
+
+  useEffect(() => {
+    const { applyState } = useBookmarksStore.getState()
+    void window.voyager.bookmarks.getState().then(applyState)
+    return window.voyager.bookmarks.onStateChanged(applyState)
   }, [])
 
   // Chrome-focused keyboard shortcuts.
@@ -34,6 +42,7 @@ export default function App(): React.JSX.Element {
       <div className="flex h-full flex-col overflow-hidden">
         <TitleBar />
         <Toolbar />
+        <BookmarksBar />
       </div>
       <TabSearchPalette />
     </ThemeProvider>

@@ -1,6 +1,15 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import { ALL_IPC_CHANNELS, IpcChannels, type IpcChannel } from '../shared/ipc-channels'
-import type { AppVersionInfo, BrowserState, NewTabRequest, ThemeMode, ThemeState, Unsubscribe } from '../shared/types'
+import type {
+  AppVersionInfo,
+  BookmarksState,
+  BrowserState,
+  NewBookmarkInput,
+  NewTabRequest,
+  ThemeMode,
+  ThemeState,
+  Unsubscribe
+} from '../shared/types'
 
 const allowedChannels = new Set<string>(ALL_IPC_CHANNELS)
 
@@ -60,6 +69,17 @@ const api = {
     stop: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavStop),
     go: (url: string): Promise<void> => ipcRenderer.invoke(IpcChannels.NavGo, url),
     forceReload: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavForceReload)
+  },
+
+  bookmarks: {
+    getState: (): Promise<BookmarksState> => ipcRenderer.invoke(IpcChannels.BookmarksGetState),
+    add: (input: NewBookmarkInput): Promise<BookmarksState> =>
+      ipcRenderer.invoke(IpcChannels.BookmarksAdd, input),
+    remove: (id: string): Promise<BookmarksState> =>
+      ipcRenderer.invoke(IpcChannels.BookmarksRemove, id),
+    toggleBar: (): Promise<BookmarksState> => ipcRenderer.invoke(IpcChannels.BookmarksToggleBar),
+    onStateChanged: (listener: (state: BookmarksState) => void): Unsubscribe =>
+      subscribe<BookmarksState>(IpcChannels.BookmarksStateChanged, listener)
   },
 
   ui: {

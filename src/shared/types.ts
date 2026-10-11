@@ -46,3 +46,20 @@ export interface NewTabRequest {
   url?: string
   active?: boolean
 }
+
+export interface NewBookmarkInput {
+  title: string
+  url: string
+}
+
+export interface BookmarkItem {
+  id: string
+  title: string
+  url: string
+  createdAt: number
+}
+
+export interface BookmarksState {
+  items: BookmarkItem[]
+  barVisible: boolean
+}

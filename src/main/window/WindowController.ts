@@ -2,9 +2,15 @@ import { join } from 'node:path'
 import { BaseWindow, WebContentsView } from 'electron'
 import { IpcChannels } from '../../shared/ipc-channels'
 import type { BrowserState } from '../../shared/types'
-import { sessionStore } from '../store'
+import { getSettings, sessionStore } from '../store'
+import { toggleBookmarksBar } from '../bookmarks/bookmarks'
 import { TabManager } from '../tabs/TabManager'
-import { DEFAULT_CHROME_HEIGHT, computeLayout, type WindowLayout } from './ChromeLayout'
+import {
+  DEFAULT_CHROME_HEIGHT,
+  bookmarksBarExtent,
+  computeLayout,
+  type WindowLayout
+} from './ChromeLayout'
 
 /**
  * Owns the single application window: a frameless BaseWindow whose chrome UI
@@ -65,7 +71,21 @@ export class WindowController {
     this.window.on('closed', () => {
       this.disposed = true
     })
+    this.setBookmarksBarVisible(getSettings('bookmarksBarVisible') ?? false)
     this.applyLayout()
+  }
+
+  /** Grow or shrink the chrome region for the bookmarks bar. */
+  setBookmarksBarVisible(visible: boolean): void {
+    this.setChromeHeight(DEFAULT_CHROME_HEIGHT + bookmarksBarExtent(visible))
+  }
+
+  /** Flip the bookmarks bar and tell the chrome renderer about the new state. */
+  toggleBookmarksBar(): void {
+    toggleBookmarksBar(
+      (state) => this.sendToChrome(IpcChannels.BookmarksStateChanged, state),
+      (visible) => this.setBookmarksBarVisible(visible)
+    )
   }
 
   /** Grow or shrink the chrome region (e.g. when the bookmarks bar toggles). */

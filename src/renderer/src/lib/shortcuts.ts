@@ -1,4 +1,5 @@
 import { matchShortcut, type BrowserAction } from '../../../shared/keyboard'
+import { useBookmarksStore } from '../state/bookmarksStore'
 import { useBrowserStore } from '../state/browserStore'
 import { useUiStore } from '../state/uiStore'
 
@@ -54,6 +55,9 @@ function dispatch(action: BrowserAction, index?: number): void {
       break
     case 'forward':
       store.goForward()
+      break
+    case 'toggle-bookmarks-bar':
+      useBookmarksStore.getState().toggleBar()
       break
   }
 }

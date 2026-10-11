@@ -18,6 +18,7 @@ export type BrowserAction =
   | 'stop'
   | 'back'
   | 'forward'
+  | 'toggle-bookmarks-bar'
 
 export interface ChordInput {
   key: string
@@ -60,6 +61,7 @@ export const SHORTCUTS: readonly ShortcutDef[] = [
   chord('open-tab-search', 'a', { meta: true, shift: true }),
   chord('reload', 'r', { meta: true }),
   chord('force-reload', 'r', { meta: true, shift: true }),
+  chord('toggle-bookmarks-bar', 'b', { meta: true, shift: true }),
   chord('stop', 'Escape'),
   { action: 'select-tab-n', key: '1', meta: true, index: 1 },
   { action: 'select-tab-n', key: '2', meta: true, index: 2 },

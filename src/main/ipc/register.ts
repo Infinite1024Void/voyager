@@ -1,6 +1,13 @@
 import { app, clipboard, ipcMain, nativeTheme } from 'electron'
 import { IpcChannels } from '../../shared/ipc-channels'
-import type { AppVersionInfo, NewTabRequest, ThemeMode, ThemeState } from '../../shared/types'
+import type {
+  AppVersionInfo,
+  NewBookmarkInput,
+  NewTabRequest,
+  ThemeMode,
+  ThemeState
+} from '../../shared/types'
+import { addBookmark, currentBookmarksState, removeBookmark, toggleBookmarksBar } from '../bookmarks/bookmarks'
 import type { WindowController } from '../window/WindowController'
 import { getSettings, setSettings } from '../store'
 
@@ -102,4 +109,23 @@ export function registerIpcHandlers(context: IpcContext): void {
   ipcMain.handle(IpcChannels.NavForceReload, () => context.getWindow()?.tabs.reloadIgnoringCache())
 
   ipcMain.handle(IpcChannels.TabsReopenLastClosed, () => context.getWindow()?.tabs.reopenLastClosed())
+
+  /* ---- bookmarks ------------------------------------------------------ */
+
+  ipcMain.handle(IpcChannels.BookmarksGetState, () => currentBookmarksState())
+
+  ipcMain.handle(IpcChannels.BookmarksAdd, (_event, input: NewBookmarkInput) =>
+    addBookmark(input, (state) => context.send(IpcChannels.BookmarksStateChanged, state))
+  )
+
+  ipcMain.handle(IpcChannels.BookmarksRemove, (_event, id: string) =>
+    removeBookmark(id, (state) => context.send(IpcChannels.BookmarksStateChanged, state))
+  )
+
+  ipcMain.handle(IpcChannels.BookmarksToggleBar, () =>
+    toggleBookmarksBar(
+      (state) => context.send(IpcChannels.BookmarksStateChanged, state),
+      (visible) => context.getWindow()?.setBookmarksBarVisible(visible)
+    )
+  )
 }

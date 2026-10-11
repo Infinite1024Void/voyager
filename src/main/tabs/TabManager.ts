@@ -385,6 +385,9 @@ export class TabManager {
       case 'forward':
         this.goForward()
         break
+      case 'toggle-bookmarks-bar':
+        this.window.toggleBookmarksBar()
+        break
     }
   }
 
