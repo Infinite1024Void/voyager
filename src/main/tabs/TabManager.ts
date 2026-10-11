@@ -205,6 +205,32 @@ export class TabManager {
     this.activeWebContents()?.loadURL(url)
   }
 
+  findInPage(query: string, forward = true): void {
+    this.activeWebContents()?.findInPage(query, { forward })
+  }
+
+  stopFindInPage(): void {
+    this.activeWebContents()?.stopFindInPage('clearSelection')
+  }
+
+  zoomIn(): void {
+    const wc = this.activeWebContents()
+    if (!wc) return
+    const current = wc.getZoomFactor()
+    wc.setZoomFactor(Math.min(current + 0.1, 5.0))
+  }
+
+  zoomOut(): void {
+    const wc = this.activeWebContents()
+    if (!wc) return
+    const current = wc.getZoomFactor()
+    wc.setZoomFactor(Math.max(current - 0.1, 0.25))
+  }
+
+  zoomReset(): void {
+    this.activeWebContents()?.setZoomFactor(1.0)
+  }
+
   get isActiveLoading(): boolean {
     return this.entries.get(this.activeId ?? '')?.loading ?? false
   }

@@ -29,6 +29,11 @@ export const IpcChannels = {
   NavStop: 'nav:stop',
   NavGo: 'nav:go',
   NavForceReload: 'nav:force-reload',
+  NavFindInPage: 'nav:find-in-page',
+  NavStopFindInPage: 'nav:stop-find-in-page',
+  NavZoomIn: 'nav:zoom-in',
+  NavZoomOut: 'nav:zoom-out',
+  NavZoomReset: 'nav:zoom-reset',
 
   TabsReopenLastClosed: 'tabs:reopen-last-closed',
 

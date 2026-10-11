@@ -119,6 +119,13 @@ export function registerIpcHandlers(context: IpcContext): void {
   ipcMain.handle(IpcChannels.NavStop, () => context.getWindow()?.tabs.stop())
   ipcMain.handle(IpcChannels.NavGo, (_event, url: string) => context.getWindow()?.tabs.navigate(url))
   ipcMain.handle(IpcChannels.NavForceReload, () => context.getWindow()?.tabs.reloadIgnoringCache())
+  ipcMain.handle(IpcChannels.NavFindInPage, (_event, query: string, forward?: boolean) =>
+    context.getWindow()?.tabs.findInPage(query, forward ?? true)
+  )
+  ipcMain.handle(IpcChannels.NavStopFindInPage, () => context.getWindow()?.tabs.stopFindInPage())
+  ipcMain.handle(IpcChannels.NavZoomIn, () => context.getWindow()?.tabs.zoomIn())
+  ipcMain.handle(IpcChannels.NavZoomOut, () => context.getWindow()?.tabs.zoomOut())
+  ipcMain.handle(IpcChannels.NavZoomReset, () => context.getWindow()?.tabs.zoomReset())
 
   ipcMain.handle(IpcChannels.TabsReopenLastClosed, () => context.getWindow()?.tabs.reopenLastClosed())
 

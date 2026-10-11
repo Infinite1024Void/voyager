@@ -70,7 +70,13 @@ const api = {
     reload: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavReload),
     stop: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavStop),
     go: (url: string): Promise<void> => ipcRenderer.invoke(IpcChannels.NavGo, url),
-    forceReload: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavForceReload)
+    forceReload: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavForceReload),
+    findInPage: (query: string, forward?: boolean): Promise<void> =>
+      ipcRenderer.invoke(IpcChannels.NavFindInPage, query, forward),
+    stopFindInPage: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavStopFindInPage),
+    zoomIn: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavZoomIn),
+    zoomOut: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavZoomOut),
+    zoomReset: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavZoomReset)
   },
 
   bookmarks: {
