@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pin, Plus } from 'lucide-react'
+import { Copy, Pin, Plus, RotateCw, Volume2, VolumeX, X } from 'lucide-react'
 import type { TabState } from '../../../shared/types'
 import { useBrowserStore } from '../state/browserStore'
 import { ContextMenu, type ContextMenuItem } from './ui/ContextMenu'
@@ -53,6 +53,14 @@ export function TabStrip(): React.JSX.Element {
   const [overId, setOverId] = useState<string | null>(null)
   const [menu, setMenu] = useState<TabMenuState | null>(null)
 
+  const duplicateSelected = useBrowserStore((state) => state.duplicateTab)
+  const muteSelected = useBrowserStore((state) => state.muteToggle)
+  const closeSelected = useBrowserStore((state) => state.closeTab)
+  const closeOthersSelected = useBrowserStore((state) => state.closeOthers)
+  const closeToRightSelected = useBrowserStore((state) => state.closeToRight)
+  const copyTabUrl = useBrowserStore((state) => state.copyTabUrl)
+  const reload = useBrowserStore((state) => state.reload)
+
   const handleDrop = (targetId: string): void => {
     if (dragId && dragId !== targetId) {
       const drag = tabs.find((tab) => tab.id === dragId)
@@ -69,9 +77,55 @@ export function TabStrip(): React.JSX.Element {
   const menuItems: ContextMenuItem[] = menuTab
     ? [
         {
+          label: 'New tab',
+          icon: <Plus className="h-3.5 w-3.5" />,
+          onSelect: () => createTab()
+        },
+        { separator: true },
+        {
+          label: 'Reload',
+          icon: <RotateCw className="h-3.5 w-3.5" />,
+          onSelect: () => reload()
+        },
+        {
+          label: 'Duplicate',
+          icon: <Copy className="h-3.5 w-3.5" />,
+          onSelect: () => duplicateSelected(menuTab.id)
+        },
+        {
           label: menuTab.pinned ? 'Unpin tab' : 'Pin tab',
           icon: <Pin className="h-3.5 w-3.5" />,
           onSelect: () => pinToggle(menuTab.id)
+        },
+        {
+          label: menuTab.muted ? 'Unmute tab' : 'Mute tab',
+          icon: menuTab.muted ? (
+            <VolumeX className="h-3.5 w-3.5" />
+          ) : (
+            <Volume2 className="h-3.5 w-3.5" />
+          ),
+          onSelect: () => muteSelected(menuTab.id)
+        },
+        { separator: true },
+        {
+          label: 'Copy URL',
+          icon: <Copy className="h-3.5 w-3.5" />,
+          disabled: menuTab.url === 'about:blank' || menuTab.url === '',
+          onSelect: () => copyTabUrl(menuTab.id)
+        },
+        { separator: true },
+        {
+          label: 'Close tab',
+          icon: <X className="h-3.5 w-3.5" />,
+          onSelect: () => closeSelected(menuTab.id)
+        },
+        {
+          label: 'Close other tabs',
+          onSelect: () => closeOthersSelected(menuTab.id)
+        },
+        {
+          label: 'Close tabs to the right',
+          onSelect: () => closeToRightSelected(menuTab.id)
         }
       ]
     : []

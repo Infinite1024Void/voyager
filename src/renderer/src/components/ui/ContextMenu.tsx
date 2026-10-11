@@ -2,12 +2,13 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import { cn } from '../../lib/cn'
 
 export interface ContextMenuItem {
-  label: string
+  label?: string
   icon?: ReactNode
   onSelect?: () => void
   disabled?: boolean
   danger?: boolean
   checked?: boolean
+  /** When true, render a divider instead of an item. */
   separator?: boolean
 }
 
