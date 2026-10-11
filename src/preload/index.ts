@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import { ALL_IPC_CHANNELS, IpcChannels, type IpcChannel } from '../shared/ipc-channels'
-import type { AppVersionInfo, ThemeMode, Unsubscribe } from '../shared/types'
+import type { AppVersionInfo, ThemeMode, ThemeState, Unsubscribe } from '../shared/types'
 
 const allowedChannels = new Set<string>(ALL_IPC_CHANNELS)
 
@@ -25,10 +25,10 @@ const api = {
   appInfo: (): Promise<AppVersionInfo> => ipcRenderer.invoke(IpcChannels.AppGetInfo),
 
   theme: {
-    get: (): Promise<ThemeMode> => ipcRenderer.invoke(IpcChannels.ThemeGet),
+    get: (): Promise<ThemeState> => ipcRenderer.invoke(IpcChannels.ThemeGet),
     set: (mode: ThemeMode): Promise<void> => ipcRenderer.invoke(IpcChannels.ThemeSet, mode),
-    onChanged: (listener: (mode: ThemeMode) => void): Unsubscribe =>
-      subscribe<ThemeMode>(IpcChannels.ThemeChanged, listener)
+    onChanged: (listener: (state: ThemeState) => void): Unsubscribe =>
+      subscribe<ThemeState>(IpcChannels.ThemeChanged, listener)
   }
 } as const
 

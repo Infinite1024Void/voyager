@@ -5,6 +5,12 @@
 
 export type ThemeMode = 'system' | 'light' | 'dark'
 
+/** Resolved theme: `mode` is the user preference, `dark` the effective scheme. */
+export interface ThemeState {
+  mode: ThemeMode
+  dark: boolean
+}
+
 export interface AppVersionInfo {
   app: string
   electron: string
