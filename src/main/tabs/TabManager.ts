@@ -214,8 +214,11 @@ export class TabManager {
   private wireEvents(entry: TabEntry): void {
     const wc = entry.view.webContents
 
-    // window.open and target=_blank always become new tabs for now.
-    wc.setWindowOpenHandler(() => ({ action: 'deny' }))
+    // window.open and target=_blank become new tabs instead of new windows.
+    wc.setWindowOpenHandler(({ url }) => {
+      this.create({ url })
+      return { action: 'deny' }
+    })
 
     wc.on('page-title-updated', () => {
       entry.title = wc.getTitle()
