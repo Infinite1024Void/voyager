@@ -1,6 +1,8 @@
 import { join } from 'node:path'
 import { BaseWindow, WebContentsView } from 'electron'
 import { IpcChannels } from '../../shared/ipc-channels'
+import type { BrowserState } from '../../shared/types'
+import { sessionStore } from '../store'
 import { TabManager } from '../tabs/TabManager'
 import { DEFAULT_CHROME_HEIGHT, computeLayout, type WindowLayout } from './ChromeLayout'
 
@@ -47,6 +49,7 @@ export class WindowController {
 
     this.tabs = new TabManager(this, (state) => {
       this.sendToChrome(IpcChannels.TabsStateChanged, state)
+      this.persistSession(state)
     })
 
     this.window.contentView.addChildView(this.chrome)
@@ -109,7 +112,7 @@ export class WindowController {
     this.window.once('closed', callback)
   }
 
-  /** Load the chrome renderer, open the first tab, and reveal the window. */
+  /** Load the chrome renderer, restore the last session, and reveal the window. */
   async show(): Promise<void> {
     const devServerUrl = process.env['ELECTRON_RENDERER_URL']
     if (devServerUrl) {
@@ -117,8 +120,41 @@ export class WindowController {
     } else {
       await this.chrome.webContents.loadFile(join(__dirname, '../renderer/index.html'))
     }
-    this.tabs.create()
+    this.restoreSession()
     this.window.show()
+  }
+
+  /** Replay the persisted tab set, falling back to a single blank tab. */
+  private restoreSession(): void {
+    const { tabs, activeIndex } = sessionStore.snapshot
+    if (tabs.length === 0) {
+      this.tabs.create()
+      return
+    }
+    const ids: string[] = []
+    for (const tab of tabs) {
+      const id = this.tabs.create({ url: tab.url, active: false })
+      if (tab.pinned) this.tabs.pinToggle(id)
+      ids.push(id)
+    }
+    const index = Math.min(Math.max(activeIndex, 0), ids.length - 1)
+    if (ids[index]) this.tabs.activate(ids[index])
+  }
+
+  /** Save the current tab set so the next launch can restore it. */
+  private persistSession(state: BrowserState): void {
+    if (this.disposed) return
+    const entries = state.tabs.map((tab) => ({
+      url: tab.url,
+      title: tab.title,
+      pinned: tab.pinned
+    }))
+    const activeIndex = Math.max(
+      0,
+      state.tabs.findIndex((tab) => tab.id === state.activeTabId)
+    )
+    sessionStore.set('tabs', entries)
+    sessionStore.set('activeIndex', activeIndex)
   }
 
   /** Recompute chrome + content regions from the window's current size. */

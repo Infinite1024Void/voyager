@@ -2,7 +2,7 @@ import { app, clipboard, ipcMain, nativeTheme } from 'electron'
 import { IpcChannels } from '../../shared/ipc-channels'
 import type { AppVersionInfo, NewTabRequest, ThemeMode, ThemeState } from '../../shared/types'
 import type { WindowController } from '../window/WindowController'
-import { getSettings, setSettings } from '../store/settings'
+import { getSettings, setSettings } from '../store'
 
 /** Outbound channel + access to the live window so handlers can act on it. */
 export interface IpcContext {

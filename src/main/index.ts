@@ -1,6 +1,6 @@
 import { app } from 'electron'
 import { registerIpcHandlers } from './ipc/register'
-import { flushAllStores } from './store/settings'
+import { flushAllStores } from './store'
 import { WindowController } from './window/WindowController'
 
 app.setName('Voyager')
