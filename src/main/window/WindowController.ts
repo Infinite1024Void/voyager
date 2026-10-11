@@ -3,6 +3,7 @@ import { BaseWindow, WebContentsView } from 'electron'
 import { IpcChannels } from '../../shared/ipc-channels'
 import type { BrowserState } from '../../shared/types'
 import { getSettings, sessionStore } from '../store'
+
 import { toggleBookmarksBar } from '../bookmarks/bookmarks'
 import { TabManager } from '../tabs/TabManager'
 import {
