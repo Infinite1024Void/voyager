@@ -1,5 +1,6 @@
 import { app } from 'electron'
 import { registerIpcHandlers } from './ipc/register'
+import { flushAllStores } from './store/settings'
 import { WindowController } from './window/WindowController'
 
 app.setName('Voyager')
@@ -11,6 +12,11 @@ registerIpcHandlers({
     controller?.sendToChrome(channel, payload)
   },
   getWindow: () => controller
+})
+
+// Persist any debounced store writes before the process goes away.
+app.on('will-quit', () => {
+  flushAllStores()
 })
 
 app.whenReady().then(async (): Promise<void> => {

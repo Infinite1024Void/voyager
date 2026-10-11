@@ -1,32 +1,20 @@
-import { app } from 'electron'
-import { join } from 'node:path'
-import type { ThemeMode } from '../../shared/types'
-import { readJsonFile, writeJsonFile } from './jsonFile'
+import { Store } from './Store'
 
-interface SettingsShape {
-  themeMode?: ThemeMode
+/** Persisted user preferences; new settings extend this shape over time. */
+export interface SettingsShape {
+  themeMode?: 'system' | 'light' | 'dark'
 }
 
-function settingsPath(): string {
-  return join(app.getPath('userData'), 'settings.json')
-}
+export const settingsStore = new Store<SettingsShape>('settings.json', {})
 
-let cache: SettingsShape | null = null
-
-function load(): SettingsShape {
-  if (cache === null) {
-    cache = readJsonFile<SettingsShape>(settingsPath(), {})
-  }
-  return cache
+export function flushAllStores(): void {
+  settingsStore.flush()
 }
 
 export function getSettings<K extends keyof SettingsShape>(key: K): SettingsShape[K] {
-  return load()[key]
+  return settingsStore.get(key)
 }
 
 export function setSettings<K extends keyof SettingsShape>(key: K, value: SettingsShape[K]): void {
-  const current = load()
-  current[key] = value
-  cache = current
-  writeJsonFile(settingsPath(), current)
+  settingsStore.set(key, value)
 }
