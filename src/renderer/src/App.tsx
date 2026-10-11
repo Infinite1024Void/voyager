@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ThemeProvider } from './components/providers/ThemeProvider'
 import { BookmarksBar } from './components/BookmarksBar'
 import { DownloadsPanel } from './components/DownloadsPanel'
+import { FindBar } from './components/FindBar'
 import { HistoryPanel } from './components/HistoryPanel'
 import { TabSearchPalette } from './components/TabSearchPalette'
 import { TitleBar } from './components/TitleBar'
@@ -17,6 +18,7 @@ import { useUiStore } from './state/uiStore'
 export default function App(): React.JSX.Element {
   const [historyOpen, setHistoryOpen] = useState(false)
   const [downloadsOpen, setDownloadsOpen] = useState(false)
+  const [findOpen, setFindOpen] = useState(false)
   useUiStore()
 
   useEffect(() => {
@@ -64,6 +66,11 @@ export default function App(): React.JSX.Element {
         setDownloadsOpen((v) => !v)
         return
       }
+      if (event.key.toLowerCase() === 'f' && (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey) {
+        event.preventDefault()
+        setFindOpen(true)
+        return
+      }
     }
     const openDownloads = () => setDownloadsOpen(true)
     window.addEventListener('keydown', handleKey)
@@ -93,6 +100,7 @@ export default function App(): React.JSX.Element {
           void window.voyager.downloads.clear()
         }}
       />
+      <FindBar open={findOpen} onClose={() => setFindOpen(false)} />
     </ThemeProvider>
   )
 }
