@@ -26,7 +26,8 @@ export const IpcChannels = {
   NavBack: 'nav:back',
   NavForward: 'nav:forward',
   NavReload: 'nav:reload',
-  NavStop: 'nav:stop'
+  NavStop: 'nav:stop',
+  NavGo: 'nav:go'
 } as const
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels]

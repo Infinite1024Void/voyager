@@ -53,7 +53,8 @@ const api = {
     back: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavBack),
     forward: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavForward),
     reload: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavReload),
-    stop: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavStop)
+    stop: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavStop),
+    go: (url: string): Promise<void> => ipcRenderer.invoke(IpcChannels.NavGo, url)
   }
 } as const
 

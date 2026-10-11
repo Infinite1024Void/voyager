@@ -180,6 +180,10 @@ export class TabManager {
     this.activeWebContents()?.stop()
   }
 
+  navigate(url: string): void {
+    this.activeWebContents()?.loadURL(url)
+  }
+
   muteToggle(id: string): void {
     const entry = this.entries.get(id)
     if (!entry) return

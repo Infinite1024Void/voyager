@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import type { BrowserState, NewTabRequest, TabState } from '../../../shared/types'
+import { resolveInput } from '../../../shared/url'
+import { DEFAULT_SEARCH_ENGINE, buildSearchUrl } from '../../../shared/search'
 
 interface BrowserStore extends BrowserState {
   ready: boolean
@@ -19,6 +21,8 @@ interface BrowserStore extends BrowserState {
   goForward: () => void
   reload: () => void
   stop: () => void
+  /** Resolve omnibox input to a URL or search and navigate the active tab. */
+  navigate: (input: string) => void
 }
 
 export const useBrowserStore = create<BrowserStore>()((set) => ({
@@ -70,6 +74,12 @@ export const useBrowserStore = create<BrowserStore>()((set) => ({
   },
   stop: () => {
     void window.voyager.navigation.stop()
+  },
+  navigate: (input) => {
+    const url = resolveInput(input, (query) =>
+      buildSearchUrl(DEFAULT_SEARCH_ENGINE, query)
+    )
+    void window.voyager.navigation.go(url)
   }
 }))
 
