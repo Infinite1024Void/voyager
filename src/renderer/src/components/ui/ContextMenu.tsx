@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { cn } from '../../lib/cn'
+import { useOverlaySignal } from '../../lib/overlay'
 
 export interface ContextMenuItem {
   label?: string
@@ -24,6 +25,8 @@ const MENU_PADDING = 8
 export function ContextMenu({ x, y, items, onClose }: ContextMenuProps): React.JSX.Element {
   const menuRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ left: x, top: y })
+
+  useOverlaySignal(true)
 
   useLayoutEffect(() => {
     const el = menuRef.current

@@ -39,7 +39,8 @@ export const IpcChannels = {
   BookmarksStateChanged: 'bookmarks:state-changed',
 
   UiFocusOmnibox: 'ui:focus-omnibox',
-  UiOpenTabSearch: 'ui:open-tab-search'
+  UiOpenTabSearch: 'ui:open-tab-search',
+  UiSetOverlayOpen: 'ui:set-overlay-open'
 } as const
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels]

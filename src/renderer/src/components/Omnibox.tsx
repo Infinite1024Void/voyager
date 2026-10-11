@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Globe, Search } from 'lucide-react'
 import { cn } from '../lib/cn'
+import { useOverlaySignal } from '../lib/overlay'
 import { DEFAULT_SEARCH_ENGINE, SEARCH_ENGINES, buildSearchUrl, parseSuggestions } from '../../../shared/search'
 import { useActiveTab, useBrowserStore } from '../state/browserStore'
 import { PageInfoPopover } from './PageInfoPopover'
@@ -55,6 +56,9 @@ export function Omnibox(): React.JSX.Element {
   const suggestions = useSuggestions(value, focused && value.trim().length > 0)
   const showDropdown = focused && value.trim() !== '' && !pageInfoOpen
   const rowCount = suggestions.length + 1 // index 0 is "search for ..."
+
+  // Let the dropdown / page-info popover escape the chrome strip.
+  useOverlaySignal(showDropdown || pageInfoOpen)
 
   const searchFor = (query: string): void => {
     navigate(buildSearchUrl(DEFAULT_SEARCH_ENGINE, query))

@@ -58,7 +58,8 @@
   }
 
   body {
-    @apply bg-bg font-sans text-[13px] text-fg antialiased;
+    @apply font-sans text-[13px] text-fg antialiased;
+    background: transparent;
     -webkit-user-select: none;
     user-select: none;
   }

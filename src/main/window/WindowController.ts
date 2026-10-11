@@ -25,6 +25,7 @@ export class WindowController {
   private readonly tabViews = new Set<WebContentsView>()
   private activeTabView: WebContentsView | null = null
   private chromeHeight = DEFAULT_CHROME_HEIGHT
+  private overlayOpen = false
   private layout: WindowLayout
   private disposed = false
 
@@ -52,6 +53,9 @@ export class WindowController {
         sandbox: true
       }
     })
+    // Transparent so the page shows through when the chrome expands to host
+    // an overlay (dropdown / palette / menu) below the toolbar.
+    this.chrome.setBackgroundColor('#00000000')
 
     this.tabs = new TabManager(this, (state) => {
       this.sendToChrome(IpcChannels.TabsStateChanged, state)
@@ -94,9 +98,22 @@ export class WindowController {
     this.applyLayout()
   }
 
+  /**
+   * Expand the chrome view over the whole window while an overlay is open so
+   * dropdowns, palettes and menus are not clipped to the chrome strip. The
+   * chrome background is transparent, so the page remains visible underneath.
+   */
+  setOverlayOpen(open: boolean): void {
+    if (this.overlayOpen === open) return
+    this.overlayOpen = open
+    this.applyLayout()
+  }
+
   attachTabView(view: WebContentsView): void {
     this.tabViews.add(view)
     this.window.contentView.addChildView(view)
+    // Keep chrome topmost so expanded overlays always render above the page.
+    this.window.contentView.addChildView(this.chrome)
     this.applyLayout()
   }
 
@@ -190,7 +207,8 @@ export class WindowController {
       x: 0,
       y: 0,
       width: this.layout.width,
-      height: this.layout.chromeHeight
+      // Overlay mode spans the window so popups escape the chrome strip.
+      height: this.overlayOpen ? this.layout.height : this.layout.chromeHeight
     })
     this.activeTabView?.setBounds({
       x: 0,

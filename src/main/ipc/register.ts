@@ -128,4 +128,12 @@ export function registerIpcHandlers(context: IpcContext): void {
       (visible) => context.getWindow()?.setBookmarksBarVisible(visible)
     )
   )
+
+  /* ---- chrome overlay -------------------------------------------------- */
+
+  // The chrome view is normally clipped to its strip height; while a dropdown,
+  // palette or menu is open it expands over the page so overlays are not cut off.
+  ipcMain.handle(IpcChannels.UiSetOverlayOpen, (_event, open: boolean) =>
+    context.getWindow()?.setOverlayOpen(open)
+  )
 }

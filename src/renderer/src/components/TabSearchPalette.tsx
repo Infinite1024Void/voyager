@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Loader2, Search } from 'lucide-react'
 import { cn } from '../lib/cn'
+import { useOverlaySignal } from '../lib/overlay'
 import { useBrowserStore } from '../state/browserStore'
 import { useUiStore } from '../state/uiStore'
 
@@ -24,6 +25,9 @@ export function TabSearchPalette(): React.JSX.Element | null {
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Expand the chrome view so the palette's full-window backdrop works.
+  useOverlaySignal(open)
 
   useEffect(() => {
     if (open) {
