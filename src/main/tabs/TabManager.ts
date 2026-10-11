@@ -418,6 +418,9 @@ export class TabManager {
       case 'toggle-bookmarks-bar':
         this.window.toggleBookmarksBar()
         break
+      case 'open-history':
+        this.window.sendToChrome(IpcChannels.UiOpenTabSearch)
+        break
     }
   }
 

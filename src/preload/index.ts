@@ -4,6 +4,7 @@ import type {
   AppVersionInfo,
   BookmarksState,
   BrowserState,
+  HistoryState,
   NewBookmarkInput,
   NewTabRequest,
   ThemeMode,
@@ -83,16 +84,13 @@ const api = {
   },
 
   history: {
-    getState: (): Promise<import('../shared/types').HistoryState> =>
-      ipcRenderer.invoke(IpcChannels.HistoryGetState),
-    remove: (id: string): Promise<import('../shared/types').HistoryState> =>
-      ipcRenderer.invoke(IpcChannels.HistoryRemove, id),
-    clear: (): Promise<import('../shared/types').HistoryState> =>
-      ipcRenderer.invoke(IpcChannels.HistoryClear),
-    recordVisit: (visit: { url: string; title: string }): Promise<import('../shared/types').HistoryState> =>
+    getState: (): Promise<HistoryState> => ipcRenderer.invoke(IpcChannels.HistoryGetState),
+    remove: (id: string): Promise<HistoryState> => ipcRenderer.invoke(IpcChannels.HistoryRemove, id),
+    clear: (): Promise<HistoryState> => ipcRenderer.invoke(IpcChannels.HistoryClear),
+    recordVisit: (visit: { url: string; title: string }): Promise<HistoryState> =>
       ipcRenderer.invoke(IpcChannels.HistoryRecordVisit, visit),
-    onStateChanged: (listener: (state: import('../shared/types').HistoryState) => void): Unsubscribe =>
-      subscribe<import('../shared/types').HistoryState>(IpcChannels.HistoryStateChanged, listener)
+    onStateChanged: (listener: (state: HistoryState) => void): Unsubscribe =>
+      subscribe<HistoryState>(IpcChannels.HistoryStateChanged, listener)
   },
 
   ui: {
