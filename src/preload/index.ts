@@ -82,6 +82,19 @@ const api = {
       subscribe<BookmarksState>(IpcChannels.BookmarksStateChanged, listener)
   },
 
+  history: {
+    getState: (): Promise<import('../shared/types').HistoryState> =>
+      ipcRenderer.invoke(IpcChannels.HistoryGetState),
+    remove: (id: string): Promise<import('../shared/types').HistoryState> =>
+      ipcRenderer.invoke(IpcChannels.HistoryRemove, id),
+    clear: (): Promise<import('../shared/types').HistoryState> =>
+      ipcRenderer.invoke(IpcChannels.HistoryClear),
+    recordVisit: (visit: { url: string; title: string }): Promise<import('../shared/types').HistoryState> =>
+      ipcRenderer.invoke(IpcChannels.HistoryRecordVisit, visit),
+    onStateChanged: (listener: (state: import('../shared/types').HistoryState) => void): Unsubscribe =>
+      subscribe<import('../shared/types').HistoryState>(IpcChannels.HistoryStateChanged, listener)
+  },
+
   ui: {
     onFocusOmnibox: (listener: () => void): Unsubscribe => subscribe<void>(IpcChannels.UiFocusOmnibox, listener),
     onOpenTabSearch: (listener: () => void): Unsubscribe =>

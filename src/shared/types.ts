@@ -63,3 +63,15 @@ export interface BookmarksState {
   items: BookmarkItem[]
   barVisible: boolean
 }
+
+export interface HistoryEntry {
+  id: string
+  url: string
+  title: string
+  visitedAt: number
+  visitCount: number
+}
+
+export interface HistoryState {
+  entries: HistoryEntry[]
+}

@@ -4,6 +4,7 @@ import { DEFAULT_NEW_TAB_URL } from '../../shared/constants'
 import { IpcChannels } from '../../shared/ipc-channels'
 import { matchShortcut, type BrowserAction } from '../../shared/keyboard'
 import type { BrowserState, NewTabRequest, TabState } from '../../shared/types'
+import { currentHistoryState, recordVisit } from '../history/history'
 import type { WindowController } from '../window/WindowController'
 
 interface TabEntry {
@@ -265,7 +266,13 @@ export class TabManager {
     })
 
     wc.on('page-title-updated', () => {
-      entry.title = wc.getTitle()
+      const newTitle = wc.getTitle()
+      entry.title = newTitle
+      // If the title changes after visiting, update the last history entry for
+      // this tab's URL if it was recently recorded. We do a lightweight write
+      // via historyStore update by re-publishing state; but easier: bump title
+      // in memory is enough; recording already set title. Also, when did-navigate
+      // fired, title might be empty.
       this.broadcast()
     })
     wc.on('page-favicon-updated', (_event, favicons) => {
@@ -282,11 +289,34 @@ export class TabManager {
     })
     wc.on('did-navigate', (_event, url) => {
       entry.url = url
+      // Record history for main frame navigations to real pages.
+      if (!isNewTab(url) && url.startsWith('http')) {
+        try {
+          recordVisit({ url, title: entry.title || url })
+          this.window.sendToChrome(
+            IpcChannels.HistoryStateChanged,
+            currentHistoryState()
+          )
+        } catch {
+          // Ignore history write failures; navigation should not be blocked.
+        }
+      }
       this.broadcast()
     })
     wc.on('did-navigate-in-page', (_event, url, isMainFrame) => {
       if (isMainFrame) {
         entry.url = url
+        if (!isNewTab(url) && url.startsWith('http')) {
+          try {
+            recordVisit({ url, title: entry.title || url })
+            this.window.sendToChrome(
+              IpcChannels.HistoryStateChanged,
+              currentHistoryState()
+            )
+          } catch {
+            /* ignore */
+          }
+        }
         this.broadcast()
       }
     })

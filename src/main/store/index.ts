@@ -1,5 +1,6 @@
 import { Store } from './Store'
 import type { BookmarksShape } from './bookmarks'
+import type { HistoryShape } from './history'
 import type { SessionShape } from './session'
 import type { SettingsShape } from './settings'
 
@@ -14,11 +15,16 @@ export const bookmarksStore = new Store<BookmarksShape>('bookmarks.json', {
   items: []
 })
 
+export const historyStore = new Store<HistoryShape>('history.json', {
+  entries: []
+})
+
 /** Persist every debounced store before the process goes away. */
 export function flushAllStores(): void {
   settingsStore.flush()
   sessionStore.flush()
   bookmarksStore.flush()
+  historyStore.flush()
 }
 
 export function getSettings<K extends keyof SettingsShape>(key: K): SettingsShape[K] {

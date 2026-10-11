@@ -38,6 +38,12 @@ export const IpcChannels = {
   BookmarksToggleBar: 'bookmarks:toggle-bar',
   BookmarksStateChanged: 'bookmarks:state-changed',
 
+  HistoryGetState: 'history:get-state',
+  HistoryStateChanged: 'history:state-changed',
+  HistoryRecordVisit: 'history:record-visit',
+  HistoryRemove: 'history:remove',
+  HistoryClear: 'history:clear',
+
   UiFocusOmnibox: 'ui:focus-omnibox',
   UiOpenTabSearch: 'ui:open-tab-search',
   UiSetOverlayOpen: 'ui:set-overlay-open'

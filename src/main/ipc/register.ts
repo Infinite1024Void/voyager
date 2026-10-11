@@ -8,6 +8,13 @@ import type {
   ThemeState
 } from '../../shared/types'
 import { addBookmark, currentBookmarksState, removeBookmark, toggleBookmarksBar } from '../bookmarks/bookmarks'
+import {
+  clearHistory,
+  currentHistoryState,
+  publishHistory,
+  recordVisit,
+  removeHistory
+} from '../history/history'
 import type { WindowController } from '../window/WindowController'
 import { getSettings, setSettings } from '../store'
 
@@ -128,6 +135,25 @@ export function registerIpcHandlers(context: IpcContext): void {
       (visible) => context.getWindow()?.setBookmarksBarVisible(visible)
     )
   )
+
+  /* ---- history --------------------------------------------------------- */
+
+  ipcMain.handle(IpcChannels.HistoryGetState, () => currentHistoryState())
+
+  ipcMain.handle(IpcChannels.HistoryRecordVisit, (_event, visit: { url: string; title: string }) => {
+    recordVisit(visit)
+    return publishHistory((state) => context.send(IpcChannels.HistoryStateChanged, state))
+  })
+
+  ipcMain.handle(IpcChannels.HistoryRemove, (_event, id: string) => {
+    removeHistory(id)
+    return publishHistory((state) => context.send(IpcChannels.HistoryStateChanged, state))
+  })
+
+  ipcMain.handle(IpcChannels.HistoryClear, () => {
+    clearHistory()
+    return publishHistory((state) => context.send(IpcChannels.HistoryStateChanged, state))
+  })
 
   /* ---- chrome overlay -------------------------------------------------- */
 
