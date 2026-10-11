@@ -82,6 +82,7 @@ export function Omnibox(): React.JSX.Element {
         />
         <input
           ref={inputRef}
+          id="omnibox-input"
           type="text"
           spellCheck={false}
           value={value}
@@ -110,6 +111,9 @@ export function Omnibox(): React.JSX.Element {
             } else if (event.key === 'Enter') {
               event.preventDefault()
               runRow(highlight)
+            } else if (event.key === 'Escape') {
+              setFocused(false)
+              inputRef.current?.blur()
             }
           }}
           className="min-w-0 flex-1 bg-transparent text-fg outline-none placeholder:text-muted"

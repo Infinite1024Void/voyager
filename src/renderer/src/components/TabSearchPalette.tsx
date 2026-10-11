@@ -16,7 +16,6 @@ function prettifyUrl(url: string): string {
 export function TabSearchPalette(): React.JSX.Element | null {
   const open = useUiStore((state) => state.tabSearchOpen)
   const closeTabSearch = useUiStore((state) => state.closeTabSearch)
-  const openTabSearch = useUiStore((state) => state.openTabSearch)
 
   const tabs = useBrowserStore((state) => state.tabs)
   const activeTabId = useBrowserStore((state) => state.activeTabId)
@@ -25,18 +24,6 @@ export function TabSearchPalette(): React.JSX.Element | null {
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
-
-  // ⌘/Ctrl+Shift+A opens the palette while the chrome has focus.
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'a') {
-        event.preventDefault()
-        openTabSearch()
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [openTabSearch])
 
   useEffect(() => {
     if (open) {

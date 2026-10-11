@@ -8,6 +8,9 @@ interface BrowserStore extends BrowserState {
   /** Replace store state with the latest snapshot from the main process. */
   applyState: (state: BrowserState) => void
   activateTab: (id: string) => void
+  activateNext: () => void
+  activatePrevious: () => void
+  activateTabAt: (index: number) => void
   closeTab: (id: string) => void
   createTab: (request?: NewTabRequest) => void
   reorderTabs: (ids: string[]) => void
@@ -17,15 +20,17 @@ interface BrowserStore extends BrowserState {
   closeOthers: (id: string) => void
   closeToRight: (id: string) => void
   copyTabUrl: (id: string) => void
+  reopenTab: () => void
   goBack: () => void
   goForward: () => void
   reload: () => void
+  forceReload: () => void
   stop: () => void
   /** Resolve omnibox input to a URL or search and navigate the active tab. */
   navigate: (input: string) => void
 }
 
-export const useBrowserStore = create<BrowserStore>()((set) => ({
+export const useBrowserStore = create<BrowserStore>()((set, get) => ({
   tabs: [],
   activeTabId: null,
   ready: false,
@@ -35,6 +40,23 @@ export const useBrowserStore = create<BrowserStore>()((set) => ({
 
   activateTab: (id) => {
     void window.voyager.tabs.activate(id)
+  },
+  activateNext: () => {
+    const state = get()
+    if (state.tabs.length === 0) return
+    const current = state.tabs.findIndex((tab) => tab.id === state.activeTabId)
+    state.activateTab(state.tabs[(current + 1) % state.tabs.length].id)
+  },
+  activatePrevious: () => {
+    const state = get()
+    if (state.tabs.length === 0) return
+    const current = state.tabs.findIndex((tab) => tab.id === state.activeTabId)
+    state.activateTab(state.tabs[(current - 1 + state.tabs.length) % state.tabs.length].id)
+  },
+  activateTabAt: (index) => {
+    const state = get()
+    const tab = state.tabs[Math.min(Math.max(index, 0), state.tabs.length - 1)]
+    if (tab) state.activateTab(tab.id)
   },
   closeTab: (id) => {
     void window.voyager.tabs.close(id)
@@ -63,6 +85,9 @@ export const useBrowserStore = create<BrowserStore>()((set) => ({
   copyTabUrl: (id) => {
     void window.voyager.tabs.copyUrl(id)
   },
+  reopenTab: () => {
+    void window.voyager.tabs.reopenLastClosed()
+  },
   goBack: () => {
     void window.voyager.navigation.back()
   },
@@ -71,6 +96,9 @@ export const useBrowserStore = create<BrowserStore>()((set) => ({
   },
   reload: () => {
     void window.voyager.navigation.reload()
+  },
+  forceReload: () => {
+    void window.voyager.navigation.forceReload()
   },
   stop: () => {
     void window.voyager.navigation.stop()

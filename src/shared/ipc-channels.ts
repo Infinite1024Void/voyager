@@ -27,7 +27,13 @@ export const IpcChannels = {
   NavForward: 'nav:forward',
   NavReload: 'nav:reload',
   NavStop: 'nav:stop',
-  NavGo: 'nav:go'
+  NavGo: 'nav:go',
+  NavForceReload: 'nav:force-reload',
+
+  TabsReopenLastClosed: 'tabs:reopen-last-closed',
+
+  UiFocusOmnibox: 'ui:focus-omnibox',
+  UiOpenTabSearch: 'ui:open-tab-search'
 } as const
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels]

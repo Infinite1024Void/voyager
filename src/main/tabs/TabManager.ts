@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto'
-import { WebContentsView, type WebContents } from 'electron'
+import { WebContentsView, type WebContents, type Input } from 'electron'
 import { DEFAULT_NEW_TAB_URL } from '../../shared/constants'
+import { IpcChannels } from '../../shared/ipc-channels'
+import { matchShortcut, type BrowserAction } from '../../shared/keyboard'
 import type { BrowserState, NewTabRequest, TabState } from '../../shared/types'
 import type { WindowController } from '../window/WindowController'
 
@@ -30,6 +32,7 @@ export class TabManager {
   private readonly entries = new Map<string, TabEntry>()
   private order: string[] = []
   private activeId: string | null = null
+  private readonly closedTabs: string[] = []
 
   constructor(
     private readonly window: WindowController,
@@ -120,6 +123,11 @@ export class TabManager {
     const entry = this.entries.get(id)
     if (!entry) return
 
+    if (entry.url !== '' && !isNewTab(entry.url)) {
+      this.closedTabs.push(entry.url)
+      if (this.closedTabs.length > 12) this.closedTabs.shift()
+    }
+
     const index = this.order.indexOf(id)
     this.order.splice(index, 1)
     this.entries.delete(id)
@@ -176,12 +184,43 @@ export class TabManager {
     this.activeWebContents()?.reload()
   }
 
+  reloadIgnoringCache(): void {
+    this.activeWebContents()?.reloadIgnoringCache()
+  }
+
   stop(): void {
     this.activeWebContents()?.stop()
   }
 
   navigate(url: string): void {
     this.activeWebContents()?.loadURL(url)
+  }
+
+  get isActiveLoading(): boolean {
+    return this.entries.get(this.activeId ?? '')?.loading ?? false
+  }
+
+  reopenLastClosed(): void {
+    const url = this.closedTabs.pop()
+    if (url) this.create({ url, active: true })
+  }
+
+  activateNth(n: number): void {
+    const index = Math.min(Math.max(n, 1), this.order.length) - 1
+    const id = this.order[index]
+    if (id) this.activate(id)
+  }
+
+  activateNext(): void {
+    if (this.order.length === 0) return
+    const current = this.activeId ? this.order.indexOf(this.activeId) : -1
+    this.activate(this.order[(current + 1) % this.order.length])
+  }
+
+  activatePrevious(): void {
+    if (this.order.length === 0) return
+    const current = this.activeId ? this.order.indexOf(this.activeId) : 0
+    this.activate(this.order[(current - 1 + this.order.length) % this.order.length])
   }
 
   muteToggle(id: string): void {
@@ -218,6 +257,11 @@ export class TabManager {
     wc.setWindowOpenHandler(({ url }) => {
       this.create({ url })
       return { action: 'deny' }
+    })
+
+    // Browser shortcuts keep working while the page itself has focus.
+    wc.on('before-input-event', (event, input) => {
+      this.handleBeforeInput(event, input)
     })
 
     wc.on('page-title-updated', () => {
@@ -266,6 +310,82 @@ export class TabManager {
 
   private broadcast(): void {
     this.onStateChanged(this.snapshot())
+  }
+
+  private handleBeforeInput(event: Electron.Event, input: Input): void {
+    if (input.type !== 'keyDown') return
+    const matched = matchShortcut(
+      {
+        key: input.key,
+        meta: input.meta,
+        ctrl: input.control,
+        shift: input.shift,
+        alt: input.alt
+      },
+      process.platform
+    )
+    if (!matched) return
+    if (!this.canHandleShortcut(matched.action)) return
+    event.preventDefault()
+    this.performShortcut(matched.action, matched.index)
+  }
+
+  private canHandleShortcut(action: BrowserAction): boolean {
+    if (action === 'stop') return this.isActiveLoading
+    if (action === 'back') {
+      return this.activeWebContents()?.navigationHistory.canGoBack() ?? false
+    }
+    if (action === 'forward') {
+      return this.activeWebContents()?.navigationHistory.canGoForward() ?? false
+    }
+    return true
+  }
+
+  private performShortcut(action: BrowserAction, index?: number): void {
+    switch (action) {
+      case 'new-tab':
+        this.create()
+        break
+      case 'close-tab':
+        if (this.activeId) this.close(this.activeId)
+        break
+      case 'reopen-tab':
+        this.reopenLastClosed()
+        break
+      case 'next-tab':
+        this.activateNext()
+        break
+      case 'prev-tab':
+        this.activatePrevious()
+        break
+      case 'select-tab-n':
+        this.activateNth(index ?? 1)
+        break
+      case 'select-tab-last':
+        this.activateNth(this.order.length)
+        break
+      case 'focus-omnibox':
+        this.window.sendToChrome(IpcChannels.UiFocusOmnibox)
+        break
+      case 'open-tab-search':
+        this.window.sendToChrome(IpcChannels.UiOpenTabSearch)
+        break
+      case 'reload':
+        this.reload()
+        break
+      case 'force-reload':
+        this.reloadIgnoringCache()
+        break
+      case 'stop':
+        this.stop()
+        break
+      case 'back':
+        this.goBack()
+        break
+      case 'forward':
+        this.goForward()
+        break
+    }
   }
 
   private activeWebContents(): WebContents | null {

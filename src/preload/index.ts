@@ -21,6 +21,9 @@ function subscribe<TPayload>(
 }
 
 const api = {
+  /** Platform the app runs on, used to resolve shortcut modifiers. */
+  platform: process.platform,
+
   /** Read-only platform/version info resolved in the main process. */
   appInfo: (): Promise<AppVersionInfo> => ipcRenderer.invoke(IpcChannels.AppGetInfo),
 
@@ -45,6 +48,7 @@ const api = {
     closeToRight: (id: string): Promise<void> =>
       ipcRenderer.invoke(IpcChannels.TabsCloseToRight, id),
     copyUrl: (id: string): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsCopyUrl, id),
+    reopenLastClosed: (): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsReopenLastClosed),
     onStateChanged: (listener: (state: BrowserState) => void): Unsubscribe =>
       subscribe<BrowserState>(IpcChannels.TabsStateChanged, listener)
   },
@@ -54,7 +58,14 @@ const api = {
     forward: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavForward),
     reload: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavReload),
     stop: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavStop),
-    go: (url: string): Promise<void> => ipcRenderer.invoke(IpcChannels.NavGo, url)
+    go: (url: string): Promise<void> => ipcRenderer.invoke(IpcChannels.NavGo, url),
+    forceReload: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavForceReload)
+  },
+
+  ui: {
+    onFocusOmnibox: (listener: () => void): Unsubscribe => subscribe<void>(IpcChannels.UiFocusOmnibox, listener),
+    onOpenTabSearch: (listener: () => void): Unsubscribe =>
+      subscribe<void>(IpcChannels.UiOpenTabSearch, listener)
   }
 } as const
 
