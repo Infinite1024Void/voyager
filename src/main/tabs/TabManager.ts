@@ -482,6 +482,12 @@ export class TabManager {
       case 'open-history':
         this.window.sendToChrome(IpcChannels.UiOpenTabSearch)
         break
+      case 'open-downloads':
+        this.window.sendToChrome(IpcChannels.UiOpenTabSearch)
+        break
+      case 'dev-tools':
+        this.toggleDevTools()
+        break
     }
   }
 

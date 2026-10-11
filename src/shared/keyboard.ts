@@ -21,6 +21,7 @@ export type BrowserAction =
   | 'toggle-bookmarks-bar'
   | 'open-history'
   | 'open-downloads'
+  | 'dev-tools'
 
 export interface ChordInput {
   key: string
@@ -66,6 +67,7 @@ export const SHORTCUTS: readonly ShortcutDef[] = [
   chord('toggle-bookmarks-bar', 'b', { meta: true, shift: true }),
   chord('open-history', 'y', { meta: true }),
   chord('open-downloads', 'j', { meta: true, shift: true }),
+  chord('dev-tools', 'i', { meta: true, alt: true }),
   chord('stop', 'Escape'),
   { action: 'select-tab-n', key: '1', meta: true, index: 1 },
   { action: 'select-tab-n', key: '2', meta: true, index: 2 },
