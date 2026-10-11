@@ -78,7 +78,8 @@ const api = {
     zoomOut: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavZoomOut),
     zoomReset: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavZoomReset),
     print: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavPrint),
-    printToPdf: (): Promise<string | null> => ipcRenderer.invoke(IpcChannels.NavPrintToPdf)
+    printToPdf: (): Promise<string | null> => ipcRenderer.invoke(IpcChannels.NavPrintToPdf),
+    toggleDevTools: (): Promise<void> => ipcRenderer.invoke(IpcChannels.DevToolsToggle)
   },
 
   bookmarks: {

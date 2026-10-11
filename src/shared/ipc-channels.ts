@@ -36,6 +36,7 @@ export const IpcChannels = {
   NavZoomReset: 'nav:zoom-reset',
   NavPrint: 'nav:print',
   NavPrintToPdf: 'nav:print-to-pdf',
+  DevToolsToggle: 'devtools:toggle',
 
   TabsReopenLastClosed: 'tabs:reopen-last-closed',
 

@@ -131,6 +131,7 @@ export function registerIpcHandlers(context: IpcContext): void {
     const buf = await context.getWindow()?.tabs.printToPdf()
     return buf ? buf.toString('base64') : null
   })
+  ipcMain.handle(IpcChannels.DevToolsToggle, () => context.getWindow()?.tabs.toggleDevTools())
 
   ipcMain.handle(IpcChannels.TabsReopenLastClosed, () => context.getWindow()?.tabs.reopenLastClosed())
 

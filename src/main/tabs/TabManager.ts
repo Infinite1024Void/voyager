@@ -250,6 +250,16 @@ export class TabManager {
     if (url) this.create({ url, active: true })
   }
 
+  toggleDevTools(): void {
+    const wc = this.activeWebContents()
+    if (!wc) return
+    if (wc.isDevToolsOpened()) {
+      wc.closeDevTools()
+    } else {
+      wc.openDevTools()
+    }
+  }
+
   activateNth(n: number): void {
     const index = Math.min(Math.max(n, 1), this.order.length) - 1
     const id = this.order[index]
