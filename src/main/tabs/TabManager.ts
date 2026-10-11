@@ -25,6 +25,10 @@ function isNewTab(url: string): boolean {
   return url === DEFAULT_NEW_TAB_URL || url === ''
 }
 
+function isInternalUrl(url: string): boolean {
+  return url.startsWith('voyager://')
+}
+
 /**
  * Owns every tab in the window. Each tab is a sandboxed WebContentsView whose
  * lifecycle events are projected into a TabState snapshot; any change is
@@ -262,6 +266,13 @@ export class TabManager {
     wc.setWindowOpenHandler(({ url }) => {
       this.create({ url })
       return { action: 'deny' }
+    })
+
+    wc.addListener('will-navigate', (event, url) => {
+      if (isInternalUrl(url)) {
+        event.preventDefault()
+        this.create({ url })
+      }
     })
 
     // Browser shortcuts keep working while the page itself has focus.
