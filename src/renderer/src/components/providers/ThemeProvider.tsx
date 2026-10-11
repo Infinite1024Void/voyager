@@ -1,13 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { ThemeMode, ThemeState } from '../../../../shared/types'
-
-interface ThemeContextValue {
-  mode: ThemeMode
-  dark: boolean
-  setMode: (mode: ThemeMode) => void
-}
-
-const ThemeContext = createContext<ThemeContextValue | null>(null)
+import { ThemeContext, type ThemeContextValue } from './theme-context'
 
 export function ThemeProvider({ children }: { children: ReactNode }): React.JSX.Element {
   const [state, setState] = useState<ThemeState>({ mode: 'system', dark: false })
@@ -33,12 +26,4 @@ export function ThemeProvider({ children }: { children: ReactNode }): React.JSX.
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
-}
-
-export function useTheme(): ThemeContextValue {
-  const context = useContext(ThemeContext)
-  if (context === null) {
-    throw new Error('useTheme must be used within a ThemeProvider')
-  }
-  return context
 }
