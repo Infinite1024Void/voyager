@@ -17,6 +17,11 @@ import {
 } from '../history/history'
 import type { WindowController } from '../window/WindowController'
 import { getSettings, setSettings } from '../store'
+import {
+  clearDownloads,
+  currentDownloadsState,
+  publishDownloads
+} from '../downloads/downloads'
 
 /** Outbound channel + access to the live window so handlers can act on it. */
 export interface IpcContext {
@@ -39,7 +44,7 @@ function applyThemeMode(mode: ThemeMode): ThemeState {
 
 export function registerIpcHandlers(context: IpcContext): void {
   // Apply the persisted theme before any renderer starts.
-  const savedMode = getSettings('themeMode') ?? 'system'
+  const savedMode = (getSettings('themeMode') as ThemeMode | undefined) ?? 'system'
   nativeTheme.themeSource = savedMode
 
   ipcMain.handle(IpcChannels.AppGetInfo, (): AppVersionInfo => ({
@@ -153,6 +158,15 @@ export function registerIpcHandlers(context: IpcContext): void {
   ipcMain.handle(IpcChannels.HistoryClear, () => {
     clearHistory()
     return publishHistory((state) => context.send(IpcChannels.HistoryStateChanged, state))
+  })
+
+  /* ---- downloads ------------------------------------------------------ */
+
+  ipcMain.handle(IpcChannels.DownloadsGetState, () => currentDownloadsState())
+
+  ipcMain.handle(IpcChannels.DownloadsClear, () => {
+    clearDownloads()
+    return publishDownloads((state) => context.send(IpcChannels.DownloadsStateChanged, state))
   })
 
   /* ---- chrome overlay -------------------------------------------------- */

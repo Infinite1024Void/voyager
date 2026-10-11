@@ -4,6 +4,7 @@ import type {
   AppVersionInfo,
   BookmarksState,
   BrowserState,
+  DownloadsState,
   HistoryState,
   NewBookmarkInput,
   NewTabRequest,
@@ -91,6 +92,13 @@ const api = {
       ipcRenderer.invoke(IpcChannels.HistoryRecordVisit, visit),
     onStateChanged: (listener: (state: HistoryState) => void): Unsubscribe =>
       subscribe<HistoryState>(IpcChannels.HistoryStateChanged, listener)
+  },
+
+  downloads: {
+    getState: (): Promise<DownloadsState> => ipcRenderer.invoke(IpcChannels.DownloadsGetState),
+    clear: (): Promise<DownloadsState> => ipcRenderer.invoke(IpcChannels.DownloadsClear),
+    onStateChanged: (listener: (state: DownloadsState) => void): Unsubscribe =>
+      subscribe<DownloadsState>(IpcChannels.DownloadsStateChanged, listener)
   },
 
   ui: {

@@ -38,6 +38,10 @@ export const IpcChannels = {
   BookmarksToggleBar: 'bookmarks:toggle-bar',
   BookmarksStateChanged: 'bookmarks:state-changed',
 
+  DownloadsGetState: 'downloads:get-state',
+  DownloadsStateChanged: 'downloads:state-changed',
+  DownloadsClear: 'downloads:clear',
+
   HistoryGetState: 'history:get-state',
   HistoryStateChanged: 'history:state-changed',
   HistoryRecordVisit: 'history:record-visit',

@@ -11,7 +11,7 @@ import { bookmarksStore, getSettings, setSettings } from '../store'
 export function currentBookmarksState(): BookmarksState {
   return {
     items: bookmarksStore.get('items'),
-    barVisible: getSettings('bookmarksBarVisible') ?? false
+    barVisible: (getSettings('bookmarksBarVisible') as boolean | undefined) ?? false
   }
 }
 

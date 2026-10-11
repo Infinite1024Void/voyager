@@ -75,3 +75,19 @@ export interface HistoryEntry {
 export interface HistoryState {
   entries: HistoryEntry[]
 }
+
+export interface DownloadItem {
+  id: string
+  url: string
+  filename: string
+  receivedBytes: number
+  totalBytes: number
+  state: 'progressing' | 'completed' | 'interrupted' | 'cancelled'
+  path?: string
+  startTime: number
+  endTime?: number
+}
+
+export interface DownloadsState {
+  items: DownloadItem[]
+}

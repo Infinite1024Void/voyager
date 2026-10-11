@@ -75,7 +75,7 @@ export class WindowController {
     this.window.on('closed', () => {
       this.disposed = true
     })
-    this.setBookmarksBarVisible(getSettings('bookmarksBarVisible') ?? false)
+    this.setBookmarksBarVisible((getSettings('bookmarksBarVisible') as boolean | undefined) ?? false)
     this.applyLayout()
   }
 
