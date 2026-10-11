@@ -6,23 +6,104 @@ import { useBrowserStore } from '../state/browserStore'
 interface TabItemProps {
   tab: TabState
   active: boolean
+  dragging: boolean
+  dropTarget: boolean
+  onDragStart: (id: string) => void
+  onDragOver: (id: string) => void
+  onDrop: (id: string) => void
+  onDragEnd: () => void
+  onContextMenu: (x: number, y: number) => void
 }
 
-export function TabItem({ tab, active }: TabItemProps): React.JSX.Element {
+export function TabItem({
+  tab,
+  active,
+  dragging,
+  dropTarget,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  onContextMenu
+}: TabItemProps): React.JSX.Element {
   const activateTab = useBrowserStore((state) => state.activateTab)
   const closeSelected = useBrowserStore((state) => state.closeTab)
+
+  if (tab.pinned) {
+    return (
+      <div
+        role="tab"
+        aria-selected={active}
+        draggable
+        title={tab.title}
+        onClick={() => activateTab(tab.id)}
+        onDragStart={(event) => {
+          event.dataTransfer.setData('text/plain', tab.id)
+          event.dataTransfer.effectAllowed = 'move'
+          onDragStart(tab.id)
+        }}
+        onDragOver={(event) => {
+          event.preventDefault()
+          event.dataTransfer.dropEffect = 'move'
+          onDragOver(tab.id)
+        }}
+        onDrop={(event) => {
+          event.preventDefault()
+          onDrop(tab.id)
+        }}
+        onDragEnd={onDragEnd}
+        onContextMenu={(event) => {
+          event.preventDefault()
+          onContextMenu(event.clientX, event.clientY)
+        }}
+        className={cn(
+          'no-drag flex h-[31px] w-[36px] shrink-0 items-center justify-center rounded-t-[9px] border border-b-0',
+          'transition-colors',
+          active
+            ? 'border-border bg-surface'
+            : 'border-transparent hover:bg-hover',
+          dragging && 'opacity-40',
+          dropTarget && 'border-l-2 border-l-accent'
+        )}
+      >
+        <TabIcon tab={tab} />
+      </div>
+    )
+  }
 
   return (
     <div
       role="tab"
       aria-selected={active}
+      draggable
       onClick={() => activateTab(tab.id)}
+      onDragStart={(event) => {
+        event.dataTransfer.setData('text/plain', tab.id)
+        event.dataTransfer.effectAllowed = 'move'
+        onDragStart(tab.id)
+      }}
+      onDragOver={(event) => {
+        event.preventDefault()
+        event.dataTransfer.dropEffect = 'move'
+        onDragOver(tab.id)
+      }}
+      onDrop={(event) => {
+        event.preventDefault()
+        onDrop(tab.id)
+      }}
+      onDragEnd={onDragEnd}
+      onContextMenu={(event) => {
+        event.preventDefault()
+        onContextMenu(event.clientX, event.clientY)
+      }}
       title={tab.url || tab.title}
       className={cn(
         'no-drag group -mb-px flex h-[31px] min-w-[110px] max-w-[220px] flex-1 items-center gap-2 rounded-t-[9px] border border-b-0 px-2.5 transition-colors',
         active
           ? 'border-border bg-surface text-fg'
-          : 'border-transparent text-muted hover:bg-hover hover:text-fg'
+          : 'border-transparent text-muted hover:bg-hover hover:text-fg',
+        dragging && 'opacity-40',
+        dropTarget && 'border-l-2 border-l-accent'
       )}
     >
       <TabIcon tab={tab} />
@@ -31,12 +112,8 @@ export function TabItem({ tab, active }: TabItemProps): React.JSX.Element {
         {tab.title || 'New Tab'}
       </span>
 
-      {tab.hasAudio && !active && (
-        <Volume2 className="h-3.5 w-3.5 shrink-0 text-muted" />
-      )}
-      {tab.muted && (
-        <VolumeX className="h-3.5 w-3.5 shrink-0 text-muted" />
-      )}
+      {tab.hasAudio && !active && <Volume2 className="h-3.5 w-3.5 shrink-0 text-muted" />}
+      {tab.muted && <VolumeX className="h-3.5 w-3.5 shrink-0 text-muted" />}
 
       <button
         type="button"
@@ -46,7 +123,7 @@ export function TabItem({ tab, active }: TabItemProps): React.JSX.Element {
           closeSelected(tab.id)
         }}
         className={cn(
-          'flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full text-muted',
+          'flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-muted',
           'transition-opacity hover:bg-hover hover:text-fg',
           active ? 'opacity-60 hover:opacity-100' : 'opacity-0 group-hover:opacity-60'
         )}
