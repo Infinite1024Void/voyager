@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+out/
+dist/
+release/
+
+# Tooling caches
+.vite/
+.eslintcache
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test output
+coverage/
+
+# OS / editor cruft
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

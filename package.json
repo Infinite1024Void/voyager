@@ -1,0 +1,17 @@
+{
+  "name": "voyager",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Voyager - a modern, pretty web browser built with Electron",
+  "author": "InfiniteVoid_",
+  "license": "MIT",
+  "main": "./out/main/index.js",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview"
+  }
+}
