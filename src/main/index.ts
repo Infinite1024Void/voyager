@@ -1,4 +1,5 @@
-import { app } from 'electron'
+import { app, protocol } from 'electron'
+import { join } from 'node:path'
 import { registerIpcHandlers } from './ipc/register'
 import { flushAllStores } from './store'
 import { WindowController } from './window/WindowController'
@@ -20,6 +21,12 @@ app.on('will-quit', () => {
 })
 
 app.whenReady().then(async (): Promise<void> => {
+  protocol.registerFileProtocol('voyager', (request, callback) => {
+    const url = request.url.substring('voyager://'.length)
+    const path = url === 'settings' ? 'settings.html' : 'index.html'
+    callback({ path: join(__dirname, '../renderer/', path) })
+  })
+
   controller = new WindowController()
   controller.onDestroyed(() => {
     controller = null
