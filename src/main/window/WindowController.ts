@@ -16,6 +16,7 @@ export class WindowController {
 
   private readonly tabViews = new Set<WebContentsView>()
   private activeTabView: WebContentsView | null = null
+  private chromeHeight = DEFAULT_CHROME_HEIGHT
   private layout: WindowLayout
   private disposed = false
 
@@ -49,10 +50,24 @@ export class WindowController {
     })
 
     this.window.contentView.addChildView(this.chrome)
-    this.window.on('resize', () => this.applyLayout())
+
+    // Re-lay out on every way the window can change shape, including native
+    // fullscreen which does not always emit a plain 'resize' on macOS.
+    this.window.on('resize', this.handleWindowShapeChange)
+    this.window.on('maximize', this.handleWindowShapeChange)
+    this.window.on('unmaximize', this.handleWindowShapeChange)
+    this.window.on('enter-full-screen', this.handleWindowShapeChange)
+    this.window.on('leave-full-screen', this.handleWindowShapeChange)
+
     this.window.on('closed', () => {
       this.disposed = true
     })
+    this.applyLayout()
+  }
+
+  /** Grow or shrink the chrome region (e.g. when the bookmarks bar toggles). */
+  setChromeHeight(height: number): void {
+    this.chromeHeight = height
     this.applyLayout()
   }
 
@@ -107,10 +122,14 @@ export class WindowController {
   }
 
   /** Recompute chrome + content regions from the window's current size. */
+  private handleWindowShapeChange = (): void => {
+    this.applyLayout()
+  }
+
   private applyLayout(): void {
     if (this.disposed) return
     const [width, height] = this.window.getContentSize()
-    this.layout = computeLayout(width, height, DEFAULT_CHROME_HEIGHT)
+    this.layout = computeLayout(width, height, this.chromeHeight)
     this.chrome.setBounds({
       x: 0,
       y: 0,
