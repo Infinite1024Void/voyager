@@ -65,6 +65,11 @@ export class WindowController {
     this.window.show()
   }
 
+  /** Send an event to the chrome renderer process. */
+  sendToChrome(channel: string, payload?: unknown): void {
+    this.chrome.webContents.send(channel, payload)
+  }
+
   onDestroyed(callback: () => void): void {
     this.window.once('closed', callback)
   }
