@@ -76,7 +76,9 @@ const api = {
     stopFindInPage: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavStopFindInPage),
     zoomIn: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavZoomIn),
     zoomOut: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavZoomOut),
-    zoomReset: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavZoomReset)
+    zoomReset: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavZoomReset),
+    print: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavPrint),
+    printToPdf: (): Promise<string | null> => ipcRenderer.invoke(IpcChannels.NavPrintToPdf)
   },
 
   bookmarks: {

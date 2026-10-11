@@ -231,6 +231,16 @@ export class TabManager {
     this.activeWebContents()?.setZoomFactor(1.0)
   }
 
+  print(): void {
+    this.activeWebContents()?.print()
+  }
+
+  async printToPdf(): Promise<Buffer | null> {
+    const wc = this.activeWebContents()
+    if (!wc) return null
+    return wc.printToPDF({})
+  }
+
   get isActiveLoading(): boolean {
     return this.entries.get(this.activeId ?? '')?.loading ?? false
   }

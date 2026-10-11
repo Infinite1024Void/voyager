@@ -126,6 +126,11 @@ export function registerIpcHandlers(context: IpcContext): void {
   ipcMain.handle(IpcChannels.NavZoomIn, () => context.getWindow()?.tabs.zoomIn())
   ipcMain.handle(IpcChannels.NavZoomOut, () => context.getWindow()?.tabs.zoomOut())
   ipcMain.handle(IpcChannels.NavZoomReset, () => context.getWindow()?.tabs.zoomReset())
+  ipcMain.handle(IpcChannels.NavPrint, () => context.getWindow()?.tabs.print())
+  ipcMain.handle(IpcChannels.NavPrintToPdf, async () => {
+    const buf = await context.getWindow()?.tabs.printToPdf()
+    return buf ? buf.toString('base64') : null
+  })
 
   ipcMain.handle(IpcChannels.TabsReopenLastClosed, () => context.getWindow()?.tabs.reopenLastClosed())
 
