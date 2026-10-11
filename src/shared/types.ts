@@ -20,3 +20,29 @@ export interface AppVersionInfo {
 
 /** Callback signature returned by event subscription APIs. */
 export type Unsubscribe = () => void
+
+/* ---- Browser / tabs ---------------------------------------------------- */
+
+export interface TabState {
+  id: string
+  title: string
+  url: string
+  loading: boolean
+  favicon: string | null
+  canGoBack: boolean
+  canGoForward: boolean
+  pinned: boolean
+  muted: boolean
+  hasAudio: boolean
+  crashed: boolean
+}
+
+export interface BrowserState {
+  tabs: TabState[]
+  activeTabId: string | null
+}
+
+export interface NewTabRequest {
+  url?: string
+  active?: boolean
+}

@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import { ALL_IPC_CHANNELS, IpcChannels, type IpcChannel } from '../shared/ipc-channels'
-import type { AppVersionInfo, ThemeMode, ThemeState, Unsubscribe } from '../shared/types'
+import type { AppVersionInfo, BrowserState, NewTabRequest, ThemeMode, ThemeState, Unsubscribe } from '../shared/types'
 
 const allowedChannels = new Set<string>(ALL_IPC_CHANNELS)
 
@@ -29,6 +29,24 @@ const api = {
     set: (mode: ThemeMode): Promise<void> => ipcRenderer.invoke(IpcChannels.ThemeSet, mode),
     onChanged: (listener: (state: ThemeState) => void): Unsubscribe =>
       subscribe<ThemeState>(IpcChannels.ThemeChanged, listener)
+  },
+
+  tabs: {
+    getState: (): Promise<BrowserState> => ipcRenderer.invoke(IpcChannels.TabsGetState),
+    create: (request?: NewTabRequest): Promise<string> =>
+      ipcRenderer.invoke(IpcChannels.TabsCreate, request),
+    close: (id: string): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsClose, id),
+    activate: (id: string): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsActivate, id),
+    reorder: (ids: string[]): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsReorder, ids),
+    pinToggle: (id: string): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsPinToggle, id),
+    duplicate: (id: string): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsDuplicate, id),
+    muteToggle: (id: string): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsMuteToggle, id),
+    closeOthers: (id: string): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsCloseOthers, id),
+    closeToRight: (id: string): Promise<void> =>
+      ipcRenderer.invoke(IpcChannels.TabsCloseToRight, id),
+    copyUrl: (id: string): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsCopyUrl, id),
+    onStateChanged: (listener: (state: BrowserState) => void): Unsubscribe =>
+      subscribe<BrowserState>(IpcChannels.TabsStateChanged, listener)
   }
 } as const
 

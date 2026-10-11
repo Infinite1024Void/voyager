@@ -9,7 +9,8 @@ let controller: WindowController | null = null
 registerIpcHandlers({
   send: (channel, payload) => {
     controller?.sendToChrome(channel, payload)
-  }
+  },
+  getWindow: () => controller
 })
 
 app.whenReady().then(async (): Promise<void> => {

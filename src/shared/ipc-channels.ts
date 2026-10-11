@@ -8,7 +8,20 @@ export const IpcChannels = {
 
   ThemeGet: 'theme:get',
   ThemeSet: 'theme:set',
-  ThemeChanged: 'theme:changed'
+  ThemeChanged: 'theme:changed',
+
+  TabsGetState: 'tabs:get-state',
+  TabsStateChanged: 'tabs:state-changed',
+  TabsCreate: 'tabs:create',
+  TabsClose: 'tabs:close',
+  TabsActivate: 'tabs:activate',
+  TabsReorder: 'tabs:reorder',
+  TabsPinToggle: 'tabs:pin-toggle',
+  TabsDuplicate: 'tabs:duplicate',
+  TabsMuteToggle: 'tabs:mute-toggle',
+  TabsCloseOthers: 'tabs:close-others',
+  TabsCloseToRight: 'tabs:close-to-right',
+  TabsCopyUrl: 'tabs:copy-url'
 } as const
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels]

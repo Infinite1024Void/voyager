@@ -1,11 +1,13 @@
-import { app, ipcMain, nativeTheme } from 'electron'
+import { app, clipboard, ipcMain, nativeTheme } from 'electron'
 import { IpcChannels } from '../../shared/ipc-channels'
-import type { AppVersionInfo, ThemeMode, ThemeState } from '../../shared/types'
+import type { AppVersionInfo, NewTabRequest, ThemeMode, ThemeState } from '../../shared/types'
+import type { WindowController } from '../window/WindowController'
 import { getSettings, setSettings } from '../store/settings'
 
-/** Minimal outbound channel: anything the main process pushes to the chrome. */
-export interface IpcSender {
+/** Outbound channel + access to the live window so handlers can act on it. */
+export interface IpcContext {
   send(channel: string, payload?: unknown): void
+  getWindow(): WindowController | null
 }
 
 function currentThemeState(): ThemeState {
@@ -21,7 +23,7 @@ function applyThemeMode(mode: ThemeMode): ThemeState {
   return currentThemeState()
 }
 
-export function registerIpcHandlers(send: IpcSender): void {
+export function registerIpcHandlers(context: IpcContext): void {
   // Apply the persisted theme before any renderer starts.
   const savedMode = getSettings('themeMode') ?? 'system'
   nativeTheme.themeSource = savedMode
@@ -33,15 +35,60 @@ export function registerIpcHandlers(send: IpcSender): void {
     node: process.versions.node ?? ''
   }))
 
+  /* ---- theme ----------------------------------------------------------- */
+
   ipcMain.handle(IpcChannels.ThemeGet, (): ThemeState => currentThemeState())
 
   ipcMain.handle(IpcChannels.ThemeSet, (_event, mode: ThemeMode): void => {
     applyThemeMode(mode)
-    send.send(IpcChannels.ThemeChanged, currentThemeState())
+    context.send(IpcChannels.ThemeChanged, currentThemeState())
   })
 
   // Push live updates when 'system' changes as the OS theme flips.
   nativeTheme.on('updated', () => {
-    send.send(IpcChannels.ThemeChanged, currentThemeState())
+    context.send(IpcChannels.ThemeChanged, currentThemeState())
+  })
+
+  /* ---- tabs ------------------------------------------------------------ */
+
+  ipcMain.handle(IpcChannels.TabsGetState, () => context.getWindow()?.tabs.snapshot() ?? null)
+
+  ipcMain.handle(IpcChannels.TabsCreate, (_event, request: NewTabRequest) =>
+    context.getWindow()?.tabs.create(request)
+  )
+
+  ipcMain.handle(IpcChannels.TabsClose, (_event, id: string) => context.getWindow()?.tabs.close(id))
+
+  ipcMain.handle(IpcChannels.TabsActivate, (_event, id: string) =>
+    context.getWindow()?.tabs.activate(id)
+  )
+
+  ipcMain.handle(IpcChannels.TabsReorder, (_event, ids: string[]) =>
+    context.getWindow()?.tabs.reorder(ids)
+  )
+
+  ipcMain.handle(IpcChannels.TabsPinToggle, (_event, id: string) =>
+    context.getWindow()?.tabs.pinToggle(id)
+  )
+
+  ipcMain.handle(IpcChannels.TabsDuplicate, (_event, id: string) =>
+    context.getWindow()?.tabs.duplicate(id)
+  )
+
+  ipcMain.handle(IpcChannels.TabsMuteToggle, (_event, id: string) =>
+    context.getWindow()?.tabs.muteToggle(id)
+  )
+
+  ipcMain.handle(IpcChannels.TabsCloseOthers, (_event, id: string) =>
+    context.getWindow()?.tabs.closeOthers(id)
+  )
+
+  ipcMain.handle(IpcChannels.TabsCloseToRight, (_event, id: string) =>
+    context.getWindow()?.tabs.closeToRight(id)
+  )
+
+  ipcMain.handle(IpcChannels.TabsCopyUrl, (_event, id: string) => {
+    const tab = context.getWindow()?.tabs.snapshot().tabs.find((tab) => tab.id === id)
+    if (tab) clipboard.writeText(tab.url)
   })
 }
