@@ -3,6 +3,8 @@ import { Globe, Search } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { DEFAULT_SEARCH_ENGINE, SEARCH_ENGINES, buildSearchUrl, parseSuggestions } from '../../../shared/search'
 import { useActiveTab, useBrowserStore } from '../state/browserStore'
+import { PageInfoPopover } from './PageInfoPopover'
+import { SecurityBadge } from './SecurityBadge'
 
 function useSuggestions(query: string, active: boolean): string[] {
   const [suggestions, setSuggestions] = useState<string[]>([])
@@ -42,14 +44,16 @@ export function Omnibox(): React.JSX.Element {
   const [value, setValue] = useState(activeTab?.url ?? '')
   const [focused, setFocused] = useState(false)
   const [highlight, setHighlight] = useState(0)
+  const [pageInfoOpen, setPageInfoOpen] = useState(false)
 
   const activeUrl = activeTab?.url ?? ''
+  const activeTitle = activeTab?.title ?? ''
   useEffect(() => {
     if (!focused) setValue(activeUrl === 'about:blank' ? '' : activeUrl)
   }, [activeUrl, focused])
 
   const suggestions = useSuggestions(value, focused && value.trim().length > 0)
-  const showDropdown = focused && value.trim() !== ''
+  const showDropdown = focused && value.trim() !== '' && !pageInfoOpen
   const rowCount = suggestions.length + 1 // index 0 is "search for ..."
 
   const searchFor = (query: string): void => {
@@ -71,7 +75,11 @@ export function Omnibox(): React.JSX.Element {
   return (
     <div ref={rootRef} className="no-drag relative min-w-0 flex-1">
       <div className="flex h-8 items-center gap-2 rounded-lg border border-border bg-surface px-3 transition-shadow focus-within:border-accent focus-within:ring-2 focus-within:ring-ring">
-        <Search className="h-3.5 w-3.5 shrink-0 text-muted" />
+        <SecurityBadge
+          url={activeUrl}
+          editing={focused}
+          onClick={() => setPageInfoOpen((open) => !open)}
+        />
         <input
           ref={inputRef}
           type="text"
@@ -80,6 +88,7 @@ export function Omnibox(): React.JSX.Element {
           placeholder="Search or enter address"
           onFocus={(event) => {
             setFocused(true)
+            setPageInfoOpen(false)
             event.currentTarget.select()
           }}
           onBlur={(event) => {
@@ -129,6 +138,8 @@ export function Omnibox(): React.JSX.Element {
           ))}
         </div>
       )}
+
+      {pageInfoOpen && <PageInfoPopover url={activeUrl} title={activeTitle} />}
     </div>
   )
 }

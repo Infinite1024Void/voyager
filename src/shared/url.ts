@@ -26,3 +26,22 @@ export function resolveInput(input: string, searchUrlFor: (query: string) => str
   }
   return searchUrlFor(trimmed)
 }
+
+export function safeParseUrl(raw: string): URL | null {
+  try {
+    return new URL(raw)
+  } catch {
+    return null
+  }
+}
+
+export type SecurityLevel = 'secure' | 'insecure' | 'neutral'
+
+/** Coarse connection security for a URL, for the omnibox indicator. */
+export function securityLevelFor(url: string): SecurityLevel {
+  const parsed = safeParseUrl(url)
+  if (!parsed) return 'neutral'
+  if (parsed.protocol === 'https:') return 'secure'
+  if (parsed.protocol === 'http:') return 'insecure'
+  return 'neutral'
+}
