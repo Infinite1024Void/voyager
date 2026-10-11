@@ -91,4 +91,11 @@ export function registerIpcHandlers(context: IpcContext): void {
     const tab = context.getWindow()?.tabs.snapshot().tabs.find((tab) => tab.id === id)
     if (tab) clipboard.writeText(tab.url)
   })
+
+  /* ---- navigation ------------------------------------------------------ */
+
+  ipcMain.handle(IpcChannels.NavBack, () => context.getWindow()?.tabs.goBack())
+  ipcMain.handle(IpcChannels.NavForward, () => context.getWindow()?.tabs.goForward())
+  ipcMain.handle(IpcChannels.NavReload, () => context.getWindow()?.tabs.reload())
+  ipcMain.handle(IpcChannels.NavStop, () => context.getWindow()?.tabs.stop())
 }

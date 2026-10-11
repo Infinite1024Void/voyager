@@ -21,7 +21,12 @@ export const IpcChannels = {
   TabsMuteToggle: 'tabs:mute-toggle',
   TabsCloseOthers: 'tabs:close-others',
   TabsCloseToRight: 'tabs:close-to-right',
-  TabsCopyUrl: 'tabs:copy-url'
+  TabsCopyUrl: 'tabs:copy-url',
+
+  NavBack: 'nav:back',
+  NavForward: 'nav:forward',
+  NavReload: 'nav:reload',
+  NavStop: 'nav:stop'
 } as const
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels]

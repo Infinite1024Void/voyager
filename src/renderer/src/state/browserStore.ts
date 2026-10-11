@@ -14,6 +14,10 @@ interface BrowserStore extends BrowserState {
   muteToggle: (id: string) => void
   closeOthers: (id: string) => void
   closeToRight: (id: string) => void
+  goBack: () => void
+  goForward: () => void
+  reload: () => void
+  stop: () => void
 }
 
 export const useBrowserStore = create<BrowserStore>()((set) => ({
@@ -50,6 +54,18 @@ export const useBrowserStore = create<BrowserStore>()((set) => ({
   },
   closeToRight: (id) => {
     void window.voyager.tabs.closeToRight(id)
+  },
+  goBack: () => {
+    void window.voyager.navigation.back()
+  },
+  goForward: () => {
+    void window.voyager.navigation.forward()
+  },
+  reload: () => {
+    void window.voyager.navigation.reload()
+  },
+  stop: () => {
+    void window.voyager.navigation.stop()
   }
 }))
 

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { WebContentsView } from 'electron'
+import { WebContentsView, type WebContents } from 'electron'
 import { DEFAULT_NEW_TAB_URL } from '../../shared/constants'
 import type { BrowserState, NewTabRequest, TabState } from '../../shared/types'
 import type { WindowController } from '../window/WindowController'
@@ -162,6 +162,24 @@ export class TabManager {
     this.create(isNewTab(entry.url) ? {} : { url: entry.url, active: true })
   }
 
+  goBack(): void {
+    const wc = this.activeWebContents()
+    if (wc && wc.navigationHistory.canGoBack()) wc.navigationHistory.goBack()
+  }
+
+  goForward(): void {
+    const wc = this.activeWebContents()
+    if (wc && wc.navigationHistory.canGoForward()) wc.navigationHistory.goForward()
+  }
+
+  reload(): void {
+    this.activeWebContents()?.reload()
+  }
+
+  stop(): void {
+    this.activeWebContents()?.stop()
+  }
+
   muteToggle(id: string): void {
     const entry = this.entries.get(id)
     if (!entry) return
@@ -241,5 +259,10 @@ export class TabManager {
 
   private broadcast(): void {
     this.onStateChanged(this.snapshot())
+  }
+
+  private activeWebContents(): WebContents | null {
+    if (this.activeId === null) return null
+    return this.entries.get(this.activeId)?.view.webContents ?? null
   }
 }

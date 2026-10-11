@@ -1,22 +1,36 @@
 import { ArrowLeft, ArrowRight, Download, RotateCw, Star, X } from 'lucide-react'
+import { useActiveTab, useBrowserStore } from '../state/browserStore'
 import { IconButton } from './ui/IconButton'
 import { Omnibox } from './Omnibox'
 
 export function Toolbar(): React.JSX.Element {
+  const activeTab = useActiveTab()
+  const goBack = useBrowserStore((state) => state.goBack)
+  const goForward = useBrowserStore((state) => state.goForward)
+  const reload = useBrowserStore((state) => state.reload)
+  const stop = useBrowserStore((state) => state.stop)
+
+  const loading = activeTab?.loading ?? false
+  const canGoBack = activeTab?.canGoBack ?? false
+  const canGoForward = activeTab?.canGoForward ?? false
+
   return (
     <div className="flex h-[44px] shrink-0 items-center gap-1 border-b border-border bg-bg px-2">
-      <IconButton label="Back" disabled>
+      <IconButton label="Back" disabled={!canGoBack} onClick={goBack}>
         <ArrowLeft className="h-4 w-4" />
       </IconButton>
-      <IconButton label="Forward" disabled>
+      <IconButton label="Forward" disabled={!canGoForward} onClick={goForward}>
         <ArrowRight className="h-4 w-4" />
       </IconButton>
-      <IconButton label="Reload" disabled>
-        <RotateCw className="h-4 w-4" />
-      </IconButton>
-      <IconButton label="Stop" disabled>
-        <X className="h-4 w-4" />
-      </IconButton>
+      {loading ? (
+        <IconButton label="Stop" onClick={stop}>
+          <X className="h-4 w-4" />
+        </IconButton>
+      ) : (
+        <IconButton label="Reload" onClick={reload}>
+          <RotateCw className="h-4 w-4" />
+        </IconButton>
+      )}
 
       <button
         type="button"

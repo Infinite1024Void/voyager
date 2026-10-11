@@ -47,6 +47,13 @@ const api = {
     copyUrl: (id: string): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsCopyUrl, id),
     onStateChanged: (listener: (state: BrowserState) => void): Unsubscribe =>
       subscribe<BrowserState>(IpcChannels.TabsStateChanged, listener)
+  },
+
+  navigation: {
+    back: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavBack),
+    forward: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavForward),
+    reload: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavReload),
+    stop: (): Promise<void> => ipcRenderer.invoke(IpcChannels.NavStop)
   }
 } as const
 
