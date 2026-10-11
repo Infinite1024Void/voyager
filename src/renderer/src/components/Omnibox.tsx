@@ -1,53 +1,171 @@
 import { useEffect, useRef, useState } from 'react'
-import { Search } from 'lucide-react'
+import { Globe, Search } from 'lucide-react'
+import { cn } from '../lib/cn'
+import { DEFAULT_SEARCH_ENGINE, SEARCH_ENGINES, buildSearchUrl, parseSuggestions } from '../../../shared/search'
 import { useActiveTab, useBrowserStore } from '../state/browserStore'
+
+function useSuggestions(query: string, active: boolean): string[] {
+  const [suggestions, setSuggestions] = useState<string[]>([])
+
+  useEffect(() => {
+    if (!active || query.trim().length < 2) {
+      setSuggestions([])
+      return
+    }
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => {
+      fetch(SEARCH_ENGINES[DEFAULT_SEARCH_ENGINE].suggest(query.trim()), {
+        signal: controller.signal
+      })
+        .then((response) => response.text())
+        .then(parseSuggestions)
+        .then(setSuggestions)
+        .catch(() => {
+          /* suggestions are best-effort */
+        })
+    }, 140)
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [query, active])
+
+  return suggestions
+}
 
 export function Omnibox(): React.JSX.Element {
   const activeTab = useActiveTab()
   const navigate = useBrowserStore((state) => state.navigate)
   const inputRef = useRef<HTMLInputElement>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
 
   const [value, setValue] = useState(activeTab?.url ?? '')
-  const focused = useRef(false)
+  const [focused, setFocused] = useState(false)
+  const [highlight, setHighlight] = useState(0)
 
-  // Track the active tab's URL unless the user is typing over it.
   const activeUrl = activeTab?.url ?? ''
   useEffect(() => {
-    if (!focused.current) {
-      setValue(activeUrl === 'about:blank' ? '' : activeUrl)
-    }
-  }, [activeUrl])
+    if (!focused) setValue(activeUrl === 'about:blank' ? '' : activeUrl)
+  }, [activeUrl, focused])
 
+  const suggestions = useSuggestions(value, focused && value.trim().length > 0)
+  const showDropdown = focused && value.trim() !== ''
+  const rowCount = suggestions.length + 1 // index 0 is "search for ..."
+
+  const searchFor = (query: string): void => {
+    navigate(buildSearchUrl(DEFAULT_SEARCH_ENGINE, query))
+    setFocused(false)
+    inputRef.current?.blur()
+  }
   const submit = (): void => {
     if (value.trim() === '') return
-    focused.current = false
     navigate(value)
+    setFocused(false)
     inputRef.current?.blur()
+  }
+  const runRow = (index: number): void => {
+    if (index === 0) submit()
+    else searchFor(suggestions[index - 1])
   }
 
   return (
-    <div className="no-drag flex h-8 min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-surface px-3 transition-shadow focus-within:border-accent focus-within:ring-2 focus-within:ring-ring">
-      <Search className="h-3.5 w-3.5 shrink-0 text-muted" />
-      <input
-        ref={inputRef}
-        type="text"
-        spellCheck={false}
-        value={value}
-        placeholder="Search or enter address"
-        onFocus={(event) => {
-          focused.current = true
-          event.currentTarget.select()
-        }}
-        onBlur={() => {
-          focused.current = false
-          setValue(activeUrl === 'about:blank' ? '' : activeUrl)
-        }}
-        onChange={(event) => setValue(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') submit()
-        }}
-        className="min-w-0 flex-1 bg-transparent text-fg outline-none placeholder:text-muted"
-      />
+    <div ref={rootRef} className="no-drag relative min-w-0 flex-1">
+      <div className="flex h-8 items-center gap-2 rounded-lg border border-border bg-surface px-3 transition-shadow focus-within:border-accent focus-within:ring-2 focus-within:ring-ring">
+        <Search className="h-3.5 w-3.5 shrink-0 text-muted" />
+        <input
+          ref={inputRef}
+          type="text"
+          spellCheck={false}
+          value={value}
+          placeholder="Search or enter address"
+          onFocus={(event) => {
+            setFocused(true)
+            event.currentTarget.select()
+          }}
+          onBlur={(event) => {
+            if (rootRef.current?.contains(event.relatedTarget as Node)) return
+            setFocused(false)
+            setValue(activeUrl === 'about:blank' ? '' : activeUrl)
+          }}
+          onChange={(event) => {
+            setValue(event.target.value)
+            setHighlight(0)
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowDown') {
+              event.preventDefault()
+              setHighlight((index) => Math.min(index + 1, rowCount - 1))
+            } else if (event.key === 'ArrowUp') {
+              event.preventDefault()
+              setHighlight((index) => Math.max(index - 1, 0))
+            } else if (event.key === 'Enter') {
+              event.preventDefault()
+              runRow(highlight)
+            }
+          }}
+          className="min-w-0 flex-1 bg-transparent text-fg outline-none placeholder:text-muted"
+        />
+      </div>
+
+      {showDropdown && (
+        <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-xl border border-border bg-surface py-1 shadow-xl shadow-black/15">
+          <SuggestionRow
+            active={highlight === 0}
+            onActivate={() => setHighlight(0)}
+            onSelect={() => runRow(0)}
+            icon={<Search className="h-3.5 w-3.5" />}
+            title={value.trim()}
+            detail={`Search ${SEARCH_ENGINES[DEFAULT_SEARCH_ENGINE].name}`}
+          />
+          {suggestions.map((suggestion, index) => (
+            <SuggestionRow
+              key={suggestion}
+              active={highlight === index + 1}
+              onActivate={() => setHighlight(index + 1)}
+              onSelect={() => runRow(index + 1)}
+              icon={<Globe className="h-3.5 w-3.5" />}
+              title={suggestion}
+            />
+          ))}
+        </div>
+      )}
     </div>
+  )
+}
+
+interface SuggestionRowProps {
+  active: boolean
+  onActivate: () => void
+  onSelect: () => void
+  icon: React.ReactNode
+  title: string
+  detail?: string
+}
+
+function SuggestionRow({
+  active,
+  onActivate,
+  onSelect,
+  icon,
+  title,
+  detail
+}: SuggestionRowProps): React.JSX.Element {
+  return (
+    <button
+      type="button"
+      onMouseEnter={onActivate}
+      onMouseDown={(event) => {
+        event.preventDefault()
+        onSelect()
+      }}
+      className={cn(
+        'flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors',
+        active ? 'bg-hover' : 'bg-transparent'
+      )}
+    >
+      <span className="flex h-4 w-4 shrink-0 items-center justify-center text-muted">{icon}</span>
+      <span className="min-w-0 flex-1 truncate text-[13px] text-fg">{title}</span>
+      {detail && <span className="shrink-0 text-[11.5px] text-muted">{detail}</span>}
+    </button>
   )
 }

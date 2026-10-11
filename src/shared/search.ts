@@ -28,3 +28,26 @@ export const DEFAULT_SEARCH_ENGINE: SearchEngineId = 'duckduckgo'
 export function buildSearchUrl(engine: SearchEngineId, query: string): string {
   return SEARCH_ENGINES[engine].search(query)
 }
+
+/** Extract suggestion strings from a suggest-endpoint response body. */
+export function parseSuggestions(text: string): string[] {
+  const trimmed = text.trim()
+  if (trimmed === '') return []
+  // Some endpoints wrap JSON in a JSONP-style `callback(...)`.
+  const inner = trimmed.startsWith('(')
+    ? trimmed.slice(1, Math.max(1, trimmed.lastIndexOf(')')))
+    : trimmed
+  try {
+    const data = JSON.parse(inner) as unknown
+    if (!Array.isArray(data)) return []
+    const list = data.find(
+      (entry): entry is unknown[] => Array.isArray(entry) && typeof entry[0] === 'string'
+    )
+    if (!list) return []
+    return list
+      .filter((item): item is string => typeof item === 'string')
+      .slice(0, 6)
+  } catch {
+    return []
+  }
+}
