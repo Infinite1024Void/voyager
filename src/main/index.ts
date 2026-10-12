@@ -26,9 +26,21 @@ app.whenReady().then(async (): Promise<void> => {
   createAppMenu()
 
   protocol.registerFileProtocol('voyager', (request, callback) => {
-    const url = request.url.substring('voyager://'.length)
-    const path = url === 'settings' ? 'settings.html' : 'index.html'
-    callback({ path: join(__dirname, '../renderer/', path) })
+    const url = request.url.replace('voyager://', '')
+    if (url === 'settings' || url === 'settings/') {
+      callback({ path: join(__dirname, '../renderer/', 'settings.html') })
+      return
+    }
+    if (url.startsWith('settings/')) {
+      const relative = url.substring('settings/'.length)
+      callback({ path: join(__dirname, '../renderer/', relative) })
+      return
+    }
+    if (url === '' || url === '/') {
+      callback({ path: join(__dirname, '../renderer/', 'index.html') })
+      return
+    }
+    callback({ path: join(__dirname, '../renderer/', url) })
   })
 
   controller = new WindowController()
