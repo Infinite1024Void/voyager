@@ -186,6 +186,9 @@ export function registerIpcHandlers(context: IpcContext): void {
 
   // The chrome view is normally clipped to its strip height; while a dropdown,
   // palette or menu is open it expands over the page so overlays are not cut off.
+  ipcMain.handle(IpcChannels.UiOpenDownloads, () =>
+    context.getWindow()?.sendToChrome(IpcChannels.UiOpenDownloads)
+  )
   ipcMain.handle(IpcChannels.UiSetOverlayOpen, (_event, open: boolean) =>
     context.getWindow()?.setOverlayOpen(open)
   )

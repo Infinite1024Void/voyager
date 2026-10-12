@@ -58,6 +58,7 @@ export const IpcChannels = {
 
   UiFocusOmnibox: 'ui:focus-omnibox',
   UiOpenTabSearch: 'ui:open-tab-search',
+  UiOpenDownloads: 'ui:open-downloads',
   UiSetOverlayOpen: 'ui:set-overlay-open'
 } as const
 

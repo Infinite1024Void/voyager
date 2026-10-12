@@ -75,9 +75,11 @@ export default function App(): React.JSX.Element {
     const openDownloads = () => setDownloadsOpen(true)
     window.addEventListener('keydown', handleKey)
     window.addEventListener('voyager:open-downloads', openDownloads)
+    const unsubDownloads = window.voyager.ui.onOpenDownloads(openDownloads)
     return () => {
       unsubFocus()
       unsubSearch()
+      unsubDownloads()
       window.removeEventListener('keydown', handleKey)
       window.removeEventListener('voyager:open-downloads', openDownloads)
     }

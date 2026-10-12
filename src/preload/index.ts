@@ -114,6 +114,8 @@ const api = {
     onFocusOmnibox: (listener: () => void): Unsubscribe => subscribe<void>(IpcChannels.UiFocusOmnibox, listener),
     onOpenTabSearch: (listener: () => void): Unsubscribe =>
       subscribe<void>(IpcChannels.UiOpenTabSearch, listener),
+    onOpenDownloads: (listener: () => void): Unsubscribe =>
+      subscribe<void>(IpcChannels.UiOpenDownloads, listener),
     setOverlayOpen: (open: boolean): Promise<void> =>
       ipcRenderer.invoke(IpcChannels.UiSetOverlayOpen, open)
   }

@@ -483,8 +483,7 @@ export class TabManager {
         this.window.sendToChrome(IpcChannels.UiOpenTabSearch)
         break
       case 'open-downloads':
-        // Toggle handled in renderer via Cmd+Shift+J; alternatively could add IPC
-        // For now, emit a custom event through? No direct channel; skip
+        this.window.sendToChrome(IpcChannels.UiOpenDownloads)
         break
       case 'dev-tools':
         this.toggleDevTools()
