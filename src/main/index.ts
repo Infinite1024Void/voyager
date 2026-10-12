@@ -36,6 +36,10 @@ app.whenReady().then(async (): Promise<void> => {
       callback({ path: join(__dirname, '../renderer/', relative) })
       return
     }
+    if (url.startsWith('assets/')) {
+      callback({ path: join(__dirname, '../renderer/assets/', url.substring('assets/'.length)) })
+      return
+    }
     if (url === '' || url === '/') {
       callback({ path: join(__dirname, '../renderer/', 'index.html') })
       return
