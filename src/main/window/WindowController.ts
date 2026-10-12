@@ -52,7 +52,7 @@ export class WindowController {
         contextIsolation: true,
         nodeIntegration: false,
         sandbox: true,
-        webSecurity: false
+
       }
     })
     // Transparent so the page shows through when the chrome expands to host

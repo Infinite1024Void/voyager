@@ -78,7 +78,7 @@ export class TabManager {
         contextIsolation: true,
         nodeIntegration: false,
         sandbox: true,
-        webSecurity: false
+
       }
     })
     const entry: TabEntry = {
