@@ -2,6 +2,9 @@
 
 A modern, pretty web browser built with Electron.
 
+> [!WARNING]
+> This project is mostly vibe-coded with OpenCode and is just an experiment. Most of the code is written by AI *and reviewed by a human*, treat it with caution.
+
 ## Stack
 
 | Layer      | Technology                                              |
