@@ -77,7 +77,8 @@ export class TabManager {
       webPreferences: {
         contextIsolation: true,
         nodeIntegration: false,
-        sandbox: true
+        sandbox: true,
+        webSecurity: false
       }
     })
     const entry: TabEntry = {
