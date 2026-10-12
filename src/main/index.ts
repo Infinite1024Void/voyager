@@ -20,7 +20,11 @@ app.on('will-quit', () => {
   flushAllStores()
 })
 
+import { createAppMenu } from './menu/menu'
+
 app.whenReady().then(async (): Promise<void> => {
+  createAppMenu()
+
   protocol.registerFileProtocol('voyager', (request, callback) => {
     const url = request.url.substring('voyager://'.length)
     const path = url === 'settings' ? 'settings.html' : 'index.html'
