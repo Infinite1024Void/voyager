@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
-import { WebContentsView, type WebContents, type Input } from 'electron'
+import { join } from 'node:path'
+import { BrowserWindow, WebContentsView, type WebContents, type Input } from 'electron'
 import { DEFAULT_NEW_TAB_URL } from '../../shared/constants'
 import { IpcChannels } from '../../shared/ipc-channels'
 import { matchShortcut, type BrowserAction } from '../../shared/keyboard'
@@ -311,11 +312,42 @@ export class TabManager {
 
     // window.open and target=_blank become new tabs instead of new windows.
     wc.setWindowOpenHandler(({ url }) => {
+      if (url.startsWith('voyager://settings')) {
+                const win = new BrowserWindow({
+          width: 900,
+          height: 650,
+          title: 'Settings - Voyager',
+          webPreferences: {
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
+            preload: join(__dirname, '../preload/index.js')
+          }
+        })
+        win.loadURL(url)
+        return { action: 'deny' }
+      }
       this.create({ url })
       return { action: 'deny' }
     })
 
     wc.addListener('will-navigate', (event, url) => {
+      if (url.startsWith('voyager://settings')) {
+        event.preventDefault()
+                const win = new BrowserWindow({
+          width: 900,
+          height: 650,
+          title: 'Settings - Voyager',
+          webPreferences: {
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
+            preload: join(__dirname, '../preload/index.js')
+          }
+        })
+        win.loadURL(url)
+        return
+      }
       if (isInternalUrl(url)) {
         event.preventDefault()
         this.create({ url })
