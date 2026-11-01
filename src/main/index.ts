@@ -6,6 +6,22 @@ import { WindowController } from './window/WindowController'
 
 app.setName('Voyager')
 
+// Must run before the app is ready. Registering the settings scheme as
+// standard + secure lets relative asset URLs resolve and CORS-enabled module
+// scripts load from voyager:// .
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'voyager',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: true
+    }
+  }
+])
+
 let controller: WindowController | null = null
 
 registerIpcHandlers({
