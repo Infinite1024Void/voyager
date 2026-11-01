@@ -7,7 +7,7 @@ import type {
   ThemeMode,
   ThemeState
 } from '../../shared/types'
-import { addBookmark, currentBookmarksState, removeBookmark, toggleBookmarksBar } from '../bookmarks/bookmarks'
+import { addBookmark, clearBookmarks, currentBookmarksState, removeBookmark, toggleBookmarksBar } from '../bookmarks/bookmarks'
 import {
   clearHistory,
   currentHistoryState,
@@ -43,6 +43,15 @@ function applyThemeMode(mode: ThemeMode): ThemeState {
   return currentThemeState()
 }
 
+
+function clearPreferences(): { clearHistory: boolean; clearDownloads: boolean; clearBookmarks: boolean } {
+  return {
+    clearHistory: (getSettings('clearHistory', true) as boolean) !== false,
+    clearDownloads: (getSettings('clearDownloads', true) as boolean) !== false,
+    clearBookmarks: getSettings('clearBookmarks', false) === true
+  }
+}
+
 export function registerIpcHandlers(context: IpcContext): void {
   // Apply the persisted theme before any renderer starts.
   const savedMode = (getSettings('themeMode') as ThemeMode | undefined) ?? 'system'
@@ -56,6 +65,17 @@ export function registerIpcHandlers(context: IpcContext): void {
   }))
 
   ipcMain.handle(IpcChannels.SettingsOpen, () => openSettingsWindow())
+
+  ipcMain.handle(IpcChannels.SettingsGet, () => clearPreferences())
+
+  ipcMain.handle(IpcChannels.SettingsSet, (_event, key: string, value: boolean) => {
+    if (key !== 'clearHistory' && key !== 'clearDownloads' && key !== 'clearBookmarks') {
+      throw new Error(`Unsupported setting: ${key}`)
+    }
+    setSettings(key, value)
+    return clearPreferences()
+  })
+
 
   /* ---- theme ----------------------------------------------------------- */
 
@@ -150,6 +170,10 @@ export function registerIpcHandlers(context: IpcContext): void {
 
   ipcMain.handle(IpcChannels.BookmarksRemove, (_event, id: string) =>
     removeBookmark(id, (state) => context.send(IpcChannels.BookmarksStateChanged, state))
+  )
+
+  ipcMain.handle(IpcChannels.BookmarksClear, () =>
+    clearBookmarks((state) => context.send(IpcChannels.BookmarksStateChanged, state))
   )
 
   ipcMain.handle(IpcChannels.BookmarksToggleBar, () =>

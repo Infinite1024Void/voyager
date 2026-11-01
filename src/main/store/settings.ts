@@ -2,4 +2,7 @@
 export interface SettingsShape {
   themeMode?: 'system' | 'light' | 'dark'
   bookmarksBarVisible?: boolean
+  clearHistory?: boolean
+  clearDownloads?: boolean
+  clearBookmarks?: boolean
 }

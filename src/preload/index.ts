@@ -39,7 +39,11 @@ const api = {
   appInfo: (): Promise<AppVersionInfo> => ipcRenderer.invoke(IpcChannels.AppGetInfo),
 
   settings: {
-    open: (): Promise<void> => ipcRenderer.invoke(IpcChannels.SettingsOpen)
+    open: (): Promise<void> => ipcRenderer.invoke(IpcChannels.SettingsOpen),
+    get: (): Promise<{ clearHistory: boolean; clearDownloads: boolean; clearBookmarks: boolean }> =>
+      ipcRenderer.invoke(IpcChannels.SettingsGet),
+    set: (key: 'clearHistory' | 'clearDownloads' | 'clearBookmarks', value: boolean) =>
+      ipcRenderer.invoke(IpcChannels.SettingsSet, key, value)
   },
 
   theme: {
@@ -93,6 +97,7 @@ const api = {
     remove: (id: string): Promise<BookmarksState> =>
       ipcRenderer.invoke(IpcChannels.BookmarksRemove, id),
     toggleBar: (): Promise<BookmarksState> => ipcRenderer.invoke(IpcChannels.BookmarksToggleBar),
+    clear: (): Promise<BookmarksState> => ipcRenderer.invoke(IpcChannels.BookmarksClear),
     onStateChanged: (listener: (state: BookmarksState) => void): Unsubscribe =>
       subscribe<BookmarksState>(IpcChannels.BookmarksStateChanged, listener)
   },
