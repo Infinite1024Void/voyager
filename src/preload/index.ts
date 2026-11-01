@@ -44,7 +44,7 @@ const api = {
 
   theme: {
     get: (): Promise<ThemeState> => ipcRenderer.invoke(IpcChannels.ThemeGet),
-    set: (mode: ThemeMode): Promise<void> => ipcRenderer.invoke(IpcChannels.ThemeSet, mode),
+    set: (mode: ThemeMode): Promise<ThemeState> => ipcRenderer.invoke(IpcChannels.ThemeSet, mode),
     onChanged: (listener: (state: ThemeState) => void): Unsubscribe =>
       subscribe<ThemeState>(IpcChannels.ThemeChanged, listener)
   },

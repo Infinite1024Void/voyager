@@ -28,7 +28,7 @@ export function ThemeProvider({ children }: { children: ReactNode }): React.JSX.
       dark: state.dark,
       setMode: (mode: ThemeMode) => {
         if (window.voyager?.theme) {
-          void window.voyager.theme.set(mode)
+          void window.voyager.theme.set(mode).then(setState)
         } else {
           setState((prev) => {
             let dark = prev.dark
