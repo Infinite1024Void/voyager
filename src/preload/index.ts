@@ -39,9 +39,9 @@ const api = {
   appInfo: (): Promise<AppVersionInfo> => ipcRenderer.invoke(IpcChannels.AppGetInfo),
 
   settings: {
-    open: (): Promise<void> => ipcRenderer.invoke(IpcChannels.SettingsOpen),
     get: (): Promise<{ clearHistory: boolean; clearDownloads: boolean; clearBookmarks: boolean }> =>
       ipcRenderer.invoke(IpcChannels.SettingsGet),
+    open: (): Promise<void> => ipcRenderer.invoke(IpcChannels.SettingsOpen),
     set: (key: 'clearHistory' | 'clearDownloads' | 'clearBookmarks', value: boolean) =>
       ipcRenderer.invoke(IpcChannels.SettingsSet, key, value)
   },
