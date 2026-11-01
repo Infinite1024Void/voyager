@@ -7,7 +7,16 @@ import prettier from 'eslint-config-prettier'
 
 export default tseslint.config(
   {
-    ignores: ['out/**', 'dist/**', 'release/**', 'node_modules/**', 'coverage/**']
+    ignores: [
+      'out/**',
+      'dist/**',
+      'release/**',
+      'node_modules/**',
+      'coverage/**',
+      'test-results/**',
+      'playwright-report/**',
+      'blob-report/**'
+    ]
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -41,5 +50,12 @@ export default tseslint.config(
       ]
     }
   },
+  {
+    files: ['tests/e2e/fixtures.ts'],
+    rules: {
+      'no-empty-pattern': 'off'
+    }
+  },
   prettier
 )
+
