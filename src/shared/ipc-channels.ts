@@ -58,7 +58,9 @@ export const IpcChannels = {
   HistoryClear: 'history:clear',
 
   UiFocusOmnibox: 'ui:focus-omnibox',
+  UiFindInPage: 'ui:find-in-page',
   UiOpenTabSearch: 'ui:open-tab-search',
+  UiOpenHistory: 'ui:open-history',
   UiOpenDownloads: 'ui:open-downloads',
   UiSetOverlayOpen: 'ui:set-overlay-open'
 } as const

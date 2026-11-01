@@ -48,40 +48,34 @@ export default function App(): React.JSX.Element {
   // Chrome-focused keyboard shortcuts.
   useEffect(() => installChromeShortcuts(), [])
 
-  // Shortcuts routed from the main process while page content is focused.
+  // Shortcuts routed from the main process (page focused) and from the chrome
+  // keydown handler share one set of window events.
   useEffect(() => {
+    const openHistory = (): void => setHistoryOpen(true)
+    const openDownloads = (): void => setDownloadsOpen(true)
+    const openFind = (): void => setFindOpen(true)
+
+    window.addEventListener('voyager:open-history', openHistory)
+    window.addEventListener('voyager:open-downloads', openDownloads)
+    window.addEventListener('voyager:open-find', openFind)
+
     const unsubFocus = window.voyager.ui.onFocusOmnibox(focusOmnibox)
     const unsubSearch = window.voyager.ui.onOpenTabSearch(() =>
       useUiStore.getState().openTabSearch()
     )
-    // Cmd+Y also triggers open-tab-search; map to history panel. Cmd+Shift+J for downloads.
-    const handleKey = (event: KeyboardEvent): void => {
-      if (event.key.toLowerCase() === 'y' && (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey) {
-        event.preventDefault()
-        setHistoryOpen(true)
-        return
-      }
-      if (event.key.toLowerCase() === 'j' && (event.metaKey || event.ctrlKey) && event.shiftKey && !event.altKey) {
-        event.preventDefault()
-        setDownloadsOpen((v) => !v)
-        return
-      }
-      if (event.key.toLowerCase() === 'f' && (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey) {
-        event.preventDefault()
-        setFindOpen(true)
-        return
-      }
-    }
-    const openDownloads = () => setDownloadsOpen(true)
-    window.addEventListener('keydown', handleKey)
-    window.addEventListener('voyager:open-downloads', openDownloads)
+    const unsubHistory = window.voyager.ui.onOpenHistory(openHistory)
     const unsubDownloads = window.voyager.ui.onOpenDownloads(openDownloads)
+    const unsubFind = window.voyager.ui.onFindInPage(openFind)
+
     return () => {
+      window.removeEventListener('voyager:open-history', openHistory)
+      window.removeEventListener('voyager:open-downloads', openDownloads)
+      window.removeEventListener('voyager:open-find', openFind)
       unsubFocus()
       unsubSearch()
+      unsubHistory()
       unsubDownloads()
-      window.removeEventListener('keydown', handleKey)
-      window.removeEventListener('voyager:open-downloads', openDownloads)
+      unsubFind()
     }
   }, [])
 

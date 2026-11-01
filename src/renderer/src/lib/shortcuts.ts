@@ -38,6 +38,9 @@ function dispatch(action: BrowserAction, index?: number): void {
     case 'focus-omnibox':
       focusOmnibox()
       break
+    case 'find-in-page':
+      window.dispatchEvent(new Event('voyager:open-find'))
+      break
     case 'open-tab-search':
       ui.openTabSearch()
       break
@@ -58,6 +61,12 @@ function dispatch(action: BrowserAction, index?: number): void {
       break
     case 'toggle-bookmarks-bar':
       useBookmarksStore.getState().toggleBar()
+      break
+    case 'open-history':
+      window.dispatchEvent(new Event('voyager:open-history'))
+      break
+    case 'open-downloads':
+      window.dispatchEvent(new Event('voyager:open-downloads'))
       break
   }
 }
