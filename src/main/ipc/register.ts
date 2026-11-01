@@ -61,9 +61,10 @@ export function registerIpcHandlers(context: IpcContext): void {
 
   ipcMain.handle(IpcChannels.ThemeGet, (): ThemeState => currentThemeState())
 
-  ipcMain.handle(IpcChannels.ThemeSet, (_event, mode: ThemeMode): void => {
-    applyThemeMode(mode)
-    context.send(IpcChannels.ThemeChanged, currentThemeState())
+  ipcMain.handle(IpcChannels.ThemeSet, (_event, mode: ThemeMode): ThemeState => {
+    const state = applyThemeMode(mode)
+    context.send(IpcChannels.ThemeChanged, state)
+    return state
   })
 
   // Push live updates when 'system' changes as the OS theme flips.
