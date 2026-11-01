@@ -38,6 +38,10 @@ const api = {
   /** Read-only platform/version info resolved in the main process. */
   appInfo: (): Promise<AppVersionInfo> => ipcRenderer.invoke(IpcChannels.AppGetInfo),
 
+  settings: {
+    open: (): Promise<void> => ipcRenderer.invoke(IpcChannels.SettingsOpen)
+  },
+
   theme: {
     get: (): Promise<ThemeState> => ipcRenderer.invoke(IpcChannels.ThemeGet),
     set: (mode: ThemeMode): Promise<void> => ipcRenderer.invoke(IpcChannels.ThemeSet, mode),

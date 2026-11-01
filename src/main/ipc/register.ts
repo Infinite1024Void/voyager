@@ -16,6 +16,7 @@ import {
   removeHistory
 } from '../history/history'
 import type { WindowController } from '../window/WindowController'
+import { openSettingsWindow } from '../window/settingsWindow'
 import { getSettings, setSettings } from '../store'
 import {
   clearDownloads,
@@ -53,6 +54,8 @@ export function registerIpcHandlers(context: IpcContext): void {
     chrome: process.versions.chrome ?? '',
     node: process.versions.node ?? ''
   }))
+
+  ipcMain.handle(IpcChannels.SettingsOpen, () => openSettingsWindow())
 
   /* ---- theme ----------------------------------------------------------- */
 

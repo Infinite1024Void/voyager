@@ -5,6 +5,7 @@
  */
 export const IpcChannels = {
   AppGetInfo: 'app:get-info',
+  SettingsOpen: 'settings:open',
 
   ThemeGet: 'theme:get',
   ThemeSet: 'theme:set',
