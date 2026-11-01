@@ -32,6 +32,11 @@ export function removeBookmark(id: string, broadcast: (state: BookmarksState) =>
   return publish(broadcast)
 }
 
+export function clearBookmarks(broadcast: (state: BookmarksState) => void): BookmarksState {
+  bookmarksStore.set('items', [])
+  return publish(broadcast)
+}
+
 /** Flip bar visibility; persists it and adjusts the chrome height. */
 export function toggleBookmarksBar(
   broadcast: (state: BookmarksState) => void,

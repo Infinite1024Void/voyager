@@ -6,6 +6,8 @@
 export const IpcChannels = {
   AppGetInfo: 'app:get-info',
   SettingsOpen: 'settings:open',
+  SettingsGet: 'settings:get',
+  SettingsSet: 'settings:set',
 
   ThemeGet: 'theme:get',
   ThemeSet: 'theme:set',
@@ -45,6 +47,7 @@ export const IpcChannels = {
   BookmarksAdd: 'bookmarks:add',
   BookmarksRemove: 'bookmarks:remove',
   BookmarksToggleBar: 'bookmarks:toggle-bar',
+  BookmarksClear: 'bookmarks:clear',
   BookmarksStateChanged: 'bookmarks:state-changed',
 
   DownloadsGetState: 'downloads:get-state',
