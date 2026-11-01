@@ -1,12 +1,12 @@
 import { randomUUID } from 'node:crypto'
-import { join } from 'node:path'
-import { BrowserWindow, WebContentsView, type WebContents, type Input } from 'electron'
-import { DEFAULT_NEW_TAB_URL } from '../../shared/constants'
+import { WebContentsView, type WebContents, type Input } from 'electron'
+import { DEFAULT_NEW_TAB_URL, SETTINGS_URL } from '../../shared/constants'
 import { IpcChannels } from '../../shared/ipc-channels'
 import { matchShortcut, type BrowserAction } from '../../shared/keyboard'
 import type { BrowserState, NewTabRequest, TabState } from '../../shared/types'
 import { attachDownloadsTracking } from '../downloads/downloads'
 import { currentHistoryState, recordVisit } from '../history/history'
+import { openSettingsWindow } from '../window/settingsWindow'
 import type { WindowController } from '../window/WindowController'
 
 interface TabEntry {
@@ -204,6 +204,10 @@ export class TabManager {
   }
 
   navigate(url: string): void {
+    if (url.startsWith(SETTINGS_URL)) {
+      openSettingsWindow()
+      return
+    }
     this.activeWebContents()?.loadURL(url)
   }
 
@@ -312,19 +316,8 @@ export class TabManager {
 
     // window.open and target=_blank become new tabs instead of new windows.
     wc.setWindowOpenHandler(({ url }) => {
-      if (url.startsWith('voyager://settings')) {
-                const win = new BrowserWindow({
-          width: 900,
-          height: 650,
-          title: 'Settings - Voyager',
-          webPreferences: {
-            contextIsolation: true,
-            nodeIntegration: false,
-            sandbox: true,
-            preload: join(__dirname, '../preload/index.js')
-          }
-        })
-        win.loadURL(url)
+      if (url.startsWith(SETTINGS_URL)) {
+        openSettingsWindow()
         return { action: 'deny' }
       }
       this.create({ url })
@@ -332,20 +325,9 @@ export class TabManager {
     })
 
     wc.addListener('will-navigate', (event, url) => {
-      if (url.startsWith('voyager://settings')) {
+      if (url.startsWith(SETTINGS_URL)) {
         event.preventDefault()
-                const win = new BrowserWindow({
-          width: 900,
-          height: 650,
-          title: 'Settings - Voyager',
-          webPreferences: {
-            contextIsolation: true,
-            nodeIntegration: false,
-            sandbox: true,
-            preload: join(__dirname, '../preload/index.js')
-          }
-        })
-        win.loadURL(url)
+        openSettingsWindow()
         return
       }
       if (isInternalUrl(url)) {
