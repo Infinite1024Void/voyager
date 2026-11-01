@@ -9,9 +9,17 @@
 #   - The PR Title workflow (.github/workflows/pr-title.yml) must already be on
 #     the default branch, otherwise the "Validate PR title" check never reports
 #     and merges stay blocked by the required-status rule.
+#   - Repository rulesets require a public repository or GitHub Pro for private
+#     repositories. When that requirement is not met, the merge settings are
+#     still applied and the script exits with code 3 explaining what happened.
 #
 # Usage:
 #   ./scripts/apply-branch-protection.sh
+#
+# Exit codes:
+#   0  ruleset and merge settings applied
+#   1  unexpected GitHub API error
+#   3  ruleset skipped (private repo without GitHub Pro); merge settings applied
 #
 # Safe to re-run: an existing ruleset with the same name is replaced.
 set -euo pipefail
@@ -21,28 +29,56 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 REPO=$(gh repo view --json nameWithOwner --jq '.nameWithOwner')
 RULESET_NAME="master protection"
 RULESET_FILE=".github/rulesets/master.json"
+PLAN_ERROR="Upgrade to GitHub Pro or make this repository public"
+
+# Wrap `gh api` so the known plan restriction produces actionable guidance
+# instead of a bare 403 trace.
+api() {
+  local output
+  if ! output=$(gh api "$@" 2>&1); then
+    if [[ "${output}" == *"${PLAN_ERROR}"* ]]; then
+      cat >&2 <<'EOF'
+Branch protection was not applied.
+
+Repository rulesets (and classic branch protection) require a public
+repository or GitHub Pro for private repositories.
+
+The merge settings were applied successfully:
+  - rebase merge only
+  - delete head branch after merge
+
+Re-run this script once the repository is public (or after upgrading to Pro):
+  ./scripts/apply-branch-protection.sh
+EOF
+      exit 3
+    fi
+    printf '%s\n' "${output}" >&2
+    exit 1
+  fi
+  printf '%s\n' "${output}"
+}
 
 echo "Configuring ${REPO}"
 
 # Rebase merge only; delete the head branch after merging.
-gh api -X PATCH "repos/${REPO}" \
+api -X PATCH "repos/${REPO}" \
   -F allow_merge_commit=false \
   -F allow_squash_merge=false \
   -F allow_rebase_merge=true \
   -F delete_branch_on_merge=true \
   --silent
 
-EXISTING_ID=$(gh api "repos/${REPO}/rulesets" \
+EXISTING_ID=$(api "repos/${REPO}/rulesets" \
   --jq ".[] | select(.name == \"${RULESET_NAME}\") | .id" | head -n 1)
 
 if [ -n "${EXISTING_ID}" ]; then
   echo "Updating ruleset \"${RULESET_NAME}\" (id ${EXISTING_ID})"
-  gh api -X PUT "repos/${REPO}/rulesets/${EXISTING_ID}" \
+  api -X PUT "repos/${REPO}/rulesets/${EXISTING_ID}" \
     --input "${RULESET_FILE}" \
     --silent
 else
   echo "Creating ruleset \"${RULESET_NAME}\""
-  gh api -X POST "repos/${REPO}/rulesets" \
+  api -X POST "repos/${REPO}/rulesets" \
     --input "${RULESET_FILE}" \
     --silent
 fi
