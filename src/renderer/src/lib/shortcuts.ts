@@ -53,6 +53,9 @@ function dispatch(action: BrowserAction, index?: number): void {
     case 'stop':
       store.stop()
       break
+    case 'dev-tools':
+      store.toggleDevTools()
+      break
     case 'back':
       store.goBack()
       break

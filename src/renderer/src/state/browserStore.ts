@@ -26,6 +26,7 @@ interface BrowserStore extends BrowserState {
   reload: () => void
   forceReload: () => void
   stop: () => void
+  toggleDevTools: () => void
   /** Resolve omnibox input to a URL or search and navigate the active tab. */
   navigate: (input: string) => void
 }
@@ -102,6 +103,9 @@ export const useBrowserStore = create<BrowserStore>()((set, get) => ({
   },
   stop: () => {
     void window.voyager.navigation.stop()
+  },
+  toggleDevTools: () => {
+    void window.voyager.navigation.toggleDevTools()
   },
   navigate: (input) => {
     const url = resolveInput(input, (query) =>
