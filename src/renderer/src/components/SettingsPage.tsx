@@ -5,7 +5,6 @@ import { useDownloadsStore } from '../state/downloadsStore'
 import { useBrowserStore } from '../state/browserStore'
 import { useTheme } from './providers/theme-context'
 import type { ThemeMode } from '../../../shared/types'
-import { SETTINGS_URL } from '../../../shared/constants'
 
 export function SettingsPage(): React.JSX.Element {
   const { mode, setMode } = useTheme()
@@ -17,7 +16,26 @@ export function SettingsPage(): React.JSX.Element {
   const [searchEngine, setSearchEngine] = useState('duckduckgo')
 
   useEffect(() => {
-    // Ensure page title reflects it's settings
+    const bookmarks = useBookmarksStore.getState()
+    const history = useHistoryStore.getState()
+    const downloads = useDownloadsStore.getState()
+    const browser = useBrowserStore.getState()
+
+    void window.voyager.bookmarks.getState().then(bookmarks.applyState)
+    void window.voyager.history.getState().then(history.applyState)
+    void window.voyager.downloads.getState().then(downloads.applyState)
+    void window.voyager.tabs.getState().then(browser.applyState)
+
+    const unsubscribes = [
+      window.voyager.bookmarks.onStateChanged(bookmarks.applyState),
+      window.voyager.history.onStateChanged(history.applyState),
+      window.voyager.downloads.onStateChanged(downloads.applyState),
+      window.voyager.tabs.onStateChanged(browser.applyState)
+    ]
+    return () => unsubscribes.forEach((unsubscribe) => unsubscribe())
+  }, [])
+
+  useEffect(() => {
     document.title = 'Settings - Voyager'
   }, [])
 
@@ -26,7 +44,6 @@ export function SettingsPage(): React.JSX.Element {
       <div className="mx-auto max-w-3xl px-6 py-8">
         <div className="mb-6">
           <h1 className="text-[22px] font-semibold text-fg">Settings</h1>
-          <p className="mt-1 text-[13px] text-muted">{SETTINGS_URL}</p>
         </div>
 
         <div className="space-y-8">
