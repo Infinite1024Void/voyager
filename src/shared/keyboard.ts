@@ -10,6 +10,7 @@ export type BrowserAction =
   | 'next-tab'
   | 'prev-tab'
   | 'focus-omnibox'
+  | 'find-in-page'
   | 'open-tab-search'
   | 'select-tab-n'
   | 'select-tab-last'
@@ -61,6 +62,7 @@ export const SHORTCUTS: readonly ShortcutDef[] = [
   chord('back', 'ArrowLeft', { alt: true }),
   chord('forward', 'ArrowRight', { alt: true }),
   chord('focus-omnibox', 'l', { meta: true }),
+  chord('find-in-page', 'f', { meta: true }),
   chord('open-tab-search', 'a', { meta: true, shift: true }),
   chord('reload', 'r', { meta: true }),
   chord('force-reload', 'r', { meta: true, shift: true }),
@@ -80,6 +82,16 @@ export const SHORTCUTS: readonly ShortcutDef[] = [
   { action: 'select-tab-last', key: '9', meta: true }
 ]
 
+// Shift changes `key` for punctuation (Shift+] reports `}`), so fold it back.
+const SHIFTED_KEYS: Record<string, string> = {
+  '{': '[',
+  '}': ']'
+}
+
+function normalizeKey(key: string): string {
+  return (SHIFTED_KEYS[key] ?? key).toLowerCase()
+}
+
 /** Return the matched action for a chord, or null when nothing binds. */
 export function matchShortcut(
   chordInput: ChordInput,
@@ -93,7 +105,7 @@ export function matchShortcut(
   const primaryAny = primary || (isMac && chordInput.ctrl)
 
   for (const def of SHORTCUTS) {
-    const keyMatches = def.key === chordInput.key
+    const keyMatches = def.key.toLowerCase() === normalizeKey(chordInput.key)
     const metaMatches = def.meta === undefined || primaryAny === def.meta
     const shiftMatches = (def.shift ?? false) === chordInput.shift
     const altMatches = (def.alt ?? false) === chordInput.alt
