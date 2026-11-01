@@ -52,3 +52,24 @@ test('theme changes broadcast to the chrome window', async ({ voyager }) => {
     return chromeTheme.mode
   }).toBe('system')
 })
+
+test('clear browsing data preferences persist', async ({ voyager }) => {
+  const settings = await openSettings(voyager)
+
+  await expect(settings.getByLabel('Browsing history')).toBeChecked()
+  await settings.getByLabel('Bookmarks').check()
+  await expect.poll(async () => (await settings.evaluate(() => window.voyager.settings.get())).clearBookmarks).toBe(true)
+
+  await settings.getByLabel('Browsing history').uncheck()
+  await expect.poll(async () => (await settings.evaluate(() => window.voyager.settings.get())).clearHistory).toBe(false)
+})
+
+test('clear selected data removes history when selected', async ({ voyager, server }) => {
+  await voyager.navigate(server.url('/home'))
+  await expect.poll(async () => (await voyager.chrome.evaluate(() => window.voyager.history.getState())).entries.length).toBe(1)
+
+  const settings = await openSettings(voyager)
+  await settings.getByRole('button', { name: 'Clear selected data' }).click()
+
+  await expect.poll(async () => (await voyager.chrome.evaluate(() => window.voyager.history.getState())).entries.length).toBe(0)
+})
