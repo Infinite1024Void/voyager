@@ -1,30 +1,39 @@
 /** Heuristics for whether omnibox input is a URL or a search query. */
 
-// A lone hostname like `example.com` or `localhost:8080`.
-const HAS_SCHEME = /^[a-z][a-z0-9+.-]*:/i
-const LOCALHOST = /^localhost(:\d+)?$/i
-const IP_ADDRESS = /^(\d{1,3}\.){3}\d{1,3}(:\d+)?$/
-const DOMAIN = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i
+// An explicit scheme such as https://, about: or mailto:.
+const SCHEME = /^[a-z][a-z0-9+.-]*:/i
+// `example.com:8080` is a host and port, not a scheme with a numeric payload.
+const HOST_PORT = /^[^/?#\s]+:\d+([/?#]|$)/
+
+const LOCALHOST = /^localhost(:\d+)?([/?#]|$)/i
+const IP_ADDRESS = /^(\d{1,3}\.){3}\d{1,3}(:\d+)?([/?#]|$)/
+const DOMAIN = /^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?([/?#]|$)/i
 
 export function hasScheme(input: string): boolean {
-  return HAS_SCHEME.test(input.trim())
+  const trimmed = input.trim()
+  if (HOST_PORT.test(trimmed)) return false
+  return SCHEME.test(trimmed)
 }
 
 export function isLikelyUrl(input: string): boolean {
   const trimmed = input.trim()
   if (trimmed === '' || /\s/.test(trimmed)) return false
-  if (hasScheme(trimmed)) return true
-  const host = trimmed.split(/[/:?#]/)[0]
-  return LOCALHOST.test(trimmed) || IP_ADDRESS.test(host) || DOMAIN.test(host)
+  return (
+    hasScheme(trimmed) ||
+    LOCALHOST.test(trimmed) ||
+    IP_ADDRESS.test(trimmed) ||
+    DOMAIN.test(trimmed)
+  )
 }
 
 /** Turn omnibox text into a navigable URL, searching when it isn't one. */
 export function resolveInput(input: string, searchUrlFor: (query: string) => string): string {
   const trimmed = input.trim()
-  if (isLikelyUrl(trimmed)) {
-    return hasScheme(trimmed) ? trimmed : `https://${trimmed}`
-  }
-  return searchUrlFor(trimmed)
+  if (!isLikelyUrl(trimmed)) return searchUrlFor(trimmed)
+  if (hasScheme(trimmed)) return trimmed
+  // Local servers are usually plain HTTP; public hosts default to HTTPS.
+  if (LOCALHOST.test(trimmed) || IP_ADDRESS.test(trimmed)) return `http://${trimmed}`
+  return `https://${trimmed}`
 }
 
 export function safeParseUrl(raw: string): URL | null {
