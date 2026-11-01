@@ -33,7 +33,13 @@ export function BookmarksBar(): React.JSX.Element | null {
           <div
             key={bookmark.id}
             className="relative flex max-w-[180px] shrink-0"
-            onContextMenu={(event) => {
+            onMouseDown={(event) => {
+              if (event.button === 2) {
+                event.preventDefault()
+                setMenu({ id: bookmark.id, x: event.clientX, y: event.clientY })
+              }
+            }}
+          onContextMenu={(event) => {
               event.preventDefault()
               setMenu({ id: bookmark.id, x: event.clientX, y: event.clientY })
             }}
