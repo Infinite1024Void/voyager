@@ -473,6 +473,9 @@ export class TabManager {
       case 'focus-omnibox':
         this.window.sendToChrome(IpcChannels.UiFocusOmnibox)
         break
+      case 'find-in-page':
+        this.window.sendToChrome(IpcChannels.UiFindInPage)
+        break
       case 'open-tab-search':
         this.window.sendToChrome(IpcChannels.UiOpenTabSearch)
         break
@@ -495,7 +498,7 @@ export class TabManager {
         this.window.toggleBookmarksBar()
         break
       case 'open-history':
-        this.window.sendToChrome(IpcChannels.UiOpenTabSearch)
+        this.window.sendToChrome(IpcChannels.UiOpenHistory)
         break
       case 'open-downloads':
         this.window.sendToChrome(IpcChannels.UiOpenDownloads)
