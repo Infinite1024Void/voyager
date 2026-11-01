@@ -87,10 +87,7 @@ export function HistoryPanel({
             onChange={(event) => setQuery(event.target.value)}
             className="min-w-0 flex-1 bg-transparent text-[14px] text-fg outline-none placeholder:text-muted"
             onKeyDown={(event) => {
-              if (event.key === 'Escape') {
-                if (query) setQuery('')
-                else onClose()
-              }
+              if (event.key === 'Escape') onClose()
             }}
           />
           {query && (
@@ -159,7 +156,7 @@ export function HistoryPanel({
                           navigate(entry.url)
                           onClose()
                         }}
-                        title={`${entry.url} - ${entry.visitCount} visit${entry.visitCount === 1 ? '' : 's'}`}
+                        title={entry.url}
                       >
                         <span className="block truncate text-[13px] text-fg">
                           {entry.title || entry.url}

@@ -41,6 +41,17 @@ export function clearHistory(): void {
   historyStore.set('entries', [])
 }
 
+export function updateHistoryTitle(url: string, title: string): boolean {
+  const nextTitle = title.trim()
+  if (!url || !nextTitle) return false
+  const entries = historyStore.get('entries')
+  const existing = entries.find((entry) => entry.url === url)
+  if (!existing || existing.title === nextTitle) return false
+  existing.title = nextTitle
+  historyStore.set('entries', entries)
+  return true
+}
+
 export function publishHistory(broadcast: (state: HistoryState) => void): HistoryState {
   const state = currentHistoryState()
   broadcast(state)
