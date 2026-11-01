@@ -5,7 +5,7 @@ import { IpcChannels } from '../../shared/ipc-channels'
 import { matchShortcut, type BrowserAction } from '../../shared/keyboard'
 import type { BrowserState, NewTabRequest, TabState } from '../../shared/types'
 import { attachDownloadsTracking } from '../downloads/downloads'
-import { currentHistoryState, recordVisit } from '../history/history'
+import { currentHistoryState, recordVisit, updateHistoryTitle } from '../history/history'
 import { openSettingsWindow } from '../window/settingsWindow'
 import type { WindowController } from '../window/WindowController'
 
@@ -344,11 +344,29 @@ export class TabManager {
     wc.on('page-title-updated', () => {
       const newTitle = wc.getTitle()
       entry.title = newTitle
-      // If the title changes after visiting, update the last history entry for
-      // this tab's URL if it was recently recorded. We do a lightweight write
-      // via historyStore update by re-publishing state; but easier: bump title
-      // in memory is enough; recording already set title. Also, when did-navigate
-      // fired, title might be empty.
+      let changed = false
+      if (entry.url.startsWith('http') && !isNewTab(entry.url)) {
+        if (updateHistoryTitle(entry.url, newTitle)) changed = true
+        try {
+          if (!changed) {
+            // If navigation recording happened before the title existed, record it now.
+            const state = currentHistoryState()
+            if (!state.entries.some((item) => item.url === entry.url)) {
+              recordVisit({ url: entry.url, title: newTitle || entry.url })
+              changed = true
+            }
+          }
+        } catch {
+          // Ignore.
+        }
+      }
+      if (changed) {
+        try {
+          this.window.sendToChrome(IpcChannels.HistoryStateChanged, currentHistoryState())
+        } catch {
+          // Ignore.
+        }
+      }
       this.broadcast()
     })
     wc.on('page-favicon-updated', (_event, favicons) => {
@@ -368,7 +386,7 @@ export class TabManager {
       // Record history for main frame navigations to real pages.
       if (!isNewTab(url) && url.startsWith('http')) {
         try {
-          recordVisit({ url, title: entry.title || url })
+          recordVisit({ url, title: wc.getTitle() || entry.title || url })
           this.window.sendToChrome(
             IpcChannels.HistoryStateChanged,
             currentHistoryState()
