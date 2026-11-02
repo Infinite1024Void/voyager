@@ -8,26 +8,56 @@ import { bookmarksStore, getSettings, setSettings } from '../store'
  * visibility is a settings flag that also adjusts the chrome view height.
  */
 
+function resolveBookmarksBarVisibility(): boolean {
+  const stored = getSettings('bookmarksBarVisible')
+  if (stored === undefined) {
+    const visible = bookmarksStore.get('items').length > 0
+    if (visible) setSettings('bookmarksBarVisible', true)
+    return visible
+  }
+  return stored === true
+}
+
 export function currentBookmarksState(): BookmarksState {
   return {
     items: bookmarksStore.get('items'),
-    barVisible: (getSettings('bookmarksBarVisible') as boolean | undefined) ?? false
+    barVisible: resolveBookmarksBarVisibility()
   }
 }
 
 /** Add a bookmark (dedupes by URL) and return the resulting state. */
-export function addBookmark(input: NewBookmarkInput, broadcast: (state: BookmarksState) => void): BookmarksState {
+export function addBookmark(
+  input: NewBookmarkInput,
+  broadcast: (state: BookmarksState) => void,
+  setBarExtent?: (visible: boolean) => void
+): BookmarksState {
   const items = bookmarksStore.get('items')
+  let added = false
   if (!items.some((item) => item.url === input.url)) {
     bookmarksStore.update('items', (list) => [
       ...list,
-      { id: randomUUID(), title: input.title.trim() || input.url, url: input.url, createdAt: Date.now() }
+      {
+        id: randomUUID(),
+        title: input.title.trim() || input.url,
+        url: input.url,
+        createdAt: Date.now()
+      }
     ])
+    added = true
   }
+
+  if (added && !resolveBookmarksBarVisibility()) {
+    setSettings('bookmarksBarVisible', true)
+    setBarExtent?.(true)
+  }
+
   return publish(broadcast)
 }
 
-export function removeBookmark(id: string, broadcast: (state: BookmarksState) => void): BookmarksState {
+export function removeBookmark(
+  id: string,
+  broadcast: (state: BookmarksState) => void
+): BookmarksState {
   bookmarksStore.update('items', (list) => list.filter((item) => item.id !== id))
   return publish(broadcast)
 }

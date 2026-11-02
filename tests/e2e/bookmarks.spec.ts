@@ -2,15 +2,30 @@ import { expect, test } from './fixtures'
 import { primaryKey } from './helpers/voyager'
 
 test('bookmark bar toggles from the keyboard', async ({ voyager }) => {
-  await expect.poll(async () => (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible).toBe(false)
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible
+    )
+    .toBe(false)
 
   const mod = primaryKey()
   await voyager.chrome.locator('body').press(`${mod}+Shift+B`)
-  await expect.poll(async () => (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible).toBe(true)
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible
+    )
+    .toBe(true)
   await expect(voyager.chrome.locator('nav')).toContainText('Bookmarks you add will live here')
 
   await voyager.chrome.locator('body').press(`${mod}+Shift+B`)
-  await expect.poll(async () => (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible).toBe(false)
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible
+    )
+    .toBe(false)
   await expect(voyager.chrome.locator('nav')).toHaveCount(0)
 })
 
@@ -18,21 +33,37 @@ test('adds, dedupes, navigates and removes a bookmark', async ({ voyager, server
   await voyager.navigate(server.url('/home'))
   await expect.poll(async () => (await voyager.activeTab()).url).toBe(server.url('/home'))
 
-  const bookmarkBtn = voyager.chrome.getByRole('button', { name: /Bookmark this page|Remove bookmark/ })
+  const bookmarkBtn = voyager.chrome.getByRole('button', {
+    name: /Bookmark this page|Remove bookmark/
+  })
   await expect(bookmarkBtn).toBeEnabled()
   await bookmarkBtn.click()
-  await expect.poll(async () => (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length).toBe(1)
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length
+    )
+    .toBe(1)
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible
+    )
+    .toBe(true)
 
   // Dedupe through the bookmark API.
   await voyager.chrome.evaluate(async (url: string) => {
     await window.voyager.bookmarks.add({ title: 'Voyager Test Home', url })
     await window.voyager.bookmarks.add({ title: 'Voyager Test Home', url })
   }, server.url('/home'))
-  await expect.poll(async () => (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length).toBe(1)
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length
+    )
+    .toBe(1)
 
-  // Show bar.
-  await voyager.chrome.locator('body').press(`${primaryKey()}+Shift+B`)
-  await expect.poll(async () => (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible).toBe(true)
+  // The bookmarks bar appears automatically on the first bookmark.
 
   const items = (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items
   expect(items[0].title).toBe('Voyager Test Home')
@@ -51,7 +82,12 @@ test('adds, dedupes, navigates and removes a bookmark', async ({ voyager, server
     const state = await window.voyager.bookmarks.getState()
     if (state.items[0]) await window.voyager.bookmarks.remove(state.items[0].id)
   })
-  await expect.poll(async () => (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length).toBe(0)
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length
+    )
+    .toBe(0)
 })
 
 test('disables bookmark button on a blank tab', async ({ voyager }) => {

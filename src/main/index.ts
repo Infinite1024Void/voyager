@@ -41,8 +41,6 @@ app.on('will-quit', () => {
 import { createAppMenu } from './menu/menu'
 
 app.whenReady().then(async (): Promise<void> => {
-  createAppMenu()
-
   protocol.registerFileProtocol('voyager', (request, callback) => {
     const url = request.url.replace('voyager://', '')
     if (url === 'settings' || url === 'settings/') {
@@ -66,10 +64,13 @@ app.whenReady().then(async (): Promise<void> => {
   })
 
   controller = new WindowController()
+  createAppMenu(() => controller)
   controller.onDestroyed(() => {
     controller = null
   })
-  attachDownloadsTracking(session.defaultSession, (state) => controller?.sendToChrome(IpcChannels.DownloadsStateChanged, state))
+  attachDownloadsTracking(session.defaultSession, (state) =>
+    controller?.sendToChrome(IpcChannels.DownloadsStateChanged, state)
+  )
   await controller.show()
 })
 

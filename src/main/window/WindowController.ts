@@ -2,9 +2,9 @@ import { join } from 'node:path'
 import { BaseWindow, WebContentsView } from 'electron'
 import { IpcChannels } from '../../shared/ipc-channels'
 import type { BrowserState } from '../../shared/types'
-import { getSettings, sessionStore } from '../store'
+import { sessionStore } from '../store'
 
-import { toggleBookmarksBar } from '../bookmarks/bookmarks'
+import { currentBookmarksState, toggleBookmarksBar } from '../bookmarks/bookmarks'
 import { TabManager } from '../tabs/TabManager'
 import {
   DEFAULT_CHROME_HEIGHT,
@@ -51,8 +51,7 @@ export class WindowController {
         preload: join(__dirname, '../preload/index.js'),
         contextIsolation: true,
         nodeIntegration: false,
-        sandbox: true,
-
+        sandbox: true
       }
     })
     // Transparent so the page shows through when the chrome expands to host
@@ -77,7 +76,7 @@ export class WindowController {
     this.window.on('closed', () => {
       this.disposed = true
     })
-    this.setBookmarksBarVisible((getSettings('bookmarksBarVisible') as boolean | undefined) ?? false)
+    this.setBookmarksBarVisible(currentBookmarksState().barVisible)
     this.applyLayout()
   }
 
