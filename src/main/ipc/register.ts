@@ -5,9 +5,16 @@ import type {
   NewBookmarkInput,
   NewTabRequest,
   ThemeMode,
-  ThemeState
+  ThemeState,
+  UserPreferences
 } from '../../shared/types'
-import { addBookmark, clearBookmarks, currentBookmarksState, removeBookmark, toggleBookmarksBar } from '../bookmarks/bookmarks'
+import {
+  addBookmark,
+  clearBookmarks,
+  currentBookmarksState,
+  removeBookmark,
+  toggleBookmarksBar
+} from '../bookmarks/bookmarks'
 import {
   clearHistory,
   currentHistoryState,
@@ -19,9 +26,12 @@ import type { WindowController } from '../window/WindowController'
 import { openSettingsWindow } from '../window/settingsWindow'
 import { getSettings, setSettings } from '../store'
 import {
+  cancelDownload,
   clearDownloads,
   currentDownloadsState,
-  publishDownloads
+  pauseDownload,
+  publishDownloads,
+  resumeDownload
 } from '../downloads/downloads'
 
 /** Outbound channel + access to the live window so handlers can act on it. */
@@ -43,12 +53,12 @@ function applyThemeMode(mode: ThemeMode): ThemeState {
   return currentThemeState()
 }
 
-
-function clearPreferences(): { clearHistory: boolean; clearDownloads: boolean; clearBookmarks: boolean } {
+function userPreferences(): UserPreferences {
   return {
     clearHistory: (getSettings('clearHistory', true) as boolean) !== false,
     clearDownloads: (getSettings('clearDownloads', true) as boolean) !== false,
-    clearBookmarks: getSettings('clearBookmarks', false) === true
+    clearBookmarks: getSettings('clearBookmarks', false) === true,
+    openDownloadsWhenDone: getSettings('openDownloadsWhenDone', false) === true
   }
 }
 
@@ -66,16 +76,22 @@ export function registerIpcHandlers(context: IpcContext): void {
 
   ipcMain.handle(IpcChannels.SettingsOpen, () => openSettingsWindow())
 
-  ipcMain.handle(IpcChannels.SettingsGet, () => clearPreferences())
+  ipcMain.handle(IpcChannels.SettingsGet, () => userPreferences())
 
-  ipcMain.handle(IpcChannels.SettingsSet, (_event, key: string, value: boolean) => {
-    if (key !== 'clearHistory' && key !== 'clearDownloads' && key !== 'clearBookmarks') {
+  const supportedSettings = new Set<keyof UserPreferences>([
+    'clearHistory',
+    'clearDownloads',
+    'clearBookmarks',
+    'openDownloadsWhenDone'
+  ])
+
+  ipcMain.handle(IpcChannels.SettingsSet, (_event, key: keyof UserPreferences, value: boolean) => {
+    if (!supportedSettings.has(key)) {
       throw new Error(`Unsupported setting: ${key}`)
     }
     setSettings(key, value)
-    return clearPreferences()
+    return userPreferences()
   })
-
 
   /* ---- theme ----------------------------------------------------------- */
 
@@ -131,7 +147,10 @@ export function registerIpcHandlers(context: IpcContext): void {
   )
 
   ipcMain.handle(IpcChannels.TabsCopyUrl, (_event, id: string) => {
-    const tab = context.getWindow()?.tabs.snapshot().tabs.find((tab) => tab.id === id)
+    const tab = context
+      .getWindow()
+      ?.tabs.snapshot()
+      .tabs.find((tab) => tab.id === id)
     if (tab) clipboard.writeText(tab.url)
     return tab?.url
   })
@@ -142,7 +161,9 @@ export function registerIpcHandlers(context: IpcContext): void {
   ipcMain.handle(IpcChannels.NavForward, () => context.getWindow()?.tabs.goForward())
   ipcMain.handle(IpcChannels.NavReload, () => context.getWindow()?.tabs.reload())
   ipcMain.handle(IpcChannels.NavStop, () => context.getWindow()?.tabs.stop())
-  ipcMain.handle(IpcChannels.NavGo, (_event, url: string) => context.getWindow()?.tabs.navigate(url))
+  ipcMain.handle(IpcChannels.NavGo, (_event, url: string) =>
+    context.getWindow()?.tabs.navigate(url)
+  )
   ipcMain.handle(IpcChannels.NavForceReload, () => context.getWindow()?.tabs.reloadIgnoringCache())
   ipcMain.handle(IpcChannels.NavFindInPage, (_event, query: string, forward?: boolean) =>
     context.getWindow()?.tabs.findInPage(query, forward ?? true)
@@ -158,7 +179,9 @@ export function registerIpcHandlers(context: IpcContext): void {
   })
   ipcMain.handle(IpcChannels.DevToolsToggle, () => context.getWindow()?.tabs.toggleDevTools())
 
-  ipcMain.handle(IpcChannels.TabsReopenLastClosed, () => context.getWindow()?.tabs.reopenLastClosed())
+  ipcMain.handle(IpcChannels.TabsReopenLastClosed, () =>
+    context.getWindow()?.tabs.reopenLastClosed()
+  )
 
   /* ---- bookmarks ------------------------------------------------------ */
 
@@ -187,10 +210,13 @@ export function registerIpcHandlers(context: IpcContext): void {
 
   ipcMain.handle(IpcChannels.HistoryGetState, () => currentHistoryState())
 
-  ipcMain.handle(IpcChannels.HistoryRecordVisit, (_event, visit: { url: string; title: string }) => {
-    recordVisit(visit)
-    return publishHistory((state) => context.send(IpcChannels.HistoryStateChanged, state))
-  })
+  ipcMain.handle(
+    IpcChannels.HistoryRecordVisit,
+    (_event, visit: { url: string; title: string }) => {
+      recordVisit(visit)
+      return publishHistory((state) => context.send(IpcChannels.HistoryStateChanged, state))
+    }
+  )
 
   ipcMain.handle(IpcChannels.HistoryRemove, (_event, id: string) => {
     removeHistory(id)
@@ -209,6 +235,24 @@ export function registerIpcHandlers(context: IpcContext): void {
   ipcMain.handle(IpcChannels.DownloadsClear, () => {
     clearDownloads()
     return publishDownloads((state) => context.send(IpcChannels.DownloadsStateChanged, state))
+  })
+
+  const publishDownloadsState = (): ReturnType<typeof publishDownloads> =>
+    publishDownloads((state) => context.send(IpcChannels.DownloadsStateChanged, state))
+
+  ipcMain.handle(IpcChannels.DownloadsPause, (_event, id: string) => {
+    pauseDownload(id)
+    return publishDownloadsState()
+  })
+
+  ipcMain.handle(IpcChannels.DownloadsResume, (_event, id: string) => {
+    resumeDownload(id)
+    return publishDownloadsState()
+  })
+
+  ipcMain.handle(IpcChannels.DownloadsCancel, (_event, id: string) => {
+    cancelDownload(id)
+    return publishDownloadsState()
   })
 
   /* ---- chrome overlay -------------------------------------------------- */

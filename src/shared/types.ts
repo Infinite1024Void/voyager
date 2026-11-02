@@ -83,6 +83,7 @@ export interface DownloadItem {
   receivedBytes: number
   totalBytes: number
   state: 'progressing' | 'completed' | 'interrupted' | 'cancelled'
+  paused?: boolean
   path?: string
   startTime: number
   endTime?: number
@@ -90,4 +91,12 @@ export interface DownloadItem {
 
 export interface DownloadsState {
   items: DownloadItem[]
+}
+
+/** User preferences exposed to the settings window. */
+export interface UserPreferences {
+  clearHistory: boolean
+  clearDownloads: boolean
+  clearBookmarks: boolean
+  openDownloadsWhenDone: boolean
 }

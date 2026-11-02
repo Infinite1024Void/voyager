@@ -4,7 +4,7 @@ import { useHistoryStore } from '../state/historyStore'
 import { useDownloadsStore } from '../state/downloadsStore'
 import { useBrowserStore } from '../state/browserStore'
 import { useTheme } from './providers/theme-context'
-import type { ThemeMode } from '../../../shared/types'
+import type { ThemeMode, UserPreferences } from '../../../shared/types'
 
 export function SettingsPage(): React.JSX.Element {
   const { mode, setMode } = useTheme()
@@ -14,10 +14,11 @@ export function SettingsPage(): React.JSX.Element {
   const { tabs, activeTabId } = useBrowserStore()
   const activeTab = tabs.find((t) => t.id === activeTabId)
   const [searchEngine, setSearchEngine] = useState('duckduckgo')
-  const [clearPreferences, setClearPreferences] = useState({
+  const [preferences, setPreferences] = useState<UserPreferences>({
     clearHistory: true,
     clearDownloads: true,
-    clearBookmarks: false
+    clearBookmarks: false,
+    openDownloadsWhenDone: false
   })
   const [clearing, setClearing] = useState(false)
 
@@ -31,7 +32,7 @@ export function SettingsPage(): React.JSX.Element {
     void window.voyager.history.getState().then(useHistoryStore.getState().applyState)
     void window.voyager.downloads.getState().then(useDownloadsStore.getState().applyState)
     void window.voyager.tabs.getState().then(browser.applyState)
-    void window.voyager.settings.get().then(setClearPreferences)
+    void window.voyager.settings.get().then(setPreferences)
 
     const unsubscribes = [
       window.voyager.bookmarks.onStateChanged(bookmarks.applyState),
@@ -46,21 +47,18 @@ export function SettingsPage(): React.JSX.Element {
     document.title = 'Settings - Voyager'
   }, [])
 
-  const setPreference = async (
-    key: 'clearHistory' | 'clearDownloads' | 'clearBookmarks',
-    value: boolean
-  ) => {
-    const next = { ...clearPreferences, [key]: value }
-    setClearPreferences(next)
+  const setPreference = async (key: keyof UserPreferences, value: boolean) => {
+    const next = { ...preferences, [key]: value }
+    setPreferences(next)
     await window.voyager.settings.set(key, value)
   }
 
   const clearSelected = async () => {
     setClearing(true)
     try {
-      if (clearPreferences.clearHistory) await window.voyager.history.clear()
-      if (clearPreferences.clearDownloads) await window.voyager.downloads.clear()
-      if (clearPreferences.clearBookmarks) await window.voyager.bookmarks.clear()
+      if (preferences.clearHistory) await window.voyager.history.clear()
+      if (preferences.clearDownloads) await window.voyager.downloads.clear()
+      if (preferences.clearBookmarks) await window.voyager.bookmarks.clear()
       void window.voyager.history.getState().then(useHistoryStore.getState().applyState)
       void window.voyager.downloads.getState().then(useDownloadsStore.getState().applyState)
       void window.voyager.bookmarks.getState().then(useBookmarksStore.getState().applyState)
@@ -106,6 +104,18 @@ export function SettingsPage(): React.JSX.Element {
           </section>
 
           <section className="rounded-lg border border-border bg-surface p-5">
+            <h2 className="mb-4 text-[15px] font-semibold text-fg">Downloads</h2>
+            <label className="flex items-center gap-2 text-[13px] text-fg">
+              <input
+                type="checkbox"
+                checked={preferences.openDownloadsWhenDone}
+                onChange={(event) => setPreference('openDownloadsWhenDone', event.target.checked)}
+              />
+              <span>Open files automatically when downloads finish</span>
+            </label>
+          </section>
+
+          <section className="rounded-lg border border-border bg-surface p-5">
             <h2 className="mb-4 text-[15px] font-semibold text-fg">Clear browsing data</h2>
             <p className="mb-4 text-[13px] text-fg">
               Choose what Voyager includes when clearing data.
@@ -114,30 +124,24 @@ export function SettingsPage(): React.JSX.Element {
               <label className="flex items-center gap-2 text-[13px] text-fg">
                 <input
                   type="checkbox"
-                  checked={clearPreferences.clearHistory}
-                  onChange={(event) =>
-                    setPreference('clearHistory', event.target.checked)
-                  }
+                  checked={preferences.clearHistory}
+                  onChange={(event) => setPreference('clearHistory', event.target.checked)}
                 />
                 <span>Browsing history</span>
               </label>
               <label className="flex items-center gap-2 text-[13px] text-fg">
                 <input
                   type="checkbox"
-                  checked={clearPreferences.clearDownloads}
-                  onChange={(event) =>
-                    setPreference('clearDownloads', event.target.checked)
-                  }
+                  checked={preferences.clearDownloads}
+                  onChange={(event) => setPreference('clearDownloads', event.target.checked)}
                 />
                 <span>Download history</span>
               </label>
               <label className="flex items-center gap-2 text-[13px] text-fg">
                 <input
                   type="checkbox"
-                  checked={clearPreferences.clearBookmarks}
-                  onChange={(event) =>
-                    setPreference('clearBookmarks', event.target.checked)
-                  }
+                  checked={preferences.clearBookmarks}
+                  onChange={(event) => setPreference('clearBookmarks', event.target.checked)}
                 />
                 <span>Bookmarks</span>
               </label>
@@ -145,7 +149,14 @@ export function SettingsPage(): React.JSX.Element {
             <button
               type="button"
               className="mt-4 rounded-md bg-accent px-3 py-1.5 text-[13px] text-accent-foreground disabled:opacity-50"
-              disabled={clearing || !(clearPreferences.clearHistory || clearPreferences.clearDownloads || clearPreferences.clearBookmarks)}
+              disabled={
+                clearing ||
+                !(
+                  preferences.clearHistory ||
+                  preferences.clearDownloads ||
+                  preferences.clearBookmarks
+                )
+              }
               onClick={clearSelected}
             >
               {clearing ? 'Clearing...' : 'Clear selected data'}

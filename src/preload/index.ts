@@ -10,7 +10,8 @@ import type {
   NewTabRequest,
   ThemeMode,
   ThemeState,
-  Unsubscribe
+  Unsubscribe,
+  UserPreferences
 } from '../shared/types'
 
 const allowedChannels = new Set<string>(ALL_IPC_CHANNELS)
@@ -39,10 +40,9 @@ const api = {
   appInfo: (): Promise<AppVersionInfo> => ipcRenderer.invoke(IpcChannels.AppGetInfo),
 
   settings: {
-    get: (): Promise<{ clearHistory: boolean; clearDownloads: boolean; clearBookmarks: boolean }> =>
-      ipcRenderer.invoke(IpcChannels.SettingsGet),
+    get: (): Promise<UserPreferences> => ipcRenderer.invoke(IpcChannels.SettingsGet),
     open: (): Promise<void> => ipcRenderer.invoke(IpcChannels.SettingsOpen),
-    set: (key: 'clearHistory' | 'clearDownloads' | 'clearBookmarks', value: boolean) =>
+    set: (key: keyof UserPreferences, value: boolean): Promise<UserPreferences> =>
       ipcRenderer.invoke(IpcChannels.SettingsSet, key, value)
   },
 
@@ -66,7 +66,8 @@ const api = {
     closeOthers: (id: string): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsCloseOthers, id),
     closeToRight: (id: string): Promise<void> =>
       ipcRenderer.invoke(IpcChannels.TabsCloseToRight, id),
-    copyUrl: (id: string): Promise<string | undefined> => ipcRenderer.invoke(IpcChannels.TabsCopyUrl, id),
+    copyUrl: (id: string): Promise<string | undefined> =>
+      ipcRenderer.invoke(IpcChannels.TabsCopyUrl, id),
     reopenLastClosed: (): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsReopenLastClosed),
     onStateChanged: (listener: (state: BrowserState) => void): Unsubscribe =>
       subscribe<BrowserState>(IpcChannels.TabsStateChanged, listener)
@@ -104,7 +105,8 @@ const api = {
 
   history: {
     getState: (): Promise<HistoryState> => ipcRenderer.invoke(IpcChannels.HistoryGetState),
-    remove: (id: string): Promise<HistoryState> => ipcRenderer.invoke(IpcChannels.HistoryRemove, id),
+    remove: (id: string): Promise<HistoryState> =>
+      ipcRenderer.invoke(IpcChannels.HistoryRemove, id),
     clear: (): Promise<HistoryState> => ipcRenderer.invoke(IpcChannels.HistoryClear),
     recordVisit: (visit: { url: string; title: string }): Promise<HistoryState> =>
       ipcRenderer.invoke(IpcChannels.HistoryRecordVisit, visit),
@@ -115,12 +117,19 @@ const api = {
   downloads: {
     getState: (): Promise<DownloadsState> => ipcRenderer.invoke(IpcChannels.DownloadsGetState),
     clear: (): Promise<DownloadsState> => ipcRenderer.invoke(IpcChannels.DownloadsClear),
+    pause: (id: string): Promise<DownloadsState> =>
+      ipcRenderer.invoke(IpcChannels.DownloadsPause, id),
+    resume: (id: string): Promise<DownloadsState> =>
+      ipcRenderer.invoke(IpcChannels.DownloadsResume, id),
+    cancel: (id: string): Promise<DownloadsState> =>
+      ipcRenderer.invoke(IpcChannels.DownloadsCancel, id),
     onStateChanged: (listener: (state: DownloadsState) => void): Unsubscribe =>
       subscribe<DownloadsState>(IpcChannels.DownloadsStateChanged, listener)
   },
 
   ui: {
-    onFocusOmnibox: (listener: () => void): Unsubscribe => subscribe<void>(IpcChannels.UiFocusOmnibox, listener),
+    onFocusOmnibox: (listener: () => void): Unsubscribe =>
+      subscribe<void>(IpcChannels.UiFocusOmnibox, listener),
     onFindInPage: (listener: () => void): Unsubscribe =>
       subscribe<void>(IpcChannels.UiFindInPage, listener),
     onOpenTabSearch: (listener: () => void): Unsubscribe =>
