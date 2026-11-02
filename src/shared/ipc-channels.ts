@@ -56,6 +56,9 @@ export const IpcChannels = {
   DownloadsPause: 'downloads:pause',
   DownloadsResume: 'downloads:resume',
   DownloadsCancel: 'downloads:cancel',
+  DownloadsRemove: 'downloads:remove',
+  DownloadsCopyUrl: 'downloads:copy-url',
+  DownloadsOpenFolder: 'downloads:open-folder',
 
   HistoryGetState: 'history:get-state',
   HistoryStateChanged: 'history:state-changed',

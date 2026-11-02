@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { FolderDown, Pause, Play, X } from 'lucide-react'
 import type { DownloadItem } from '../../../shared/types'
+import type { ContextMenuItem } from './ui/ContextMenu'
+import { ContextMenu } from './ui/ContextMenu'
+import { useDownloadsStore } from '../state/downloadsStore'
 import { useOverlaySignal } from '../lib/overlay'
 
 interface DownloadsPanelProps {
@@ -23,6 +26,41 @@ export function DownloadsPanel({
 }: DownloadsPanelProps): React.JSX.Element | null {
   useOverlaySignal(open)
   const [query, setQuery] = useState('')
+  const [contextMenu, setContextMenu] = useState<{
+    x: number
+    y: number
+    id: string
+  } | null>(null)
+
+  const contextItem = items.find((entry) => entry.id === contextMenu?.id) ?? null
+  const contextItems: ContextMenuItem[] =
+    contextItem !== null
+      ? [
+          {
+            label: 'Remove from History',
+            danger: true,
+            onSelect: () => {
+              void window.voyager.downloads
+                .remove(contextItem.id)
+                .then((state) => useDownloadsStore.getState().applyState(state))
+            }
+          },
+          { separator: true },
+          {
+            label: 'Copy Download URL',
+            onSelect: () => {
+              void window.voyager.downloads.copyUrl(contextItem.id)
+            }
+          },
+          {
+            label: 'Open in Folder',
+            disabled: !contextItem.path,
+            onSelect: () => {
+              void window.voyager.downloads.openFolder(contextItem.id)
+            }
+          }
+        ]
+      : []
 
   if (!open) return null
 
@@ -75,7 +113,15 @@ export function DownloadsPanel({
               {active.map((item) => {
                 const pct = percent(item)
                 return (
-                  <div key={item.id} className="group space-y-1.5 px-3.5 py-2">
+                  <div
+                    key={item.id}
+                    className="group space-y-1.5 px-3.5 py-2"
+                    onContextMenu={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      setContextMenu({ x: event.clientX, y: event.clientY, id: item.id })
+                    }}
+                  >
                     <div className="flex items-start gap-2">
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[13px] text-fg">{item.filename}</p>
@@ -129,7 +175,15 @@ export function DownloadsPanel({
                 </div>
               )}
               {finished.map((item) => (
-                <div key={item.id} className="flex items-center gap-3 px-3.5 py-2">
+                <div
+                  key={item.id}
+                  className="flex items-center gap-3 px-3.5 py-2"
+                  onContextMenu={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    setContextMenu({ x: event.clientX, y: event.clientY, id: item.id })
+                  }}
+                >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] text-fg">{item.filename}</p>
                     <p className="truncate text-[11px] text-muted">
@@ -153,6 +207,14 @@ export function DownloadsPanel({
           )}
         </div>
       </div>
+      {contextMenu && contextItem && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          items={contextItems}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </div>
   )
 }

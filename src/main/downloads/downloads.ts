@@ -67,6 +67,33 @@ export function cancelDownload(id: string): boolean {
   return true
 }
 
+export function removeDownload(id: string): boolean {
+  const item = activeItems.get(id)
+  if (item) item.cancel()
+  activeItems.delete(id)
+  const items = downloadsStore.get('items')
+  downloadsStore.set(
+    'items',
+    items.filter((entry) => entry.id !== id)
+  )
+  return true
+}
+
+export function downloadUrl(id: string): string | undefined {
+  return downloadsStore.get('items').find((entry) => entry.id === id)?.url
+}
+
+export function downloadPath(id: string): string | undefined {
+  return downloadsStore.get('items').find((entry) => entry.id === id)?.path
+}
+
+export function openDownloadFolder(id: string): boolean {
+  const path = downloadPath(id)
+  if (!path) return false
+  shell.showItemInFolder(path)
+  return true
+}
+
 function openWhenDone(item: ElectronDownloadItem): void {
   if (getSettings('openDownloadsWhenDone', false) !== true) return
   const path = item.getSavePath()

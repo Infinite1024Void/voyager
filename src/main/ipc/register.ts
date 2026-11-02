@@ -29,8 +29,11 @@ import {
   cancelDownload,
   clearDownloads,
   currentDownloadsState,
+  downloadUrl,
+  openDownloadFolder,
   pauseDownload,
   publishDownloads,
+  removeDownload,
   resumeDownload
 } from '../downloads/downloads'
 
@@ -254,6 +257,19 @@ export function registerIpcHandlers(context: IpcContext): void {
     cancelDownload(id)
     return publishDownloadsState()
   })
+
+  ipcMain.handle(IpcChannels.DownloadsRemove, (_event, id: string) => {
+    removeDownload(id)
+    return publishDownloadsState()
+  })
+
+  ipcMain.handle(IpcChannels.DownloadsCopyUrl, (_event, id: string) => {
+    const url = downloadUrl(id)
+    if (url) clipboard.writeText(url)
+    return url
+  })
+
+  ipcMain.handle(IpcChannels.DownloadsOpenFolder, (_event, id: string) => openDownloadFolder(id))
 
   /* ---- chrome overlay -------------------------------------------------- */
 
