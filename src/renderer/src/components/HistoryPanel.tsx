@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Search, Trash2, X } from 'lucide-react'
 import { useOverlaySignal } from '../lib/overlay'
 import { useBrowserStore } from '../state/browserStore'
@@ -46,10 +46,12 @@ function groupHistory(entries: HistoryEntry[]): HistoryGroup[] {
 
 export function HistoryPanel({
   open,
-  onClose
+  onClose,
+  clearPrompt = 0
 }: {
   open: boolean
   onClose: () => void
+  clearPrompt?: number
 }): React.JSX.Element | null {
   const entries = useHistoryStore((state) => state.entries)
   const remove = useHistoryStore((state) => state.remove)
@@ -57,6 +59,12 @@ export function HistoryPanel({
   const navigate = useBrowserStore((state) => state.navigate)
   const [query, setQuery] = useState('')
   const [confirmClear, setConfirmClear] = useState(false)
+
+  useEffect(() => {
+    if (clearPrompt > 0) {
+      setConfirmClear(true)
+    }
+  }, [clearPrompt])
 
   useOverlaySignal(open)
 
@@ -103,7 +111,9 @@ export function HistoryPanel({
         </div>
 
         <div className="flex items-center justify-between border-b border-border px-4 py-2 text-[12px] text-muted">
-          <span>{results.length} result{results.length === 1 ? '' : 's'}</span>
+          <span>
+            {results.length} result{results.length === 1 ? '' : 's'}
+          </span>
           {confirmClear ? (
             <div className="flex items-center gap-2">
               <span className="text-fg">Clear all history?</span>
