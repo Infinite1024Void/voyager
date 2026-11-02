@@ -188,7 +188,11 @@ export function registerIpcHandlers(context: IpcContext): void {
   ipcMain.handle(IpcChannels.BookmarksGetState, () => currentBookmarksState())
 
   ipcMain.handle(IpcChannels.BookmarksAdd, (_event, input: NewBookmarkInput) =>
-    addBookmark(input, (state) => context.send(IpcChannels.BookmarksStateChanged, state))
+    addBookmark(
+      input,
+      (state) => context.send(IpcChannels.BookmarksStateChanged, state),
+      (visible) => context.getWindow()?.setBookmarksBarVisible(visible)
+    )
   )
 
   ipcMain.handle(IpcChannels.BookmarksRemove, (_event, id: string) =>
