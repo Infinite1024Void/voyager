@@ -206,7 +206,6 @@ test('offers a context menu and removes the selected download', async ({ voyager
     )
     .toBe(0)
 })
-})
 
 test('downloads panel surfaces items and clears them', async ({ voyager, server }) => {
   await voyager.navigate(server.url('/home'))
