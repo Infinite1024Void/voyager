@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { primaryKey } from './helpers/voyager'
+import { primaryKey, waitForRenderedText } from './helpers/voyager'
 
 test('records a visit as a page is navigated', async ({ voyager, server }) => {
   await voyager.navigate(server.url('/home'))
@@ -78,8 +78,7 @@ test('clicking a history entry navigates the active tab', async ({ voyager, serv
   await voyager.chrome.locator('body').press(`${primaryKey()}+Y`)
   await voyager.chrome.getByTitle(homeEntry!.url).click()
   await expect.poll(async () => (await voyager.activeTab()).url).toBe(homeEntry!.url)
-  await voyager.tab.waitForLoadState('domcontentloaded').catch(() => undefined)
-  await expect(voyager.tab.locator('#heading')).toHaveText('Test Home', { timeout: 30_000 })
+  await waitForRenderedText(voyager, homeEntry!.url, '#heading', 'Test Home')
 })
 
 test('history search can be cleared from the panel', async ({ voyager, server }) => {

@@ -13,9 +13,9 @@ test('restores persisted tabs and active index', async ({ launchVoyager, server 
     }
   })
 
-  const urls = (await voyager.state()).tabs.map((tab: any) => tab.url)
-  expect(urls).toContain(server.url('/home'))
-  expect(urls).toContain(server.url('/second'))
+  await expect
+    .poll(async () => (await voyager.state()).tabs.map((tab: any) => tab.url))
+    .toEqual(expect.arrayContaining([server.url('/home'), server.url('/second')]))
   expect((await voyager.state()).tabs.length).toBe(2)
   expect((await voyager.state()).tabs.filter((tab: any) => tab.pinned).length).toBe(1)
 
