@@ -91,6 +91,24 @@ export function seedUserData(userDataDir: string, files: Record<string, unknown>
   }
 }
 
+/**
+ * Replace the main process clipboard writer with an in-memory recorder so
+ * tests never overwrite the developer's real OS clipboard.
+ */
+async function installClipboardStub(app: ElectronApplication): Promise<void> {
+  await app.evaluate(({ clipboard }) => {
+    const store = globalThis as unknown as { __voyagerE2EClipboard?: string }
+    store.__voyagerE2EClipboard = ''
+    Object.defineProperty(clipboard, 'writeText', {
+      configurable: true,
+      writable: true,
+      value: (text: string) => {
+        store.__voyagerE2EClipboard = text
+      }
+    })
+  })
+}
+
 async function installDownloadHandler(app: ElectronApplication, downloadDir: string): Promise<void> {
   mkdirSync(downloadDir, { recursive: true })
   await app.evaluate(({ session }, directory) => {
@@ -148,6 +166,7 @@ export async function launchVoyager(options: LaunchOptions): Promise<VoyagerApp>
     env
   })
 
+  await installClipboardStub(app)
   const chrome = await waitForChrome(app)
   await installDownloadHandler(app, options.downloadDir)
   const tab = await waitForTab(app)
@@ -347,7 +366,9 @@ export async function windowCount(app: ElectronApplication): Promise<number> {
 }
 
 export async function clipboardText(app: ElectronApplication): Promise<string> {
-  return app.evaluate(({ clipboard }) => clipboard.readText())
+  return app.evaluate(
+    () => (globalThis as unknown as { __voyagerE2EClipboard?: string }).__voyagerE2EClipboard ?? ''
+  )
 }
 
 export async function devToolsOpen(app: ElectronApplication): Promise<boolean> {
