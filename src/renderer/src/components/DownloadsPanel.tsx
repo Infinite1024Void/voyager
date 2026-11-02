@@ -1,18 +1,7 @@
 import { useState } from 'react'
-import { FolderDown } from 'lucide-react'
+import { FolderDown, Pause, Play, X } from 'lucide-react'
+import type { DownloadItem } from '../../../shared/types'
 import { useOverlaySignal } from '../lib/overlay'
-
-interface DownloadItem {
-  id: string
-  url: string
-  filename: string
-  receivedBytes: number
-  totalBytes: number
-  state: 'progressing' | 'completed' | 'interrupted' | 'cancelled'
-  path?: string
-  startTime: number
-  endTime?: number
-}
 
 interface DownloadsPanelProps {
   open: boolean
@@ -26,7 +15,12 @@ function percent(item: DownloadItem): number {
   return Math.min(100, Math.round((item.receivedBytes / item.totalBytes) * 100))
 }
 
-export function DownloadsPanel({ open, onClose, items, onClear }: DownloadsPanelProps): React.JSX.Element | null {
+export function DownloadsPanel({
+  open,
+  onClose,
+  items,
+  onClear
+}: DownloadsPanelProps): React.JSX.Element | null {
   useOverlaySignal(open)
   const [query, setQuery] = useState('')
 
@@ -81,17 +75,47 @@ export function DownloadsPanel({ open, onClose, items, onClear }: DownloadsPanel
               {active.map((item) => {
                 const pct = percent(item)
                 return (
-                  <div key={item.id} className="space-y-1.5 px-3.5 py-2">
+                  <div key={item.id} className="group space-y-1.5 px-3.5 py-2">
                     <div className="flex items-start gap-2">
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[13px] text-fg">{item.filename}</p>
                         <p className="truncate text-[11px] text-muted">{item.url}</p>
                       </div>
-                      <p className="shrink-0 text-[11px] text-muted">{pct}%</p>
+                      <div className="flex shrink-0 items-center gap-0.5">
+                        <button
+                          type="button"
+                          aria-label={item.paused ? 'Resume download' : 'Pause download'}
+                          title={item.paused ? 'Resume' : 'Pause'}
+                          className="no-drag flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors hover:bg-hover hover:text-fg"
+                          onClick={() =>
+                            void (item.paused
+                              ? window.voyager.downloads.resume(item.id)
+                              : window.voyager.downloads.pause(item.id))
+                          }
+                        >
+                          {item.paused ? (
+                            <Play className="h-3.5 w-3.5" />
+                          ) : (
+                            <Pause className="h-3.5 w-3.5" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Cancel download"
+                          title="Cancel"
+                          className="no-drag flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors hover:bg-hover hover:text-danger"
+                          onClick={() => void window.voyager.downloads.cancel(item.id)}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <p className="w-10 shrink-0 text-right text-[11px] text-muted">
+                        {item.paused ? 'Paused' : `${pct}%`}
+                      </p>
                     </div>
                     <div className="h-1.5 overflow-hidden rounded-full bg-hover">
                       <div
-                        className="h-full bg-accent transition-all"
+                        className={`h-full transition-all ${item.paused ? 'bg-muted' : 'bg-accent'}`}
                         style={{ width: item.totalBytes > 0 ? `${pct}%` : '50%' }}
                       />
                     </div>

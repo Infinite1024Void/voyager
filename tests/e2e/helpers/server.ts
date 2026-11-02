@@ -55,6 +55,7 @@ const home = document(
   <button id="open-window" type="button">Open window</button>
   <a id="to-settings" href="voyager://settings">Open settings</a>
   <a id="download" href="/download?name=voyager-test.txt">Download file</a>
+  <a id="download-slow" href="/download-slow?name=voyager-slow.txt">Download large file</a>
   <script>
     document.getElementById('open-window').addEventListener('click', () => {
       window.open('/popup', '_blank')
@@ -138,6 +139,21 @@ async function handle(req: URL, res: ServerResponse, counts: Map<string, number>
     res.setHeader('content-disposition', `attachment; filename="${filename}"`)
     res.setHeader('content-length', String(body.byteLength))
     res.end(body)
+    return
+  }
+  if (path === '/download-slow') {
+    const filename = req.searchParams.get('name') ?? 'voyager-slow.txt'
+    const chunk = Buffer.alloc(16 * 1024, 'x')
+    const chunks = 80
+    res.setHeader('content-type', 'application/octet-stream')
+    res.setHeader('content-disposition', `attachment; filename="${filename}"`)
+    res.setHeader('content-length', String(chunk.byteLength * chunks))
+    for (let index = 0; index < chunks; index += 1) {
+      if (res.destroyed) return
+      res.write(chunk)
+      await delay(50)
+    }
+    res.end()
     return
   }
   if (path === '/favicon.ico') {

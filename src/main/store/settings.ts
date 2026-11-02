@@ -5,4 +5,5 @@ export interface SettingsShape {
   clearHistory?: boolean
   clearDownloads?: boolean
   clearBookmarks?: boolean
+  openDownloadsWhenDone?: boolean
 }
