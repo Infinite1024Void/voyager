@@ -11,6 +11,7 @@ test('opens settings with the Cmd/Ctrl+, shortcut', async ({ voyager }) => {
 })
 
 test('exposes a Settings menu entry with an accelerator', async ({ voyager }) => {
+  test.skip(process.platform !== 'darwin', 'Settings menu is macOS-only')
   const accelerator = await voyager.app.evaluate(({ Menu }) => {
     const menus = Menu.getApplicationMenu()?.items ?? []
     for (const menu of menus) {
