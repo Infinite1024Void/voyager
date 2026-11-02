@@ -96,3 +96,16 @@ test('clear selected data removes history when selected', async ({ voyager, serv
 
   await expect.poll(async () => (await voyager.chrome.evaluate(() => window.voyager.history.getState())).entries.length).toBe(0)
 })
+
+
+test('shows a settings gear on non-mac platforms', async ({ voyager }) => {
+  test.skip(process.platform === 'darwin', 'settings gear hidden on macOS')
+  await expect(voyager.chrome.getByRole('button', { name: 'Settings' })).toBeVisible()
+})
+
+test('opens settings from the titlebar gear', async ({ voyager }) => {
+  test.skip(process.platform === 'darwin', 'settings gear hidden on macOS')
+  const before = await windowCount(voyager.app)
+  await voyager.chrome.getByRole('button', { name: 'Settings' }).click()
+  await expect.poll(async () => windowCount(voyager.app), { timeout: 10_000 }).toBe(before + 1)
+})
