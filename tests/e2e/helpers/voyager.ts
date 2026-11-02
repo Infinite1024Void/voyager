@@ -178,6 +178,52 @@ async function voyageState(chrome: Page): Promise<BrowserState> {
   return chrome.evaluate(() => window.voyager.tabs.getState())
 }
 
+/**
+ * Assert that a live tab webContents has rendered the expected text.
+ *
+ * Playwright's Page handles for Electron WebContentsViews can go stale when a
+ * tab is closed and reopened (or navigated) and then hang forever on locator
+ * calls. Query the main process for the webContents that currently owns the
+ * URL instead, racing each evaluation with a short timeout so a stale view
+ * cannot stall the poll.
+ */
+export async function waitForRenderedText(
+  voyager: VoyagerApp,
+  url: string,
+  selector: string,
+  expectedText: string,
+  timeout = 20_000
+): Promise<void> {
+  await expect
+    .poll(
+      async () =>
+        voyager.app.evaluate(
+          async ({ webContents }, input) => {
+            const targets = webContents
+              .getAllWebContents()
+              .filter((contents) => !contents.isDestroyed() && contents.getURL() === input.url)
+            for (const contents of targets) {
+              try {
+                const text = await Promise.race([
+                  contents.executeJavaScript(
+                    `document.querySelector(${JSON.stringify(input.selector)})?.textContent ?? ''`
+                  ),
+                  new Promise<null>((resolve) => setTimeout(() => resolve(null), 1_000))
+                ])
+                if ((text ?? '').trim() === input.expectedText) return true
+              } catch {
+                // The view may have been replaced; try the next matching one.
+              }
+            }
+            return false
+          },
+          { url, selector, expectedText }
+        ),
+      { timeout }
+    )
+    .toBe(true)
+}
+
 export async function waitForTabCount(voyager: VoyagerApp, count: number): Promise<void> {
   await expect.poll(async () => (await voyager.state()).tabs.length).toBe(count)
 }

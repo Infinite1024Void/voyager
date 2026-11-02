@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { primaryKey } from './helpers/voyager'
+import { primaryKey, waitForRenderedText } from './helpers/voyager'
 
 async function vyWait(voyager: any, url: string): Promise<void> {
   const deadline = Date.now() + 15_000
@@ -55,9 +55,7 @@ test('closes tabs and recovers by reopening the last one', async ({ voyager, ser
   await voyager.chrome.locator('body').press(`${primaryKey()}+Shift+T`)
   await expect.poll(async () => (await voyager.state()).tabs.length).toBe(2)
   await vyWait(voyager, homeUrl)
-  const homeTab = await voyager.tabPage('/home')
-  await homeTab.waitForLoadState('domcontentloaded').catch(() => undefined)
-  await expect.poll(async () => await homeTab.locator('#heading').innerText(), { timeout: 30_000 }).toBe('Test Home')
+  await waitForRenderedText(voyager, homeUrl, '#heading', 'Test Home')
 })
 
 test('switches tabs with keyboard shortcuts', async ({ voyager, server }) => {
