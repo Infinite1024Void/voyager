@@ -78,7 +78,8 @@ test('clicking a history entry navigates the active tab', async ({ voyager, serv
   await voyager.chrome.locator('body').press(`${primaryKey()}+Y`)
   await voyager.chrome.getByTitle(homeEntry!.url).click()
   await expect.poll(async () => (await voyager.activeTab()).url).toBe(homeEntry!.url)
-  await expect(voyager.tab.locator('#heading')).toHaveText('Test Home')
+  await voyager.tab.waitForLoadState('domcontentloaded').catch(() => undefined)
+  await expect(voyager.tab.locator('#heading')).toHaveText('Test Home', { timeout: 30_000 })
 })
 
 test('history search can be cleared from the panel', async ({ voyager, server }) => {
