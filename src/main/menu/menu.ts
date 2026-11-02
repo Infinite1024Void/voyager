@@ -52,20 +52,7 @@ export function createAppMenu(getController?: () => WindowController | null): vo
 
   template.push({
     label: 'File',
-    submenu: [
-      ...(!isMac
-        ? [
-            {
-              label: 'Settings',
-              accelerator: 'CmdOrCtrl+,',
-              click: () => openSettingsWindow()
-            },
-            { type: 'separator' as const }
-          ]
-        : []),
-      { role: 'close' },
-      ...(isMac ? [] : ([{ role: 'quit' }] as const))
-    ]
+    submenu: [{ role: 'close' }, ...(isMac ? [] : ([{ role: 'quit' }] as const))]
   })
 
   template.push({
