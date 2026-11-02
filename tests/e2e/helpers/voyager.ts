@@ -100,6 +100,32 @@ async function installDownloadHandler(app: ElectronApplication, downloadDir: str
   }, downloadDir)
 }
 
+const LAUNCH_RETRY_PATTERN = /ETXTBSY|EACCES|Failed to launch/
+
+/**
+ * Launching several Electron instances at once can transiently fail on busy
+ * CI runners with ETXTBSY/EACCES while the binary is still being mapped.
+ * Retry those spawn failures with a short backoff; real startup errors are
+ * still surfaced immediately.
+ */
+async function launchWithRetry(
+  options: Parameters<typeof electron.launch>[0],
+  attempts = 5
+): Promise<ElectronApplication> {
+  let lastError: unknown
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await electron.launch(options)
+    } catch (error) {
+      lastError = error
+      const message = String((error as Error)?.message ?? error)
+      if (attempt === attempts || !LAUNCH_RETRY_PATTERN.test(message)) throw error
+      await delay(attempt * 1_000)
+    }
+  }
+  throw lastError
+}
+
 export async function launchVoyager(options: LaunchOptions): Promise<VoyagerApp> {
   if (options.seed) seedUserData(options.userDataDir, options.seed)
   mkdirSync(options.downloadDir, { recursive: true })
@@ -110,7 +136,7 @@ export async function launchVoyager(options: LaunchOptions): Promise<VoyagerApp>
     ELECTRON_DISABLE_SECURITY_WARNINGS: '1'
   } as Record<string, string>
 
-  const app = await electron.launch({
+  const app = await launchWithRetry({
     args: [
       '.',
       '--no-sandbox',
@@ -166,8 +192,24 @@ export async function launchVoyager(options: LaunchOptions): Promise<VoyagerApp>
         }
       }, timeout),
     navigate: async (url, expectedUrl = url) => {
-      await chrome.evaluate((target) => window.voyager.navigation.go(target), url)
-      return voyager.waitForTab((tab) => tab.url === expectedUrl && !tab.loading)
+      let issued = false
+      return pollUntil(
+        async () => {
+          try {
+            const before = await voyager.activeTab()
+            if (!issued || (before.url !== expectedUrl && !before.loading)) {
+              issued = true
+              await chrome.evaluate((target) => window.voyager.navigation.go(target), url)
+            }
+            const tab = await voyager.activeTab()
+            return tab.url === expectedUrl && !tab.loading ? tab : undefined
+          } catch {
+            return undefined
+          }
+        },
+        20_000,
+        250
+      )
     }
   }
 
@@ -236,23 +278,35 @@ export async function pressPageShortcut(
   const normalized = modifiers.map((modifier) =>
     process.platform === 'darwin' || modifier !== 'meta' ? modifier : 'control'
   )
+  const state = await voyager.state()
+  const activeUrl = state.tabs.find((tab) => tab.id === state.activeTabId)?.url ?? ''
   await voyager.app.evaluate(
     ({ BaseWindow, webContents }, input) => {
       const window = BaseWindow.getAllWindows().find((candidate) => !candidate.isDestroyed())
       window?.focus()
-      const target = webContents.getAllWebContents().find((contents) => {
+      const candidates = webContents.getAllWebContents().filter((contents) => {
         const url = contents.getURL()
         return (
-          !url.startsWith('file:') && !url.startsWith('voyager:') && !url.startsWith('devtools:')
+          !contents.isDestroyed() &&
+          !url.startsWith('file:') &&
+          !url.startsWith('voyager:') &&
+          !url.startsWith('devtools:')
         )
       })
+      const wantsBlank = !input.activeUrl || input.activeUrl === 'about:blank'
+      const target =
+        (wantsBlank
+          ? candidates.find((contents) => ['', 'about:blank'].includes(contents.getURL()))
+          : candidates.find((contents) => contents.getURL() === input.activeUrl)) ??
+        candidates.find((contents) => contents.isFocused()) ??
+        candidates[0]
       if (!target) throw new Error('No tab web contents available')
       target.focus()
       const kc = input.keyCode === 'ArrowLeft' ? 'Left' : input.keyCode === 'ArrowRight' ? 'Right' : input.keyCode
       target.sendInputEvent({ type: 'keyDown', keyCode: kc, modifiers: input.modifiers })
       target.sendInputEvent({ type: 'keyUp', keyCode: kc, modifiers: input.modifiers })
     },
-    { keyCode, modifiers: normalized }
+    { keyCode, modifiers: normalized, activeUrl }
   )
 }
 
