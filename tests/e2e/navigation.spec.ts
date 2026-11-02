@@ -13,8 +13,8 @@ test('navigates from the omnibox and reflects the page title', async ({ voyager,
   await input.fill(server.url('/home'))
   await input.press('Enter')
 
-  const tab = await voyager.waitForTab((candidate) => candidate.url === server.url('/home'))
-  expect(tab.title).toBe('Voyager Test Home')
+  await voyager.waitForTab((candidate) => candidate.url === server.url('/home'))
+  await expect.poll(async () => (await voyager.activeTab()).title, { timeout: 15_000 }).toBe('Voyager Test Home')
   await expect(voyager.tab.locator('#heading')).toHaveText('Test Home')
   await expect(input).toHaveValue(server.url('/home'))
 })

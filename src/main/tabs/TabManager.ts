@@ -134,10 +134,8 @@ export class TabManager {
     const entry = this.entries.get(id)
     if (!entry) return
 
-    if (entry.url !== '' && !isNewTab(entry.url)) {
-      this.closedTabs.push(entry.url)
-      if (this.closedTabs.length > 12) this.closedTabs.shift()
-    }
+    this.closedTabs.push(isNewTab(entry.url) ? DEFAULT_NEW_TAB_URL : entry.url)
+    if (this.closedTabs.length > 12) this.closedTabs.shift()
 
     const index = this.order.indexOf(id)
     this.order.splice(index, 1)

@@ -40,7 +40,7 @@ test('downloads panel surfaces items and clears them', async ({ voyager, server 
 
   await voyager.chrome.locator('body').press(`${primaryKey()}+Shift+J`)
   await expect(voyager.chrome.getByPlaceholder('Search downloads')).toBeVisible()
-  await expect(voyager.chrome.getByText('voyager-test.txt')).toBeVisible()
+  await expect(voyager.chrome.getByText('voyager-test.txt', { exact: true })).toBeVisible()
 
   // Clear downloads clears the tracked items.
   await voyager.chrome.getByRole('button', { name: 'Clear' }).click()

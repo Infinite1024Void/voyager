@@ -62,7 +62,7 @@ const api = {
     closeOthers: (id: string): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsCloseOthers, id),
     closeToRight: (id: string): Promise<void> =>
       ipcRenderer.invoke(IpcChannels.TabsCloseToRight, id),
-    copyUrl: (id: string): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsCopyUrl, id),
+    copyUrl: (id: string): Promise<string | undefined> => ipcRenderer.invoke(IpcChannels.TabsCopyUrl, id),
     reopenLastClosed: (): Promise<void> => ipcRenderer.invoke(IpcChannels.TabsReopenLastClosed),
     onStateChanged: (listener: (state: BrowserState) => void): Unsubscribe =>
       subscribe<BrowserState>(IpcChannels.TabsStateChanged, listener)
