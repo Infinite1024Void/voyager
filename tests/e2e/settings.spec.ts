@@ -5,7 +5,7 @@ import { primaryKey } from './helpers/voyager'
 test('opens settings with the Cmd/Ctrl+, shortcut', async ({ voyager }) => {
   const before = await windowCount(voyager.app)
 
-  await voyager.chrome.locator('body').press(`${primaryKey()},`)
+  await voyager.chrome.locator('body').press(`${primaryKey()}+Comma`)
 
   await expect.poll(async () => windowCount(voyager.app), { timeout: 10_000 }).toBe(before + 1)
 })
