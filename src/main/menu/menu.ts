@@ -40,7 +40,7 @@ export function createAppMenu(getController?: () => WindowController | null): vo
       submenu: [
         { role: 'about' },
         { type: 'separator' },
-        { label: 'Settings…', accelerator: 'Command+,', click: () => openSettingsWindow() },
+        { label: 'Settings…', accelerator: 'CmdOrCtrl+Comma', click: () => openSettingsWindow() },
         { type: 'separator' },
         { role: 'hide' },
         { role: 'hideOthers' },
