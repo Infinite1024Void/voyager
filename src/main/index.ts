@@ -1,8 +1,10 @@
-import { app, protocol } from 'electron'
+import { app, protocol, session } from 'electron'
 import { join } from 'node:path'
 import { registerIpcHandlers } from './ipc/register'
 import { flushAllStores } from './store'
 import { WindowController } from './window/WindowController'
+import { attachDownloadsTracking } from './downloads/downloads'
+import { IpcChannels } from '../shared/ipc-channels'
 
 app.setName('Voyager')
 
@@ -67,6 +69,7 @@ app.whenReady().then(async (): Promise<void> => {
   controller.onDestroyed(() => {
     controller = null
   })
+  attachDownloadsTracking(session.defaultSession, (state) => controller?.sendToChrome(IpcChannels.DownloadsStateChanged, state))
   await controller.show()
 })
 

@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto'
-import type { WebContentsView } from 'electron'
+import type { Session } from 'electron'
 import type { DownloadItem, DownloadsState } from '../../shared/types'
 import { downloadsStore } from '../store'
+
+const trackedSessions = new WeakSet<Session>()
 
 export function currentDownloadsState(): DownloadsState {
   const items = downloadsStore.get('items')
@@ -32,9 +34,11 @@ export function publishDownloads(broadcast: (state: DownloadsState) => void): Do
   return state
 }
 
-export function attachDownloadsTracking(view: WebContentsView, broadcast: (state: DownloadsState) => void): void {
-  const wc = view.webContents
-  wc.session.on('will-download', (_event, item) => {
+export function attachDownloadsTracking(session: Session, broadcast: (state: DownloadsState) => void): void {
+  if (trackedSessions.has(session)) return
+  trackedSessions.add(session)
+
+  session.on('will-download', (_event, item) => {
     const id = randomUUID()
     const download: DownloadItem = {
       id,
