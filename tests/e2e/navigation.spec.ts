@@ -85,8 +85,8 @@ test('supports back and forward shortcuts while the page has focus', async ({
 test('follows redirects and records the final URL', async ({ voyager, server }) => {
   await voyager.chrome.evaluate((url) => window.voyager.navigation.go(url), server.url('/redirect'))
 
-  const tab = await voyager.waitForTab((candidate) => candidate.url === server.url('/second'))
-  expect(tab.title).toBe('Second Page')
+  await voyager.waitForTab((candidate) => candidate.url === server.url('/second'))
+  await expect.poll(async () => (await voyager.activeTab()).title).toBe('Second Page')
   expect(server.hits('/redirect')).toBe(1)
   expect(server.hits('/second')).toBeGreaterThanOrEqual(1)
 })
