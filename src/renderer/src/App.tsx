@@ -14,9 +14,9 @@ import { useDownloadsStore } from './state/downloadsStore'
 import { useHistoryStore } from './state/historyStore'
 import { useUiStore } from './state/uiStore'
 
-
 export default function App(): React.JSX.Element {
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [historyClearPrompt, setHistoryClearPrompt] = useState(0)
   const [downloadsOpen, setDownloadsOpen] = useState(false)
   const [findOpen, setFindOpen] = useState(false)
   useUiStore()
@@ -54,10 +54,15 @@ export default function App(): React.JSX.Element {
     const openHistory = (): void => setHistoryOpen(true)
     const openDownloads = (): void => setDownloadsOpen(true)
     const openFind = (): void => setFindOpen(true)
+    const openHistoryClear = (): void => {
+      setHistoryOpen(true)
+      setHistoryClearPrompt((value) => value + 1)
+    }
 
     window.addEventListener('voyager:open-history', openHistory)
     window.addEventListener('voyager:open-downloads', openDownloads)
     window.addEventListener('voyager:open-find', openFind)
+    window.addEventListener('voyager:open-history-clear', openHistoryClear)
 
     const unsubFocus = window.voyager.ui.onFocusOmnibox(focusOmnibox)
     const unsubSearch = window.voyager.ui.onOpenTabSearch(() =>
@@ -71,6 +76,7 @@ export default function App(): React.JSX.Element {
       window.removeEventListener('voyager:open-history', openHistory)
       window.removeEventListener('voyager:open-downloads', openDownloads)
       window.removeEventListener('voyager:open-find', openFind)
+      window.removeEventListener('voyager:open-history-clear', openHistoryClear)
       unsubFocus()
       unsubSearch()
       unsubHistory()
@@ -87,7 +93,11 @@ export default function App(): React.JSX.Element {
         <BookmarksBar />
       </div>
       <TabSearchPalette />
-      <HistoryPanel open={historyOpen} onClose={() => setHistoryOpen(false)} />
+      <HistoryPanel
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        clearPrompt={historyClearPrompt}
+      />
       <DownloadsPanel
         open={downloadsOpen}
         onClose={() => setDownloadsOpen(false)}

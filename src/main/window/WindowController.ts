@@ -6,6 +6,7 @@ import { sessionStore } from '../store'
 
 import { currentBookmarksState, toggleBookmarksBar } from '../bookmarks/bookmarks'
 import { TabManager } from '../tabs/TabManager'
+import { createAppMenu } from '../menu/menu'
 import {
   DEFAULT_CHROME_HEIGHT,
   bookmarksBarExtent,
@@ -91,6 +92,10 @@ export class WindowController {
       (state) => this.sendToChrome(IpcChannels.BookmarksStateChanged, state),
       (visible) => this.setBookmarksBarVisible(visible)
     )
+  }
+
+  refreshClosedTabs(): void {
+    createAppMenu(() => this)
   }
 
   /** Grow or shrink the chrome region (e.g. when the bookmarks bar toggles). */
