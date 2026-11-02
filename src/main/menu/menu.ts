@@ -4,6 +4,32 @@ import { getSettings } from '../store'
 
 export function createAppMenu(getController?: () => WindowController | null): void {
   const isMac = process.platform === 'darwin'
+  const controller = (): WindowController | null => (getController ? getController() : null)
+
+  const recentClosed: MenuItemConstructorOptions[] =
+    controller()
+      ?.tabs.getClosedTabs()
+      .map((entry, index) => ({
+        label: entry.title || entry.url,
+        click: () => {
+          controller()?.tabs.reopenClosedTab(index)
+        }
+      })) ?? []
+  if (recentClosed.length === 0) {
+    recentClosed.push({ label: 'No Recent Tabs', enabled: false })
+  }
+
+  const openHistory = (promptClear: boolean): void => {
+    const window = controller()
+    const webContents = window?.chrome.webContents
+    if (!webContents) return
+    void webContents.executeJavaScript(`window.dispatchEvent(new Event("voyager:open-history"))`)
+    if (promptClear) {
+      void webContents.executeJavaScript(
+        `window.dispatchEvent(new CustomEvent("voyager:open-history-clear"))`
+      )
+    }
+  }
 
   const template: MenuItemConstructorOptions[] = []
 
@@ -51,6 +77,25 @@ export function createAppMenu(getController?: () => WindowController | null): vo
           window?.toggleBookmarksBar()
         }
       }
+    ]
+  })
+
+  template.push({
+    label: 'History',
+    submenu: [
+      { label: 'Show History', accelerator: 'CmdOrCtrl+Y', click: () => openHistory(false) },
+      { type: 'separator' },
+      { label: 'Back', accelerator: 'CmdOrCtrl+[', click: () => controller()?.tabs.goBack() },
+      { label: 'Forward', accelerator: 'CmdOrCtrl+]', click: () => controller()?.tabs.goForward() },
+      { type: 'separator' },
+      {
+        label: 'Reopen Closed Tab',
+        accelerator: 'CmdOrCtrl+Shift+T',
+        click: () => controller()?.tabs.reopenLastClosed()
+      },
+      { label: 'Recently Closed', submenu: recentClosed },
+      { type: 'separator' },
+      { label: 'Clear History…', click: () => openHistory(true) }
     ]
   })
 

@@ -38,7 +38,7 @@ export class TabManager {
   private readonly entries = new Map<string, TabEntry>()
   private order: string[] = []
   private activeId: string | null = null
-  private readonly closedTabs: string[] = []
+  private readonly closedTabs: { url: string; title: string }[] = []
 
   constructor(
     private readonly window: WindowController,
@@ -77,8 +77,7 @@ export class TabManager {
       webPreferences: {
         contextIsolation: true,
         nodeIntegration: false,
-        sandbox: true,
-
+        sandbox: true
       }
     })
     const entry: TabEntry = {
@@ -130,8 +129,12 @@ export class TabManager {
     const entry = this.entries.get(id)
     if (!entry) return
 
-    this.closedTabs.push(isNewTab(entry.url) ? DEFAULT_NEW_TAB_URL : entry.url)
+    this.closedTabs.push({
+      url: isNewTab(entry.url) ? DEFAULT_NEW_TAB_URL : entry.url,
+      title: entry.title?.trim() || entry.url
+    })
     if (this.closedTabs.length > 12) this.closedTabs.shift()
+    this.window.refreshClosedTabs()
 
     const index = this.order.indexOf(id)
     this.order.splice(index, 1)
@@ -246,8 +249,21 @@ export class TabManager {
   }
 
   reopenLastClosed(): void {
-    const url = this.closedTabs.pop()
-    if (url) this.create({ url, active: true })
+    const entry = this.closedTabs.pop()
+    if (entry) this.create({ url: entry.url, active: true })
+  }
+
+  reopenClosedTab(index?: number): void {
+    const entry =
+      index === undefined
+        ? this.closedTabs.pop()
+        : this.closedTabs.splice(Math.max(0, Math.min(index, this.closedTabs.length - 1)), 1)[0]
+    if (entry) this.create({ url: entry.url, active: true })
+    this.window.refreshClosedTabs()
+  }
+
+  getClosedTabs(): { url: string; title: string }[] {
+    return this.closedTabs.map((entry) => ({ url: entry.url, title: entry.title }))
   }
 
   toggleDevTools(): void {
@@ -381,10 +397,7 @@ export class TabManager {
       if (!isNewTab(url) && url.startsWith('http')) {
         try {
           recordVisit({ url, title: wc.getTitle() || entry.title || url })
-          this.window.sendToChrome(
-            IpcChannels.HistoryStateChanged,
-            currentHistoryState()
-          )
+          this.window.sendToChrome(IpcChannels.HistoryStateChanged, currentHistoryState())
         } catch {
           // Ignore history write failures; navigation should not be blocked.
         }
@@ -397,10 +410,7 @@ export class TabManager {
         if (!isNewTab(url) && url.startsWith('http')) {
           try {
             recordVisit({ url, title: entry.title || url })
-            this.window.sendToChrome(
-              IpcChannels.HistoryStateChanged,
-              currentHistoryState()
-            )
+            this.window.sendToChrome(IpcChannels.HistoryStateChanged, currentHistoryState())
           } catch {
             /* ignore */
           }
