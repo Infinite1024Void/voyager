@@ -1,5 +1,27 @@
 import { expect, test } from './fixtures'
 import { openSettings, windowCount } from './helpers/voyager'
+import { primaryKey } from './helpers/voyager'
+
+test('opens settings with the Cmd/Ctrl+, shortcut', async ({ voyager }) => {
+  const before = await windowCount(voyager.app)
+
+  await voyager.chrome.locator('body').press(`${primaryKey()},`)
+
+  await expect.poll(async () => windowCount(voyager.app), { timeout: 10_000 }).toBe(before + 1)
+})
+
+test('exposes a Settings menu entry with an accelerator', async ({ voyager }) => {
+  const accelerator = await voyager.app.evaluate(({ Menu }) => {
+    const menus = Menu.getApplicationMenu()?.items ?? []
+    for (const menu of menus) {
+      const match = menu.submenu?.items.find((item: any) => /Settings/.test(item.label ?? ''))
+      if (match) return match.accelerator
+    }
+    return null
+  })
+
+  expect(accelerator).toContain(',')
+})
 
 test('opens settings in a separate managed popup window', async ({ voyager }) => {
   const before = await windowCount(voyager.app)

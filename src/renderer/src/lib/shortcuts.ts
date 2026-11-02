@@ -68,6 +68,9 @@ function dispatch(action: BrowserAction, index?: number): void {
     case 'open-history':
       window.dispatchEvent(new Event('voyager:open-history'))
       break
+    case 'open-settings':
+      void window.voyager.settings.open()
+      break
     case 'open-downloads':
       window.dispatchEvent(new Event('voyager:open-downloads'))
       break

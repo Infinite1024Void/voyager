@@ -1,6 +1,7 @@
 import { app, Menu, type MenuItemConstructorOptions } from 'electron'
 import type { WindowController } from '../window/WindowController'
 import { getSettings } from '../store'
+import { openSettingsWindow } from '../window/settingsWindow'
 
 export function createAppMenu(getController?: () => WindowController | null): void {
   const isMac = process.platform === 'darwin'
@@ -39,6 +40,8 @@ export function createAppMenu(getController?: () => WindowController | null): vo
       submenu: [
         { role: 'about' },
         { type: 'separator' },
+        { label: 'Settings…', accelerator: 'Command+,', click: () => openSettingsWindow() },
+        { type: 'separator' },
         { role: 'hide' },
         { role: 'hideOthers' },
         { type: 'separator' },
@@ -49,7 +52,20 @@ export function createAppMenu(getController?: () => WindowController | null): vo
 
   template.push({
     label: 'File',
-    submenu: [{ role: 'close' }, ...(isMac ? [] : ([{ role: 'quit' }] as const))]
+    submenu: [
+      ...(!isMac
+        ? [
+            {
+              label: 'Settings',
+              accelerator: 'CmdOrCtrl+,',
+              click: () => openSettingsWindow()
+            },
+            { type: 'separator' as const }
+          ]
+        : []),
+      { role: 'close' },
+      ...(isMac ? [] : ([{ role: 'quit' }] as const))
+    ]
   })
 
   template.push({

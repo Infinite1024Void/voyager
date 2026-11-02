@@ -525,6 +525,9 @@ export class TabManager {
       case 'open-downloads':
         this.window.sendToChrome(IpcChannels.UiOpenDownloads)
         break
+      case 'open-settings':
+        openSettingsWindow()
+        break
       case 'dev-tools':
         this.toggleDevTools()
         break

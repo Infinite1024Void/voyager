@@ -355,7 +355,7 @@ export async function waitForSettingsWindow(app: ElectronApplication): Promise<P
 }
 
 export async function openSettings(voyager: VoyagerApp): Promise<Page> {
-  await voyager.chrome.getByRole('button', { name: 'Settings' }).click()
+  await voyager.chrome.evaluate(() => window.voyager.settings.open())
   return waitForSettingsWindow(voyager.app)
 }
 
