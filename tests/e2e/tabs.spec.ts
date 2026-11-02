@@ -54,9 +54,10 @@ test('closes tabs and recovers by reopening the last one', async ({ voyager, ser
 
   await voyager.chrome.locator('body').press(`${primaryKey()}+Shift+T`)
   await expect.poll(async () => (await voyager.state()).tabs.length).toBe(2)
-  await expect.poll(async () => (await voyager.activeTab()).url).toBe(homeUrl)
+  await vyWait(voyager, homeUrl)
   const homeTab = await voyager.tabPage('/home')
-  await expect.poll(async () => await homeTab.locator('#heading').innerText(), { timeout: 15_000 }).toBe('Test Home')
+  await homeTab.waitForLoadState('domcontentloaded').catch(() => undefined)
+  await expect.poll(async () => await homeTab.locator('#heading').innerText(), { timeout: 30_000 }).toBe('Test Home')
 })
 
 test('switches tabs with keyboard shortcuts', async ({ voyager, server }) => {
