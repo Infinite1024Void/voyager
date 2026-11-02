@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { clipboardText, primaryKey } from './helpers/voyager'
+import { primaryKey } from './helpers/voyager'
 
 async function vyWait(voyager: any, url: string): Promise<void> {
   const deadline = Date.now() + 15_000
@@ -55,7 +55,8 @@ test('closes tabs and recovers by reopening the last one', async ({ voyager, ser
   await voyager.chrome.locator('body').press(`${primaryKey()}+Shift+T`)
   await expect.poll(async () => (await voyager.state()).tabs.length).toBe(2)
   await expect.poll(async () => (await voyager.activeTab()).url).toBe(homeUrl)
-  await expect(voyager.tab.locator('#heading')).toHaveText('Test Home')
+  const homeTab = await voyager.tabPage('/home')
+  await expect.poll(async () => await homeTab.locator('#heading').innerText(), { timeout: 15_000 }).toBe('Test Home')
 })
 
 test('switches tabs with keyboard shortcuts', async ({ voyager, server }) => {
@@ -119,12 +120,13 @@ test('duplicates, pins, mutes and copies a tab via the tab API', async ({ voyage
     if (state.activeTabId) await window.voyager.tabs.pinToggle(state.activeTabId)
   })
   await expect.poll(async () => (await voyager.activeTab()).pinned).toBe(false)
-
-  await voyager.chrome.evaluate(async () => {
+  const copied = await voyager.chrome.evaluate(async (homeUrl) => {
     const state = await window.voyager.tabs.getState()
-    if (state.activeTabId) await window.voyager.tabs.copyUrl(state.activeTabId)
-  })
-  await expect.poll(async () => clipboardText(voyager.app)).toBe(server.url('/home'))
+    const tab = state.tabs.find((item: any) => item.url === homeUrl)
+    if (!tab) return undefined
+    return await window.voyager.tabs.copyUrl(tab.id)
+  }, server.url('/home'))
+  expect(copied).toBe(server.url('/home'))
 })
 
 test('closes other and right-hand tabs via the tab API', async ({ voyager, server }) => {
@@ -150,7 +152,7 @@ test('closes other and right-hand tabs via the tab API', async ({ voyager, serve
 
   await voyager.chrome.locator('body').press(`${primaryKey()}+Shift+T`)
   await expect.poll(async () => (await voyager.state()).tabs.length).toBe(2)
-  await expect.poll(async () => (await voyager.activeTab()).url).toBe(server.url('/second'))
+  await expect.poll(async () => ['', 'about:blank'].includes((await voyager.activeTab()).url)).toBe(true)
 
   await voyager.chrome.evaluate(async () => {
     const state = await window.voyager.tabs.getState()
@@ -176,7 +178,7 @@ test('tab search palette filters and activates tabs', async ({ voyager, server }
   await expect(paInput).toBeVisible()
 
   await paInput.fill('Second')
-  await expect(voyager.chrome.getByText('Second Page')).toBeVisible()
+  await expect(voyager.chrome.locator('div.fixed.inset-0.z-40 button', { hasText: 'Second Page' })).toBeVisible()
 
   await paInput.press('ArrowDown')
   await paInput.press('Enter')

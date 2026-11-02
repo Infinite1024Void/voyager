@@ -51,6 +51,10 @@ export function FindBar({ open, onClose }: FindBarProps): React.JSX.Element | nu
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               void window.voyager.navigation.findInPage(query, forward)
+            } else if (e.key === 'Escape') {
+              e.preventDefault()
+              e.stopPropagation()
+              onClose()
             }
           }}
         />

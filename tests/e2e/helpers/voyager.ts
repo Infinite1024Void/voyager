@@ -187,6 +187,9 @@ export async function pressPageShortcut(
   keyCode: string,
   modifiers: Modifier[] = []
 ): Promise<void> {
+  const normalized = modifiers.map((modifier) =>
+    process.platform === 'darwin' || modifier !== 'meta' ? modifier : 'control'
+  )
   await voyager.app.evaluate(
     ({ BaseWindow, webContents }, input) => {
       const window = BaseWindow.getAllWindows().find((candidate) => !candidate.isDestroyed())
@@ -199,10 +202,11 @@ export async function pressPageShortcut(
       })
       if (!target) throw new Error('No tab web contents available')
       target.focus()
-      target.sendInputEvent({ type: 'keyDown', keyCode: input.keyCode, modifiers: input.modifiers })
-      target.sendInputEvent({ type: 'keyUp', keyCode: input.keyCode, modifiers: input.modifiers })
+      const kc = input.keyCode === 'ArrowLeft' ? 'Left' : input.keyCode === 'ArrowRight' ? 'Right' : input.keyCode
+      target.sendInputEvent({ type: 'keyDown', keyCode: kc, modifiers: input.modifiers })
+      target.sendInputEvent({ type: 'keyUp', keyCode: kc, modifiers: input.modifiers })
     },
-    { keyCode, modifiers }
+    { keyCode, modifiers: normalized }
   )
 }
 

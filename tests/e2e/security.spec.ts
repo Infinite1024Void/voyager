@@ -29,7 +29,7 @@ test('voyager://settings links open the managed settings window', async ({ voyag
   await expect.poll(async () => (await voyager.activeTab()).url).toBe(server.url('/home'))
 
   const tabsBefore = (await voyager.state()).tabs.length
-  await voyager.tab.getByRole('link', { name: 'Open settings' }).click()
+  await voyager.tab.getByRole('link', { name: 'Open settings' }).click({ noWaitAfter: true })
   await expect.poll(async () => windowCount(voyager.app)).toBeGreaterThanOrEqual(2)
   // Ensure no new tab opened for settings.
   expect((await voyager.state()).tabs.length).toBe(tabsBefore)

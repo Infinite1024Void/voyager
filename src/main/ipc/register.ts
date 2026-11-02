@@ -113,6 +113,7 @@ export function registerIpcHandlers(context: IpcContext): void {
   ipcMain.handle(IpcChannels.TabsCopyUrl, (_event, id: string) => {
     const tab = context.getWindow()?.tabs.snapshot().tabs.find((tab) => tab.id === id)
     if (tab) clipboard.writeText(tab.url)
+    return tab?.url
   })
 
   /* ---- navigation ------------------------------------------------------ */

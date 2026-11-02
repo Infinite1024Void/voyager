@@ -21,7 +21,8 @@ test('restores persisted tabs and active index', async ({ launchVoyager, server 
 
   const active = await voyager.activeTab()
   expect(active.url).toBe(server.url('/second'))
-  await expect(voyager.tab.locator('#heading')).toHaveText('Second Page')
+  const activePage = await voyager.tabPage('/second')
+  await expect(activePage.locator('#heading')).toHaveText('Second Page')
 
   await voyager.close()
 })
