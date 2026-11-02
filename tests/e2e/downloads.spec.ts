@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { primaryKey, pressPageShortcut } from './helpers/voyager'
+import { clipboardText, primaryKey, pressPageShortcut } from './helpers/voyager'
 import { join } from 'node:path'
 import { existsSync, readFileSync } from 'node:fs'
 
@@ -155,10 +155,55 @@ test('shows aggregate download progress on the toolbar button', async ({ voyager
     .poll(async () => button.getAttribute('aria-valuenow'), { timeout: 20_000 })
     .not.toBeNull()
 
-  // The download finishes, and the ring is replaced by the idle icon.
   await expect
     .poll(async () => button.getAttribute('aria-valuenow'), { timeout: 20_000 })
     .toBeNull()
+})
+
+test('offers a context menu and removes the selected download', async ({ voyager, server }) => {
+  await voyager.navigate(server.url('/home'))
+  await voyager.tab.getByRole('link', { name: 'Download file' }).click()
+
+  await expect
+    .poll(
+      async () => {
+        const state = await voyager.chrome.evaluate(() => window.voyager.downloads.getState())
+        return state.items[0]?.state
+      },
+      { timeout: 20_000 }
+    )
+    .toBe('completed')
+
+  await voyager.chrome.locator('body').press(`${primaryKey()}+Shift+J`)
+  const row = voyager.chrome.getByText('voyager-test.txt', { exact: true })
+  await expect(row).toBeVisible()
+  await row.click({ button: 'right' })
+
+  await expect(voyager.chrome.getByRole('menuitem', { name: 'Remove from History' })).toBeVisible()
+  await expect(voyager.chrome.getByRole('menuitem', { name: 'Copy Download URL' })).toBeVisible()
+  const openFolderItem = voyager.chrome.getByRole('menuitem', { name: 'Open in Folder' })
+  await expect(openFolderItem).toBeVisible()
+
+  const itemId = (await voyager.chrome.evaluate(() => window.voyager.downloads.getState())).items[0]
+    .id
+  const opened = await voyager.chrome.evaluate(
+    (id) => window.voyager.downloads.openFolder(id),
+    itemId
+  )
+  expect(opened).toBe(true)
+
+  await voyager.chrome.getByRole('menuitem', { name: 'Copy Download URL' }).click()
+  await expect.poll(async () => clipboardText(voyager.app)).toBe(server.url('/download?name=voyager-test.txt'))
+
+  await row.click({ button: 'right' })
+  await voyager.chrome.getByRole('menuitem', { name: 'Remove from History' }).click()
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.downloads.getState())).items.length
+    )
+    .toBe(0)
+})
 })
 
 test('downloads panel surfaces items and clears them', async ({ voyager, server }) => {

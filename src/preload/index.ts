@@ -123,6 +123,12 @@ const api = {
       ipcRenderer.invoke(IpcChannels.DownloadsResume, id),
     cancel: (id: string): Promise<DownloadsState> =>
       ipcRenderer.invoke(IpcChannels.DownloadsCancel, id),
+    remove: (id: string): Promise<DownloadsState> =>
+      ipcRenderer.invoke(IpcChannels.DownloadsRemove, id),
+    copyUrl: (id: string): Promise<string | undefined> =>
+      ipcRenderer.invoke(IpcChannels.DownloadsCopyUrl, id),
+    openFolder: (id: string): Promise<boolean> =>
+      ipcRenderer.invoke(IpcChannels.DownloadsOpenFolder, id),
     onStateChanged: (listener: (state: DownloadsState) => void): Unsubscribe =>
       subscribe<DownloadsState>(IpcChannels.DownloadsStateChanged, listener)
   },
