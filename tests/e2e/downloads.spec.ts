@@ -193,7 +193,9 @@ test('offers a context menu and removes the selected download', async ({ voyager
   expect(opened).toBe(true)
 
   await voyager.chrome.getByRole('menuitem', { name: 'Copy Download URL' }).click()
-  await expect.poll(async () => clipboardText(voyager.app)).toBe(server.url('/download?name=voyager-test.txt'))
+  await expect
+    .poll(async () => clipboardText(voyager.app))
+    .toBe(server.url('/download?name=voyager-test.txt'))
 
   await row.click({ button: 'right' })
   await voyager.chrome.getByRole('menuitem', { name: 'Remove from History' }).click()
