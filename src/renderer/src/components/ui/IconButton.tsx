@@ -7,6 +7,7 @@ interface IconButtonProps {
   onClick?: () => void
   disabled?: boolean
   className?: string
+  'aria-valuenow'?: number
 }
 
 export function IconButton({
@@ -14,12 +15,14 @@ export function IconButton({
   label,
   onClick,
   disabled,
-  className
+  className,
+  'aria-valuenow': ariaValueNow
 }: IconButtonProps): React.JSX.Element {
   return (
     <button
       type="button"
       aria-label={label}
+      aria-valuenow={ariaValueNow}
       title={label}
       disabled={disabled}
       onClick={onClick}

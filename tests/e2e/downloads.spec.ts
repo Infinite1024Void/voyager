@@ -145,6 +145,22 @@ test('persists the open-when-done preference', async ({ voyager }) => {
   expect(preferences.openDownloadsWhenDone).toBe(true)
 })
 
+test('shows aggregate download progress on the toolbar button', async ({ voyager, server }) => {
+  await voyager.navigate(server.url('/home'))
+  await voyager.tab.getByRole('link', { name: 'Download large file' }).click()
+
+  const button = voyager.chrome.getByRole('button', { name: /Downloads/ })
+
+  await expect
+    .poll(async () => button.getAttribute('aria-valuenow'), { timeout: 20_000 })
+    .not.toBeNull()
+
+  // The download finishes, and the ring is replaced by the idle icon.
+  await expect
+    .poll(async () => button.getAttribute('aria-valuenow'), { timeout: 20_000 })
+    .toBeNull()
+})
+
 test('downloads panel surfaces items and clears them', async ({ voyager, server }) => {
   await voyager.navigate(server.url('/home'))
   await voyager.tab.getByRole('link', { name: 'Download file' }).click()
