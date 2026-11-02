@@ -4,7 +4,6 @@ import { DEFAULT_NEW_TAB_URL, SETTINGS_URL } from '../../shared/constants'
 import { IpcChannels } from '../../shared/ipc-channels'
 import { matchShortcut, type BrowserAction } from '../../shared/keyboard'
 import type { BrowserState, NewTabRequest, TabState } from '../../shared/types'
-import { attachDownloadsTracking } from '../downloads/downloads'
 import { currentHistoryState, recordVisit, updateHistoryTitle } from '../history/history'
 import { openSettingsWindow } from '../window/settingsWindow'
 import type { WindowController } from '../window/WindowController'
@@ -99,9 +98,6 @@ export class TabManager {
     this.order.push(entry.id)
     this.window.attachTabView(entry.view)
     this.wireEvents(entry)
-    attachDownloadsTracking(entry.view, (state) =>
-      this.window.sendToChrome(IpcChannels.DownloadsStateChanged, state)
-    )
 
     void entry.view.webContents.loadURL(request.url ?? DEFAULT_NEW_TAB_URL)
 
