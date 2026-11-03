@@ -1,4 +1,6 @@
 /** Persisted user preferences; new settings extend this shape over time. */
+import type { SearchEngineId } from '../../shared/search'
+
 export interface SettingsShape {
   themeMode?: 'system' | 'light' | 'dark'
   bookmarksBarVisible?: boolean
@@ -11,4 +13,6 @@ export interface SettingsShape {
   clearCache?: boolean
   clearSitePermissions?: boolean
   openDownloadsWhenDone?: boolean
+  incognito?: boolean
+  searchEngine?: SearchEngineId
 }

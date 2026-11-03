@@ -3,6 +3,8 @@
  * and the React chrome renderer.
  */
 
+import type { SearchEngineId } from './search'
+
 export type ThemeMode = 'system' | 'light' | 'dark'
 
 /** Resolved theme: `mode` is the user preference, `dark` the effective scheme. */
@@ -158,6 +160,10 @@ export interface UserPreferences {
   clearCache: boolean
   clearSitePermissions: boolean
   openDownloadsWhenDone: boolean
+  /** Whether the browser window runs in incognito mode (in-memory profile). */
+  incognito?: boolean
+  /** Active search engine; incognito contexts fall back to the default. */
+  searchEngine?: SearchEngineId
 }
 
 /** Site data categories cleared together from Settings. */

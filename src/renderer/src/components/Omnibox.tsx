@@ -3,17 +3,21 @@ import { Globe, Search } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { useOverlaySignal } from '../lib/overlay'
 import {
-  DEFAULT_SEARCH_ENGINE,
   SEARCH_ENGINES,
   buildSearchUrl,
   parseSuggestions
 } from '../../../shared/search'
 import { displayUrl } from '../../../shared/url'
-import { useActiveTab, useBrowserStore } from '../state/browserStore'
+import { useActiveTab, useBrowserStore, useScopedSearchEngine } from '../state/browserStore'
+import type { SearchEngineId } from '../../../shared/search'
 import { PageInfoPopover } from './PageInfoPopover'
 import { SecurityBadge } from './SecurityBadge'
 
-function useSuggestions(query: string, active: boolean): string[] {
+function useSuggestions(
+  query: string,
+  active: boolean,
+  engine: SearchEngineId
+): string[] {
   const [suggestions, setSuggestions] = useState<string[]>([])
 
   useEffect(() => {
@@ -23,7 +27,7 @@ function useSuggestions(query: string, active: boolean): string[] {
     }
     const controller = new AbortController()
     const timer = window.setTimeout(() => {
-      fetch(SEARCH_ENGINES[DEFAULT_SEARCH_ENGINE].suggest(query.trim()), {
+      fetch(SEARCH_ENGINES[engine].suggest(query.trim()), {
         signal: controller.signal
       })
         .then((response) => response.text())
@@ -37,7 +41,7 @@ function useSuggestions(query: string, active: boolean): string[] {
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [query, active])
+  }, [query, active, engine])
 
   return suggestions
 }
@@ -45,6 +49,7 @@ function useSuggestions(query: string, active: boolean): string[] {
 export function Omnibox(): React.JSX.Element {
   const activeTab = useActiveTab()
   const navigate = useBrowserStore((state) => state.navigate)
+  const searchEngine = useScopedSearchEngine()
   const inputRef = useRef<HTMLInputElement>(null)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -64,7 +69,11 @@ export function Omnibox(): React.JSX.Element {
     if (focused) inputRef.current?.select()
   }, [focused])
 
-  const suggestions = useSuggestions(value, focused && value.trim().length > 0)
+  const suggestions = useSuggestions(
+    value,
+    focused && value.trim().length > 0,
+    searchEngine
+  )
   const showDropdown = focused && value.trim() !== '' && !pageInfoOpen
   const rowCount = suggestions.length + 1 // index 0 is "search for ..."
 
@@ -72,7 +81,7 @@ export function Omnibox(): React.JSX.Element {
   useOverlaySignal(showDropdown || pageInfoOpen)
 
   const searchFor = (query: string): void => {
-    navigate(buildSearchUrl(DEFAULT_SEARCH_ENGINE, query))
+    navigate(buildSearchUrl(searchEngine, query))
     setFocused(false)
     inputRef.current?.blur()
   }
@@ -144,7 +153,7 @@ export function Omnibox(): React.JSX.Element {
             onSelect={() => runRow(0)}
             icon={<Search className="h-3.5 w-3.5" />}
             title={value.trim()}
-            detail={`Search ${SEARCH_ENGINES[DEFAULT_SEARCH_ENGINE].name}`}
+            detail={`Search ${SEARCH_ENGINES[searchEngine].name}`}
           />
           {suggestions.map((suggestion, index) => (
             <SuggestionRow

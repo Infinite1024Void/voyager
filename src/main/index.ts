@@ -3,7 +3,7 @@ import { autoUpdater } from 'electron-updater'
 import { join } from 'node:path'
 import { registerIpcHandlers } from './ipc/register'
 import { attachPermissionHandlers } from './permissions/permissions'
-import { flushAllStores } from './store'
+import { flushAllStores, getSettings } from './store'
 import { WindowController } from './window/WindowController'
 import { attachDownloadsTracking } from './downloads/downloads'
 import { IpcChannels } from '../shared/ipc-channels'
@@ -66,7 +66,7 @@ app.whenReady().then(async (): Promise<void> => {
   })
 
   attachPermissionHandlers(session.defaultSession)
-  controller = new WindowController()
+  controller = new WindowController({ incognito: getSettings('incognito', false) === true })
   createAppMenu(() => controller)
   autoUpdater.checkForUpdatesAndNotify()
   controller.onDestroyed(() => {
@@ -81,7 +81,7 @@ app.whenReady().then(async (): Promise<void> => {
 app.on('activate', () => {
   if (controller === null) {
     void (async () => {
-      controller = new WindowController()
+      controller = new WindowController({ incognito: getSettings('incognito', false) === true })
       controller.onDestroyed(() => {
         controller = null
       })

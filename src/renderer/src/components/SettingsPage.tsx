@@ -4,6 +4,8 @@ import { useBookmarksStore } from '../state/bookmarksStore'
 import { useHistoryStore } from '../state/historyStore'
 import { useDownloadsStore } from '../state/downloadsStore'
 import { useTheme } from './providers/theme-context'
+import { useBrowserStore } from '../state/browserStore'
+import { DEFAULT_SEARCH_ENGINE, SEARCH_ENGINES, type SearchEngineId } from '../../../shared/search'
 import type { AppVersionInfo, ThemeMode, UserPreferences } from '../../../shared/types'
 import { SitePermissionsSettings } from './SitePermissionsSettings'
 
@@ -20,7 +22,8 @@ export function SettingsPage(): React.JSX.Element {
   const bookmarks = useBookmarksStore((state) => state.items)
   const history = useHistoryStore((state) => state.entries)
   const downloads = useDownloadsStore((state) => state.items)
-  const [searchEngine, setSearchEngine] = useState('duckduckgo')
+  const searchEngine = useBrowserStore((state) => state.searchEngine)
+  const setSearchEngine = useBrowserStore((state) => state.setSearchEngine)
   const [preferences, setPreferences] = useState<UserPreferences>({
     clearHistory: true,
     clearDownloads: true,
@@ -45,7 +48,12 @@ export function SettingsPage(): React.JSX.Element {
     void window.voyager.bookmarks.getState().then(useBookmarksStore.getState().applyState)
     void window.voyager.history.getState().then(useHistoryStore.getState().applyState)
     void window.voyager.downloads.getState().then(useDownloadsStore.getState().applyState)
-    void window.voyager.settings.get().then(setPreferences)
+    void window.voyager.settings.get().then((prefs) => {
+      setPreferences(prefs)
+      const browser = useBrowserStore.getState()
+      browser.setIncognito(prefs.incognito ?? false)
+      browser.setSearchEngine(prefs.searchEngine ?? DEFAULT_SEARCH_ENGINE)
+    })
     void window.voyager.appInfo().then(setAppInfo)
 
     const unsubscribes = [
@@ -61,9 +69,9 @@ export function SettingsPage(): React.JSX.Element {
   }, [])
 
   const setPreference = async (key: keyof UserPreferences, value: boolean) => {
-    const next = { ...preferences, [key]: value }
-    setPreferences(next)
-    await window.voyager.settings.set(key, value)
+    const prefs = await window.voyager.settings.set(key, value)
+    setPreferences(prefs)
+    if (key === 'incognito') useBrowserStore.getState().setIncognito(prefs.incognito ?? false)
   }
 
   const clearSelected = async () => {
@@ -129,17 +137,33 @@ export function SettingsPage(): React.JSX.Element {
             <select
               className="rounded-md border border-border bg-bg px-2 py-1 text-[13px] text-fg"
               value={searchEngine}
-              onChange={(e) => setSearchEngine(e.target.value)}
+              onChange={(e) => {
+                const engine = e.target.value as SearchEngineId
+                setSearchEngine(engine)
+                void window.voyager.settings.set('searchEngine', engine)
+              }}
             >
-              <option value="duckduckgo">DuckDuckGo</option>
+              {Object.entries(SEARCH_ENGINES).map(([id, engine]) => (
+                <option key={id} value={id}>
+                  {engine.name}
+                </option>
+              ))}
             </select>
           </section>
 
           <section className="rounded-lg border border-border bg-surface p-5">
             <h2 className="mb-4 text-[15px] font-semibold text-fg">Privacy and security</h2>
+            <label className="flex items-center gap-2 text-[13px] text-fg">
+              <input
+                type="checkbox"
+                checked={preferences.incognito ?? false}
+                onChange={(event) => setPreference('incognito', event.target.checked)}
+              />
+              <span>Run the browser in incognito mode (in-memory profile)</span>
+            </label>
             <button
               type="button"
-              className="flex w-full items-center justify-between gap-4 rounded-md border border-border bg-bg px-3 py-2.5 text-left transition-colors hover:bg-hover"
+              className="mt-2 flex w-full items-center justify-between gap-4 rounded-md border border-border bg-bg px-3 py-2.5 text-left transition-colors hover:bg-hover"
               onClick={() => setSitePermissionsOpen(true)}
             >
               <span>

@@ -8,6 +8,7 @@ export const IpcChannels = {
   SettingsOpen: 'settings:open',
   SettingsGet: 'settings:get',
   SettingsSet: 'settings:set',
+  SettingsChanged: 'settings:changed',
 
   ThemeGet: 'theme:get',
   ThemeSet: 'theme:set',
