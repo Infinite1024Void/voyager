@@ -4,6 +4,7 @@ import type {
   AppVersionInfo,
   BookmarksState,
   BrowserState,
+  ClearBrowsingDataOptions,
   DownloadsState,
   HistoryState,
   NewBookmarkInput,
@@ -51,6 +52,11 @@ const api = {
       ipcRenderer.invoke(IpcChannels.SettingsOpen, target),
     set: (key: keyof UserPreferences, value: boolean): Promise<UserPreferences> =>
       ipcRenderer.invoke(IpcChannels.SettingsSet, key, value)
+  },
+
+  browsingData: {
+    clear: (options: ClearBrowsingDataOptions): Promise<void> =>
+      ipcRenderer.invoke(IpcChannels.BrowsingDataClear, options)
   },
 
   theme: {

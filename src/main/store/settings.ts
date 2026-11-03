@@ -5,5 +5,10 @@ export interface SettingsShape {
   clearHistory?: boolean
   clearDownloads?: boolean
   clearBookmarks?: boolean
+  clearCookies?: boolean
+  clearLocalStorage?: boolean
+  clearIndexedDb?: boolean
+  clearCache?: boolean
+  clearSitePermissions?: boolean
   openDownloadsWhenDone?: boolean
 }

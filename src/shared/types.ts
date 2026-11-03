@@ -152,5 +152,19 @@ export interface UserPreferences {
   clearHistory: boolean
   clearDownloads: boolean
   clearBookmarks: boolean
+  clearCookies: boolean
+  clearLocalStorage: boolean
+  clearIndexedDb: boolean
+  clearCache: boolean
+  clearSitePermissions: boolean
   openDownloadsWhenDone: boolean
+}
+
+/** Site data categories cleared together from Settings. */
+export interface ClearBrowsingDataOptions {
+  cookies: boolean
+  localStorage: boolean
+  indexedDb: boolean
+  cache: boolean
+  sitePermissions: boolean
 }

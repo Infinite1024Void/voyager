@@ -59,6 +59,8 @@ export const IpcChannels = {
   PermissionsRequest: 'permissions:request',
   PermissionsRequestCancelled: 'permissions:request-cancelled',
 
+  BrowsingDataClear: 'browsing-data:clear',
+
   DownloadsGetState: 'downloads:get-state',
   DownloadsStateChanged: 'downloads:state-changed',
   DownloadsClear: 'downloads:clear',
