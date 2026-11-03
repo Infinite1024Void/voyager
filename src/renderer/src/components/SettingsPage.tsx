@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useBookmarksStore } from '../state/bookmarksStore'
 import { useHistoryStore } from '../state/historyStore'
 import { useDownloadsStore } from '../state/downloadsStore'
-import { useBrowserStore } from '../state/browserStore'
 import { useTheme } from './providers/theme-context'
 import type { ThemeMode, UserPreferences } from '../../../shared/types'
 
@@ -11,8 +10,6 @@ export function SettingsPage(): React.JSX.Element {
   const bookmarks = useBookmarksStore((state) => state.items)
   const history = useHistoryStore((state) => state.entries)
   const downloads = useDownloadsStore((state) => state.items)
-  const { tabs, activeTabId } = useBrowserStore()
-  const activeTab = tabs.find((t) => t.id === activeTabId)
   const [searchEngine, setSearchEngine] = useState('duckduckgo')
   const [preferences, setPreferences] = useState<UserPreferences>({
     clearHistory: true,
@@ -26,19 +23,16 @@ export function SettingsPage(): React.JSX.Element {
     const bookmarks = useBookmarksStore.getState()
     const history = useHistoryStore.getState()
     const downloads = useDownloadsStore.getState()
-    const browser = useBrowserStore.getState()
 
     void window.voyager.bookmarks.getState().then(useBookmarksStore.getState().applyState)
     void window.voyager.history.getState().then(useHistoryStore.getState().applyState)
     void window.voyager.downloads.getState().then(useDownloadsStore.getState().applyState)
-    void window.voyager.tabs.getState().then(browser.applyState)
     void window.voyager.settings.get().then(setPreferences)
 
     const unsubscribes = [
       window.voyager.bookmarks.onStateChanged(bookmarks.applyState),
       window.voyager.history.onStateChanged(history.applyState),
-      window.voyager.downloads.onStateChanged(downloads.applyState),
-      window.voyager.tabs.onStateChanged(browser.applyState)
+      window.voyager.downloads.onStateChanged(downloads.applyState)
     ]
     return () => unsubscribes.forEach((unsubscribe) => unsubscribe())
   }, [])
@@ -176,7 +170,6 @@ export function SettingsPage(): React.JSX.Element {
             <h2 className="mb-4 text-[15px] font-semibold text-fg">About</h2>
             <div className="space-y-1 text-[13px] text-fg">
               <div>Voyager Web Browser</div>
-              <div>Active tab: {activeTab?.title ?? 'None'}</div>
             </div>
           </section>
         </div>
