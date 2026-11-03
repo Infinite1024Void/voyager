@@ -77,7 +77,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "Infinite1024Void",
+      "owner": "voyager-browser",
       "repo": "voyager",
       "releaseType": "release"
     }
