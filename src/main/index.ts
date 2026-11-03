@@ -1,4 +1,5 @@
 import { app, protocol, session } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import { join } from 'node:path'
 import { registerIpcHandlers } from './ipc/register'
 import { flushAllStores } from './store'
@@ -65,6 +66,7 @@ app.whenReady().then(async (): Promise<void> => {
 
   controller = new WindowController()
   createAppMenu(() => controller)
+  autoUpdater.checkForUpdatesAndNotify()
   controller.onDestroyed(() => {
     controller = null
   })

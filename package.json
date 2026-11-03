@@ -49,7 +49,7 @@
         }
       ],
       "category": "public.app-category.productivity",
-      "icon": "build/icon.icns"
+      "icon": "build/icon.svg"
     },
     "win": {
       "target": [
@@ -60,7 +60,7 @@
           ]
         }
       ],
-      "icon": "build/icon.ico"
+      "icon": "build/icon.svg"
     },
     "linux": {
       "target": [
@@ -73,7 +73,13 @@
       ],
       "category": "Network;WebBrowser",
       "executableName": "voyager",
-      "icon": "build/icon.png"
+      "icon": "build/icon.svg"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Infinite1024Void",
+      "repo": "voyager",
+      "releaseType": "release"
     }
   },
   "devDependencies": {
@@ -110,6 +116,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "electron-updater": "^6.8.11",
     "lucide-react": "^1.55.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
