@@ -41,7 +41,6 @@ export function BookmarksManager({
   const addBookmark = useBookmarksStore((state) => state.addBookmark)
   const removeBookmark = useBookmarksStore((state) => state.removeBookmark)
   const updateBookmark = useBookmarksStore((state) => state.updateBookmark)
-  const addFolder = useBookmarksStore((state) => state.addFolder)
   const updateFolder = useBookmarksStore((state) => state.updateFolder)
   const removeFolder = useBookmarksStore((state) => state.removeFolder)
   const move = useBookmarksStore((state) => state.move)
@@ -402,8 +401,12 @@ export function BookmarksManager({
           title="Add Folder"
           submitLabel="Add Folder"
           onClose={() => setDialog(null)}
-          onSubmit={(title) => {
-            addFolder(title, dialog.parentId)
+          onSubmit={async (title) => {
+            const state = await window.voyager.bookmarks.addFolder({
+              title,
+              parentId: dialog.parentId
+            })
+            useBookmarksStore.getState().applyState(state)
             setDialog(null)
           }}
         />
