@@ -53,6 +53,58 @@ export interface NewBookmarkInput {
   favicon?: string | null
 }
 
+/* ---- Site permissions -------------------------------------------------- */
+
+/**
+ * Browser-level permission categories. Electron reports raw Chromium
+ * permission names; these are the stable categories shown in prompts and
+ * Settings.
+ */
+export type PermissionKind =
+  | 'geolocation'
+  | 'notifications'
+  | 'camera'
+  | 'microphone'
+  | 'camera-microphone'
+  | 'clipboard-read'
+  | 'display-capture'
+  | 'midi'
+  | 'device-access'
+  | 'other'
+
+export type PermissionDecision = 'allow' | 'block'
+
+export interface SitePermissionDecision {
+  origin: string
+  kind: PermissionKind
+  decision: PermissionDecision
+  updatedAt: number
+}
+
+export interface SitePermissionsState {
+  decisions: SitePermissionDecision[]
+}
+
+export type PermissionRequestChoice = 'allow-site' | 'allow-once' | 'block' | 'dismiss'
+
+export interface PermissionPromptRequest {
+  id: string
+  origin: string
+  host: string
+  kind: PermissionKind
+  tabId: string | null
+}
+
+export interface PermissionPromptCancelled {
+  id: string
+}
+
+/** Optional route passed when opening Settings from a site-info popover. */
+export interface SettingsTarget {
+  page?: 'site-permissions'
+  origin?: string
+}
+
 export interface BookmarkItem {
   id: string
   title: string

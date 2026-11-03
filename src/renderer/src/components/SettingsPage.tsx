@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react'
+import { ChevronRight } from 'lucide-react'
 import { useBookmarksStore } from '../state/bookmarksStore'
 import { useHistoryStore } from '../state/historyStore'
 import { useDownloadsStore } from '../state/downloadsStore'
 import { useBrowserStore } from '../state/browserStore'
 import { useTheme } from './providers/theme-context'
 import type { ThemeMode, UserPreferences } from '../../../shared/types'
+import { SitePermissionsSettings } from './SitePermissionsSettings'
+
+function sitePermissionsRoute(): { open: boolean; origin?: string } {
+  const hash = window.location.hash.replace(/^#/, '')
+  if (!hash.startsWith('site-permissions')) return { open: false }
+  const query = hash.includes('?') ? hash.slice(hash.indexOf('?') + 1) : ''
+  const origin = new URLSearchParams(query).get('origin') ?? undefined
+  return { open: true, origin }
+}
 
 export function SettingsPage(): React.JSX.Element {
   const { mode, setMode } = useTheme()
@@ -21,6 +31,8 @@ export function SettingsPage(): React.JSX.Element {
     openDownloadsWhenDone: false
   })
   const [clearing, setClearing] = useState(false)
+  const [initialRoute] = useState(sitePermissionsRoute)
+  const [sitePermissionsOpen, setSitePermissionsOpen] = useState(initialRoute.open)
 
   useEffect(() => {
     const bookmarks = useBookmarksStore.getState()
@@ -67,6 +79,18 @@ export function SettingsPage(): React.JSX.Element {
     }
   }
 
+  if (sitePermissionsOpen) {
+    return (
+      <SitePermissionsSettings
+        initialOrigin={initialRoute.origin}
+        onBack={() => {
+          setSitePermissionsOpen(false)
+          window.history.replaceState(null, '', window.location.href.split('#')[0])
+        }}
+      />
+    )
+  }
+
   return (
     <div className="h-full w-full overflow-y-auto bg-bg text-fg">
       <div className="mx-auto max-w-3xl px-6 py-8">
@@ -101,6 +125,23 @@ export function SettingsPage(): React.JSX.Element {
             >
               <option value="duckduckgo">DuckDuckGo</option>
             </select>
+          </section>
+
+          <section className="rounded-lg border border-border bg-surface p-5">
+            <h2 className="mb-4 text-[15px] font-semibold text-fg">Privacy and security</h2>
+            <button
+              type="button"
+              className="flex w-full items-center justify-between gap-4 rounded-md border border-border bg-bg px-3 py-2.5 text-left transition-colors hover:bg-hover"
+              onClick={() => setSitePermissionsOpen(true)}
+            >
+              <span>
+                <span className="block text-[13px] text-fg">Site permissions</span>
+                <span className="mt-0.5 block text-[11.5px] text-muted">
+                  Manage location, notifications, camera, microphone and more.
+                </span>
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted" />
+            </button>
           </section>
 
           <section className="rounded-lg border border-border bg-surface p-5">

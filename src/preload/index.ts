@@ -8,6 +8,12 @@ import type {
   HistoryState,
   NewBookmarkInput,
   NewTabRequest,
+  PermissionKind,
+  PermissionPromptCancelled,
+  PermissionPromptRequest,
+  PermissionRequestChoice,
+  SettingsTarget,
+  SitePermissionsState,
   ThemeMode,
   ThemeState,
   Unsubscribe,
@@ -41,7 +47,8 @@ const api = {
 
   settings: {
     get: (): Promise<UserPreferences> => ipcRenderer.invoke(IpcChannels.SettingsGet),
-    open: (): Promise<void> => ipcRenderer.invoke(IpcChannels.SettingsOpen),
+    open: (target?: SettingsTarget): Promise<void> =>
+      ipcRenderer.invoke(IpcChannels.SettingsOpen, target),
     set: (key: keyof UserPreferences, value: boolean): Promise<UserPreferences> =>
       ipcRenderer.invoke(IpcChannels.SettingsSet, key, value)
   },
@@ -101,6 +108,24 @@ const api = {
     clear: (): Promise<BookmarksState> => ipcRenderer.invoke(IpcChannels.BookmarksClear),
     onStateChanged: (listener: (state: BookmarksState) => void): Unsubscribe =>
       subscribe<BookmarksState>(IpcChannels.BookmarksStateChanged, listener)
+  },
+
+  permissions: {
+    getState: (): Promise<SitePermissionsState> =>
+      ipcRenderer.invoke(IpcChannels.PermissionsGetState),
+    getForOrigin: (origin: string): Promise<SitePermissionsState> =>
+      ipcRenderer.invoke(IpcChannels.PermissionsGetForOrigin, origin),
+    remove: (origin: string, kind?: PermissionKind): Promise<SitePermissionsState> =>
+      ipcRenderer.invoke(IpcChannels.PermissionsRemove, origin, kind),
+    clear: (): Promise<SitePermissionsState> => ipcRenderer.invoke(IpcChannels.PermissionsClear),
+    respond: (id: string, choice: PermissionRequestChoice): Promise<boolean> =>
+      ipcRenderer.invoke(IpcChannels.PermissionsRespond, id, choice),
+    onRequest: (listener: (request: PermissionPromptRequest) => void): Unsubscribe =>
+      subscribe<PermissionPromptRequest>(IpcChannels.PermissionsRequest, listener),
+    onRequestCancelled: (listener: (event: PermissionPromptCancelled) => void): Unsubscribe =>
+      subscribe<PermissionPromptCancelled>(IpcChannels.PermissionsRequestCancelled, listener),
+    onStateChanged: (listener: (state: SitePermissionsState) => void): Unsubscribe =>
+      subscribe<SitePermissionsState>(IpcChannels.PermissionsStateChanged, listener)
   },
 
   history: {

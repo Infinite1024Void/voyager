@@ -1,15 +1,26 @@
 import { join } from 'node:path'
 import { BrowserWindow } from 'electron'
 import { SETTINGS_URL } from '../../shared/constants'
+import type { SettingsTarget } from '../../shared/types'
 
 let settingsWindow: BrowserWindow | null = null
 
+function settingsUrlFor(target?: SettingsTarget): string {
+  if (target?.page !== 'site-permissions') return SETTINGS_URL
+  const params = new URLSearchParams()
+  if (target.origin) params.set('origin', target.origin)
+  const query = params.toString()
+  return `${SETTINGS_URL}#site-permissions${query ? `?${query}` : ''}`
+}
+
 /** Open the settings window, or focus it when it is already open. */
-export function openSettingsWindow(): void {
+export function openSettingsWindow(target?: SettingsTarget): void {
+  const url = settingsUrlFor(target)
   const existing = settingsWindow
   if (existing && !existing.isDestroyed()) {
     if (existing.isMinimized()) existing.restore()
     existing.focus()
+    if (target) void existing.loadURL(url)
     return
   }
 
@@ -31,5 +42,5 @@ export function openSettingsWindow(): void {
   })
 
   settingsWindow = win
-  void win.loadURL(SETTINGS_URL)
+  void win.loadURL(url)
 }

@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { BaseWindow, WebContentsView } from 'electron'
+import { BaseWindow, WebContentsView, type WebContents } from 'electron'
 import { IpcChannels } from '../../shared/ipc-channels'
 import type { BrowserState } from '../../shared/types'
 import { sessionStore } from '../store'
@@ -96,6 +96,10 @@ export class WindowController {
 
   refreshClosedTabs(): void {
     createAppMenu(() => this)
+  }
+
+  tabIdForWebContents(webContents: WebContents): string | null {
+    return this.tabs.tabIdForWebContents(webContents)
   }
 
   /** Grow or shrink the chrome region (e.g. when the bookmarks bar toggles). */
