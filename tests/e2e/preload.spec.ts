@@ -31,7 +31,7 @@ test('exposes the typed preload API to the chrome renderer', async ({ voyager })
     'theme',
     'ui'
   ])
-  expect(api.settings).toEqual(['get', 'open', 'set'])
+  expect(api.settings).toEqual(['get', 'open', 'set', 'onChanged'])
   expect(api.browsingData).toEqual(['clear'])
   expect(api.tabs).toEqual(
     expect.arrayContaining(['getState', 'create', 'close', 'activate', 'reorder', 'pinToggle'])
