@@ -67,7 +67,19 @@ export type SecurityLevel = 'secure' | 'insecure' | 'neutral'
 export function securityLevelFor(url: string): SecurityLevel {
   const parsed = safeParseUrl(url)
   if (!parsed) return 'neutral'
-  if (parsed.protocol === 'https:') return 'secure'
-  if (parsed.protocol === 'http:') return 'insecure'
+  if (parsed.protocol === 'https:' || parsed.protocol === 'file:') return 'secure'
+  if (parsed.protocol === 'http:') {
+    const host = parsed.hostname.toLowerCase().replace(/\.$/, '')
+    if (
+      host === 'localhost' ||
+      host.endsWith('.localhost') ||
+      /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host) ||
+      host === '::1' ||
+      host === '[::1]'
+    ) {
+      return 'secure'
+    }
+    return 'insecure'
+  }
   return 'neutral'
 }
