@@ -181,8 +181,11 @@ export function SettingsPage(): React.JSX.Element {
               Blocks requests to known advertising and tracking domains using built-in and remote filter lists. Off by default.
             </p>
             <div className="mt-2 space-y-1 text-[12px] text-muted">
-              <div>Built-in filter list: {BUILTIN_BLOCKED_DOMAINS.length} domains</div>
-              <div>Remote filter list: AdAway hosts, cached on first run when blocking is enabled</div>
+              <div>Built-in filter list: {BUILTIN_BLOCKED_DOMAINS.length} domains (bundled fallback)</div>
+              <div>
+                Remote filter list: AdAway hosts from https://adaway.org/hosts.txt
+                (cached on first run while blocking is enabled)
+              </div>
             </div>
           </section>
 
