@@ -107,7 +107,7 @@ function userPreferences(): UserPreferences {
       return isSearchEngineId(stored) ? stored : DEFAULT_SEARCH_ENGINE
     })(),
     restoreSession: getSettings('restoreSession', false) === true,
-    contentBlocking: getSettings('contentBlocking', true) !== false
+    contentBlocking: getSettings('contentBlocking', false) !== false
   }
 }
 

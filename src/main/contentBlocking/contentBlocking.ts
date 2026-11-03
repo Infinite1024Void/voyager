@@ -236,7 +236,7 @@ export function attachContentBlocking(ses: Session): void {
   attachedSessions.add(ses)
 
   ses.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
-    if (getSettings('contentBlocking', true) === false) {
+    if (getSettings('contentBlocking', false) === false) {
       callback({ cancel: false })
       return
     }
