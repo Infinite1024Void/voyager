@@ -14,7 +14,8 @@ export const sessionStore = new Store<SessionShape>('session.json', {
 })
 
 export const bookmarksStore = new Store<BookmarksShape>('bookmarks.json', {
-  items: []
+  items: [],
+  folders: []
 })
 
 export const historyStore = new Store<HistoryShape>('history.json', {

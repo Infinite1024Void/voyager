@@ -53,6 +53,8 @@ export interface NewBookmarkInput {
   title: string
   url: string
   favicon?: string | null
+  /** Folder to add the bookmark to. Omit or null for the bookmarks bar root. */
+  folderId?: string | null
 }
 
 /* ---- Site permissions -------------------------------------------------- */
@@ -107,17 +109,58 @@ export interface SettingsTarget {
   origin?: string
 }
 
+export interface NewBookmarkFolderInput {
+  title: string
+  parentId?: string | null
+}
+
+export type BookmarkNodeKind = 'bookmark' | 'folder'
+
 export interface BookmarkItem {
   id: string
   title: string
   url: string
   favicon?: string | null
+  /** Containing folder, or null when the bookmark lives on the bar root. */
+  folderId: string | null
   createdAt: number
+}
+
+export interface BookmarkFolder {
+  id: string
+  title: string
+  parentId: string | null
+  createdAt: number
+}
+
+export interface BookmarkPatch {
+  title?: string
+  url?: string
+}
+
+export interface BookmarkFolderPatch {
+  title?: string
+}
+
+export interface BookmarkMoveInput {
+  kind: BookmarkNodeKind
+  id: string
+  parentId: string | null
+  /** Insert before this sibling; null appends to the end of the folder. */
+  beforeId?: string | null
+}
+
+export interface BookmarkClipboard {
+  mode: 'copy' | 'cut'
+  kind: BookmarkNodeKind
+  id: string
 }
 
 export interface BookmarksState {
   items: BookmarkItem[]
+  folders: BookmarkFolder[]
   barVisible: boolean
+  clipboard: BookmarkClipboard | null
 }
 
 export interface HistoryEntry {

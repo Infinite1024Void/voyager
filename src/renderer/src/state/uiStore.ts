@@ -7,6 +7,9 @@ interface UiStore {
   settingsOpen: boolean
   openSettings: () => void
   closeSettings: () => void
+  bookmarksManagerOpen: boolean
+  openBookmarksManager: () => void
+  closeBookmarksManager: () => void
 }
 
 export const useUiStore = create<UiStore>()((set) => ({
@@ -15,5 +18,8 @@ export const useUiStore = create<UiStore>()((set) => ({
   closeTabSearch: () => set({ tabSearchOpen: false }),
   settingsOpen: false,
   openSettings: () => set({ settingsOpen: true }),
-  closeSettings: () => set({ settingsOpen: false })
+  closeSettings: () => set({ settingsOpen: false }),
+  bookmarksManagerOpen: false,
+  openBookmarksManager: () => set({ bookmarksManagerOpen: true }),
+  closeBookmarksManager: () => set({ bookmarksManagerOpen: false })
 }))

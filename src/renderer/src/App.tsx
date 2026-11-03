@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ThemeProvider } from './components/providers/ThemeProvider'
 import { BookmarksBar } from './components/BookmarksBar'
+import { BookmarksManager } from './components/BookmarksManager'
 import { DownloadsPanel } from './components/DownloadsPanel'
 import { FindBar } from './components/FindBar'
 import { HistoryPanel } from './components/HistoryPanel'
@@ -23,7 +24,7 @@ export default function App(): React.JSX.Element {
   const [historyClearPrompt, setHistoryClearPrompt] = useState(0)
   const [downloadsOpen, setDownloadsOpen] = useState(false)
   const [findOpen, setFindOpen] = useState(false)
-  useUiStore()
+  const bookmarksManagerOpen = useUiStore((state) => state.bookmarksManagerOpen)
 
   useEffect(() => {
     const { applyState } = useBrowserStore.getState()
@@ -95,6 +96,9 @@ export default function App(): React.JSX.Element {
     const unsubHistory = window.voyager.ui.onOpenHistory(openHistory)
     const unsubDownloads = window.voyager.ui.onOpenDownloads(openDownloads)
     const unsubFind = window.voyager.ui.onFindInPage(openFind)
+    const unsubBookmarks = window.voyager.ui.onOpenBookmarksManager(() =>
+      useUiStore.getState().openBookmarksManager()
+    )
 
     return () => {
       window.removeEventListener('voyager:open-history', openHistory)
@@ -106,6 +110,7 @@ export default function App(): React.JSX.Element {
       unsubHistory()
       unsubDownloads()
       unsubFind()
+      unsubBookmarks()
     }
   }, [])
 
@@ -132,6 +137,10 @@ export default function App(): React.JSX.Element {
       />
       <FindBar open={findOpen} onClose={() => setFindOpen(false)} />
       <PermissionPrompt />
+      <BookmarksManager
+        open={bookmarksManagerOpen}
+        onClose={() => useUiStore.getState().closeBookmarksManager()}
+      />
     </ThemeProvider>
   )
 }

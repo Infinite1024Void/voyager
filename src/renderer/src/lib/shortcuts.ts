@@ -65,6 +65,12 @@ function dispatch(action: BrowserAction, index?: number): void {
     case 'toggle-bookmarks-bar':
       useBookmarksStore.getState().toggleBar()
       break
+    case 'bookmark-page':
+      useBookmarksStore.getState().bookmarkActivePage()
+      break
+    case 'open-bookmarks-manager':
+      useUiStore.getState().openBookmarksManager()
+      break
     case 'open-history':
       window.dispatchEvent(new Event('voyager:open-history'))
       break

@@ -2,11 +2,16 @@ import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import { ALL_IPC_CHANNELS, IpcChannels, type IpcChannel } from '../shared/ipc-channels'
 import type {
   AppVersionInfo,
+  BookmarkFolderPatch,
+  BookmarkMoveInput,
+  BookmarkNodeKind,
+  BookmarkPatch,
   BookmarksState,
   BrowserState,
   ClearBrowsingDataOptions,
   DownloadsState,
   HistoryState,
+  NewBookmarkFolderInput,
   NewBookmarkInput,
   NewTabRequest,
   PermissionKind,
@@ -112,6 +117,26 @@ const api = {
       ipcRenderer.invoke(IpcChannels.BookmarksAdd, input),
     remove: (id: string): Promise<BookmarksState> =>
       ipcRenderer.invoke(IpcChannels.BookmarksRemove, id),
+    update: (id: string, patch: BookmarkPatch): Promise<BookmarksState> =>
+      ipcRenderer.invoke(IpcChannels.BookmarksUpdate, id, patch),
+    addFolder: (input: NewBookmarkFolderInput): Promise<BookmarksState> =>
+      ipcRenderer.invoke(IpcChannels.BookmarksAddFolder, input),
+    updateFolder: (id: string, patch: BookmarkFolderPatch): Promise<BookmarksState> =>
+      ipcRenderer.invoke(IpcChannels.BookmarksUpdateFolder, id, patch),
+    removeFolder: (id: string): Promise<BookmarksState> =>
+      ipcRenderer.invoke(IpcChannels.BookmarksRemoveFolder, id),
+    move: (input: BookmarkMoveInput): Promise<BookmarksState> =>
+      ipcRenderer.invoke(IpcChannels.BookmarksMove, input),
+    cut: (kind: BookmarkNodeKind, id: string): Promise<BookmarksState> =>
+      ipcRenderer.invoke(IpcChannels.BookmarksCut, kind, id),
+    copy: (kind: BookmarkNodeKind, id: string): Promise<BookmarksState> =>
+      ipcRenderer.invoke(IpcChannels.BookmarksCopy, kind, id),
+    paste: (parentId: string | null): Promise<BookmarksState> =>
+      ipcRenderer.invoke(IpcChannels.BookmarksPaste, parentId),
+    consumeDragUrl: (): Promise<string | null> =>
+      ipcRenderer.invoke(IpcChannels.BookmarksConsumeDragUrl),
+    openInNewWindow: (url: string): Promise<void> =>
+      ipcRenderer.invoke(IpcChannels.BookmarksOpenWindow, url),
     toggleBar: (): Promise<BookmarksState> => ipcRenderer.invoke(IpcChannels.BookmarksToggleBar),
     clear: (): Promise<BookmarksState> => ipcRenderer.invoke(IpcChannels.BookmarksClear),
     onStateChanged: (listener: (state: BookmarksState) => void): Unsubscribe =>
@@ -177,6 +202,8 @@ const api = {
       subscribe<void>(IpcChannels.UiOpenHistory, listener),
     onOpenDownloads: (listener: () => void): Unsubscribe =>
       subscribe<void>(IpcChannels.UiOpenDownloads, listener),
+    onOpenBookmarksManager: (listener: () => void): Unsubscribe =>
+      subscribe<void>(IpcChannels.UiOpenBookmarksManager, listener),
     setOverlayOpen: (open: boolean): Promise<void> =>
       ipcRenderer.invoke(IpcChannels.UiSetOverlayOpen, open)
   }
