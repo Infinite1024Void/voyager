@@ -136,7 +136,7 @@ const LAUNCH_RETRY_PATTERN = /ETXTBSY|EACCES|Failed to launch|failed to install 
  */
 async function launchWithRetry(
   options: Parameters<typeof electron.launch>[0],
-  attempts = 5
+  attempts = 8
 ): Promise<ElectronApplication> {
   let lastError: unknown
   for (let attempt = 1; attempt <= attempts; attempt += 1) {

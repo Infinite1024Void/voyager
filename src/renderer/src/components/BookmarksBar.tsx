@@ -249,12 +249,6 @@ export function BookmarksBar(): React.JSX.Element | null {
                 const rect = event.currentTarget.getBoundingClientRect()
                 setFolderMenu({ x: rect.left, y: rect.bottom + 2, folderId: folder.id })
               }}
-              onMouseDown={(event) => {
-                if (event.button === 2) {
-                  event.preventDefault()
-                  setMenu({ x: event.clientX, y: event.clientY, kind: 'folder', id: folder.id })
-                }
-              }}
               className="flex h-[22px] max-w-full items-center gap-1.5 rounded-md px-2 text-[12px] text-fg transition-colors hover:bg-hover"
             >
               <Folder className="h-3.5 w-3.5 shrink-0 text-muted" />
@@ -281,12 +275,6 @@ export function BookmarksBar(): React.JSX.Element | null {
               event.dataTransfer.dropEffect = hasInternalDrag(event.dataTransfer) ? 'move' : 'copy'
             }}
             onDrop={(event) => void handleDrop(event, null, bookmark.id)}
-            onMouseDown={(event) => {
-              if (event.button === 2) {
-                event.preventDefault()
-                setMenu({ x: event.clientX, y: event.clientY, kind: 'bookmark', id: bookmark.id })
-              }
-            }}
             onContextMenu={(event) => openMenu(event, 'bookmark', bookmark.id)}
           >
             <button
