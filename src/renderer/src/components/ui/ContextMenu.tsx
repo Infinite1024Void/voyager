@@ -122,14 +122,14 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps): React.J
     // Defer installing the dismiss listeners until the gesture that opened
     // the menu has finished propagating; otherwise this same mousedown /
     // contextmenu reaches window and immediately closes it.
-    const frame = requestAnimationFrame(() => {
+    const frame = window.setTimeout(() => {
       window.addEventListener('mousedown', close)
       window.addEventListener('blur', close)
       window.addEventListener('keydown', onKeyDown)
       window.addEventListener('scroll', close, true)
     })
     return () => {
-      cancelAnimationFrame(frame)
+      window.clearTimeout(frame)
       window.removeEventListener('mousedown', close)
       window.removeEventListener('blur', close)
       window.removeEventListener('keydown', onKeyDown)
