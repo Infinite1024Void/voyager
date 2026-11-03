@@ -194,8 +194,7 @@ test('bookmark context menu opens, edits, copies and deletes a bookmark', async 
     )
     .toBe(1)
 
-  await voyager.chrome.locator('nav button').first().focus()
-  await voyager.chrome.locator('nav button').first().press('ContextMenu')
+  await voyager.chrome.locator('nav button').first().click({ button: 'right' })
   const menu = voyager.chrome.getByRole('menu')
   await expect(menu).toBeVisible()
   await expect(menu.getByRole('menuitem', { name: 'Open in New Tab' })).toBeVisible()
@@ -214,8 +213,7 @@ test('bookmark context menu opens, edits, copies and deletes a bookmark', async 
   await expect.poll(async () => (await voyager.activeTab()).url).toBe(server.url('/home'))
 
   // Reopen the context menu for the remaining actions.
-  await voyager.chrome.locator('nav button').first().focus()
-  await voyager.chrome.locator('nav button').first().press('ContextMenu')
+  await voyager.chrome.locator('nav button').first().click({ button: 'right' })
   const editMenu = voyager.chrome.getByRole('menu')
   await expect(editMenu.getByRole('menuitem', { name: 'Edit…' })).toBeVisible()
   await editMenu.getByRole('menuitem', { name: 'Edit…' }).click()
@@ -231,8 +229,7 @@ test('bookmark context menu opens, edits, copies and deletes a bookmark', async 
     )
     .toBe('Renamed Page')
 
-  await voyager.chrome.locator('nav button').first().focus()
-  await voyager.chrome.locator('nav button').first().press('ContextMenu')
+  await voyager.chrome.locator('nav button').first().click({ button: 'right' })
   const copyMenu = voyager.chrome.getByRole('menu')
   await expect(copyMenu.getByRole('menuitem', { name: 'Copy' })).toBeVisible()
   await copyMenu.getByRole('menuitem', { name: 'Copy' }).click()
@@ -243,8 +240,7 @@ test('bookmark context menu opens, edits, copies and deletes a bookmark', async 
     )
     .toBe('copy')
 
-  await voyager.chrome.locator('nav button').first().focus()
-  await voyager.chrome.locator('nav button').first().press('ContextMenu')
+  await voyager.chrome.locator('nav button').first().click({ button: 'right' })
   const deleteMenu = voyager.chrome.getByRole('menu')
   await expect(deleteMenu.getByRole('menuitem', { name: 'Delete' })).toBeVisible()
   await deleteMenu.getByRole('menuitem', { name: 'Delete' }).click()
