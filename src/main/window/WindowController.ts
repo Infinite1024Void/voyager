@@ -8,7 +8,13 @@ import { sessionStore } from '../store'
 import { attachDownloadsTracking } from '../downloads/downloads'
 import { attachPermissionHandlers } from '../permissions/permissions'
 
-import { currentBookmarksState, toggleBookmarksBar } from '../bookmarks/bookmarks'
+import {
+  currentBookmarksState,
+  addBookmark,
+  removeBookmark,
+  toggleBookmarksBar
+} from '../bookmarks/bookmarks'
+import { allWindows } from './windowRegistry'
 import { TabManager } from '../tabs/TabManager'
 import { createAppMenu } from '../menu/menu'
 import {
@@ -144,6 +150,30 @@ export class WindowController {
     )
   }
 
+  /** Star the active page (or unstar it when the URL is already saved). */
+  bookmarkActivePage(): void {
+    const state = this.tabs.snapshot()
+    const tab = state.tabs.find((candidate) => candidate.id === state.activeTabId)
+    if (!tab || tab.url === '' || tab.url === 'about:blank') return
+    const existing = currentBookmarksState().items.find(
+      (item) => item.url === tab.url && (item.folderId ?? null) === null
+    )
+    const publish = (next: ReturnType<typeof currentBookmarksState>): void => {
+      for (const window of allWindows()) {
+        window.sendToChrome(IpcChannels.BookmarksStateChanged, next)
+      }
+    }
+    if (existing) {
+      removeBookmark(existing.id, publish)
+      return
+    }
+    addBookmark(
+      { title: tab.title || tab.url, url: tab.url, favicon: tab.favicon },
+      publish,
+      (visible) => this.setBookmarksBarVisible(visible)
+    )
+  }
+
   refreshClosedTabs(): void {
     createAppMenu(() => this)
   }
@@ -210,14 +240,15 @@ export class WindowController {
   }
 
   /** Load the chrome renderer, restore the last session, and reveal the window. */
-  async show(): Promise<void> {
+  async show(initialUrl?: string): Promise<void> {
     const devServerUrl = process.env['ELECTRON_RENDERER_URL']
     if (devServerUrl) {
       await this.chrome.webContents.loadURL(devServerUrl)
     } else {
       await this.chrome.webContents.loadFile(join(__dirname, '../renderer/index.html'))
     }
-    this.restoreSession()
+    if (initialUrl) this.tabs.create({ url: initialUrl })
+    else this.restoreSession()
     this.window.show()
   }
 

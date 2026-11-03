@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { join } from 'node:path'
 import { WebContentsView, type WebContents, type Input } from 'electron'
 import { DEFAULT_NEW_TAB_URL, SETTINGS_URL } from '../../shared/constants'
 import { IpcChannels } from '../../shared/ipc-channels'
@@ -85,8 +86,10 @@ export class TabManager {
       contextIsolation: boolean
       nodeIntegration: boolean
       sandbox: boolean
+      preload: string
       partition?: string
     } = {
+      preload: join(__dirname, '../preload/tab.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
@@ -219,7 +222,19 @@ export class TabManager {
       openSettingsWindow()
       return
     }
-    this.activeWebContents()?.loadURL(url)
+    const wc = this.activeWebContents()
+    if (!wc) return
+    if (url.startsWith('javascript:')) {
+      let code = url.slice('javascript:'.length)
+      try {
+        code = decodeURIComponent(code)
+      } catch {
+        // Leave malformed escapes untouched; executeJavaScript will report.
+      }
+      void wc.executeJavaScript(code, true).catch(() => undefined)
+      return
+    }
+    void wc.loadURL(url)
   }
 
   findInPage(query: string, forward = true): void {
@@ -532,6 +547,12 @@ export class TabManager {
         break
       case 'toggle-bookmarks-bar':
         this.window.toggleBookmarksBar()
+        break
+      case 'bookmark-page':
+        this.window.bookmarkActivePage()
+        break
+      case 'open-bookmarks-manager':
+        this.window.sendToChrome(IpcChannels.UiOpenBookmarksManager)
         break
       case 'open-history':
         this.window.sendToChrome(IpcChannels.UiOpenHistory)

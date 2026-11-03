@@ -1,4 +1,5 @@
 import { app, Menu, nativeImage, type MenuItemConstructorOptions } from 'electron'
+import { IpcChannels } from '../../shared/ipc-channels'
 import type { WindowController } from '../window/WindowController'
 import { getSettings } from '../store'
 import { openSettingsWindow } from '../window/settingsWindow'
@@ -84,6 +85,23 @@ export function createAppMenu(getController?: () => WindowController | null): vo
           const window = getController?.() ?? null
           window?.toggleBookmarksBar()
         }
+      }
+    ]
+  })
+
+  template.push({
+    label: 'Bookmarks',
+    submenu: [
+      {
+        label: 'Bookmark This Page',
+        accelerator: 'CmdOrCtrl+D',
+        click: () => controller()?.bookmarkActivePage()
+      },
+      { type: 'separator' },
+      {
+        label: 'Bookmarks Manager',
+        accelerator: 'CmdOrCtrl+Shift+O',
+        click: () => controller()?.sendToChrome(IpcChannels.UiOpenBookmarksManager)
       }
     ]
   })

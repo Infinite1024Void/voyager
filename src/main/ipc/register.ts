@@ -3,7 +3,13 @@ import { IpcChannels } from '../../shared/ipc-channels'
 import { isPermissionKind, isPermissionRequestChoice } from '../../shared/permissions'
 import type {
   AppVersionInfo,
+  BookmarkFolderPatch,
+  BookmarkMoveInput,
+  BookmarkNodeKind,
+  BookmarkPatch,
+  BookmarksState,
   ClearBrowsingDataOptions,
+  NewBookmarkFolderInput,
   NewBookmarkInput,
   NewTabRequest,
   PermissionKind,
@@ -20,10 +26,18 @@ import {
 } from '../../shared/search'
 import {
   addBookmark,
+  addFolder,
   clearBookmarks,
+  copyBookmarkNode,
   currentBookmarksState,
+  cutBookmarkNode,
+  moveBookmarkNode,
+  pasteBookmarkNode,
   removeBookmark,
-  toggleBookmarksBar
+  removeFolder,
+  toggleBookmarksBar,
+  updateBookmark,
+  updateFolder
 } from '../bookmarks/bookmarks'
 import {
   clearHistory,
@@ -42,6 +56,7 @@ import {
 } from '../permissions/permissions'
 import type { WindowController } from '../window/WindowController'
 import { openSettingsWindow } from '../window/settingsWindow'
+import { consumePendingDragUrl, setPendingDragUrl } from '../bookmarks/drag'
 import { getSettings, setSettings } from '../store'
 import {
   cancelDownload,
@@ -59,6 +74,7 @@ import {
 export interface IpcContext {
   send(channel: string, payload?: unknown): void
   getWindow(): WindowController | null
+  openWindow?(url: string): void
 }
 
 function currentThemeState(): ThemeState {
@@ -260,28 +276,26 @@ export function registerIpcHandlers(context: IpcContext): void {
 
   /* ---- bookmarks ------------------------------------------------------ */
 
+  const broadcastBookmarks = (state: BookmarksState): void =>
+    context.send(IpcChannels.BookmarksStateChanged, state)
+
   ipcMain.handle(IpcChannels.BookmarksGetState, () => currentBookmarksState())
 
   ipcMain.handle(IpcChannels.BookmarksAdd, (_event, input: NewBookmarkInput) =>
-    addBookmark(
-      input,
-      (state) => context.send(IpcChannels.BookmarksStateChanged, state),
-      (visible) => context.getWindow()?.setBookmarksBarVisible(visible)
-    )
+    addBookmark(input, broadcastBookmarks, (visible) => context.getWindow()?.setBookmarksBarVisible(visible))
   )
 
   ipcMain.handle(IpcChannels.BookmarksRemove, (_event, id: string) =>
-    removeBookmark(id, (state) => context.send(IpcChannels.BookmarksStateChanged, state))
+    removeBookmark(id, broadcastBookmarks)
   )
 
-  ipcMain.handle(IpcChannels.BookmarksClear, () =>
-    clearBookmarks((state) => context.send(IpcChannels.BookmarksStateChanged, state))
+  ipcMain.handle(IpcChannels.BookmarksUpdate, (_event, id: string, patch: BookmarkPatch) =>
+    updateBookmark(id, patch, broadcastBookmarks)
   )
 
-  ipcMain.handle(IpcChannels.BookmarksToggleBar, () =>
-    toggleBookmarksBar(
-      (state) => context.send(IpcChannels.BookmarksStateChanged, state),
-      (visible) => context.getWindow()?.setBookmarksBarVisible(visible)
+  ipcMain.handle(IpcChannels.BookmarksAddFolder, (_event, input: NewBookmarkFolderInput) =>
+    addFolder(input, broadcastBookmarks, (visible) =>
+      context.getWindow()?.setBookmarksBarVisible(visible)
     )
   )
 
@@ -359,6 +373,49 @@ export function registerIpcHandlers(context: IpcContext): void {
     }
   )
 
+  ipcMain.handle(
+    IpcChannels.BookmarksUpdateFolder,
+    (_event, id: string, patch: BookmarkFolderPatch) => updateFolder(id, patch, broadcastBookmarks)
+  )
+
+  ipcMain.handle(IpcChannels.BookmarksRemoveFolder, (_event, id: string) =>
+    removeFolder(id, broadcastBookmarks)
+  )
+
+  ipcMain.handle(IpcChannels.BookmarksMove, (_event, input: BookmarkMoveInput) =>
+    moveBookmarkNode(input, broadcastBookmarks)
+  )
+
+  ipcMain.handle(
+    IpcChannels.BookmarksCopy,
+    (_event, kind: BookmarkNodeKind, id: string) =>
+      copyBookmarkNode(kind, id, broadcastBookmarks)
+  )
+
+  ipcMain.handle(
+    IpcChannels.BookmarksCut,
+    (_event, kind: BookmarkNodeKind, id: string) => cutBookmarkNode(kind, id, broadcastBookmarks)
+  )
+
+  ipcMain.handle(IpcChannels.BookmarksPaste, (_event, parentId: string | null) =>
+    pasteBookmarkNode(parentId, broadcastBookmarks)
+  )
+
+  ipcMain.handle(IpcChannels.BookmarksConsumeDragUrl, () => consumePendingDragUrl())
+
+  ipcMain.handle(IpcChannels.BookmarksOpenWindow, (_event, url: string) => {
+    context.openWindow?.(url)
+  })
+
+  ipcMain.handle(IpcChannels.BookmarksClear, () => clearBookmarks(broadcastBookmarks))
+
+  ipcMain.handle(IpcChannels.BookmarksToggleBar, () =>
+    toggleBookmarksBar(broadcastBookmarks, (visible) =>
+      context.getWindow()?.setBookmarksBarVisible(visible)
+    )
+  )
+
+  ipcMain.on(IpcChannels.TabDragStart, (_event, url: string) => setPendingDragUrl(url))
   /* ---- history --------------------------------------------------------- */
 
   ipcMain.handle(IpcChannels.HistoryGetState, () => currentHistoryState())

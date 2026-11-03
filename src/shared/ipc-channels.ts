@@ -44,9 +44,21 @@ export const IpcChannels = {
 
   TabsReopenLastClosed: 'tabs:reopen-last-closed',
 
+  TabDragStart: 'tab:drag-start',
+
   BookmarksGetState: 'bookmarks:get-state',
   BookmarksAdd: 'bookmarks:add',
   BookmarksRemove: 'bookmarks:remove',
+  BookmarksUpdate: 'bookmarks:update',
+  BookmarksAddFolder: 'bookmarks:add-folder',
+  BookmarksUpdateFolder: 'bookmarks:update-folder',
+  BookmarksRemoveFolder: 'bookmarks:remove-folder',
+  BookmarksMove: 'bookmarks:move',
+  BookmarksCut: 'bookmarks:cut',
+  BookmarksCopy: 'bookmarks:copy',
+  BookmarksPaste: 'bookmarks:paste',
+  BookmarksConsumeDragUrl: 'bookmarks:consume-drag-url',
+  BookmarksOpenWindow: 'bookmarks:open-window',
   BookmarksToggleBar: 'bookmarks:toggle-bar',
   BookmarksClear: 'bookmarks:clear',
   BookmarksStateChanged: 'bookmarks:state-changed',
@@ -83,6 +95,7 @@ export const IpcChannels = {
   UiOpenTabSearch: 'ui:open-tab-search',
   UiOpenHistory: 'ui:open-history',
   UiOpenDownloads: 'ui:open-downloads',
+  UiOpenBookmarksManager: 'ui:open-bookmarks-manager',
   UiSetOverlayOpen: 'ui:set-overlay-open'
 } as const
 

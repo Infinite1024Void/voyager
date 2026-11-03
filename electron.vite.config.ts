@@ -18,6 +18,14 @@ export default defineConfig({
       alias: {
         '@shared': resolve('src/shared')
       }
+    },
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'src/preload/index.ts'),
+          tab: resolve(__dirname, 'src/preload/tab.ts')
+        }
+      }
     }
   },
   renderer: {

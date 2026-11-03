@@ -1,4 +1,6 @@
 import { expect, test } from './fixtures'
+import type { Page } from '@playwright/test'
+import type { BookmarkMoveInput } from '../../src/shared/types'
 import { primaryKey } from './helpers/voyager'
 
 test('bookmark bar toggles from the keyboard', async ({ voyager }) => {
@@ -92,4 +94,198 @@ test('adds, dedupes, navigates and removes a bookmark', async ({ voyager, server
 
 test('disables bookmark button on a blank tab', async ({ voyager }) => {
   await expect(voyager.chrome.getByRole('button', { name: 'Bookmark this page' })).toBeDisabled()
+})
+
+async function bookmarkItems(voyager: { chrome: Page }): Promise<{
+  items: Array<{ id: string; title: string; url: string; folderId: string | null }>
+  folders: Array<{ id: string; title: string; parentId: string | null }>
+}> {
+  return voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())
+}
+
+test('stars and unstars the active page with Cmd/Ctrl+D', async ({ voyager, server }) => {
+  await voyager.navigate(server.url('/home'))
+  await expect.poll(async () => (await voyager.activeTab()).url).toBe(server.url('/home'))
+
+  await voyager.chrome.locator('body').press(`${primaryKey()}+d`)
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length
+    )
+    .toBe(1)
+  await expect(voyager.chrome.locator('nav button').first()).toBeVisible()
+
+  await voyager.chrome.locator('body').press(`${primaryKey()}+d`)
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length
+    )
+    .toBe(0)
+})
+
+test('bookmarks manager adds folders and bookmarks and allows duplicates per folder', async ({
+  voyager,
+  server
+}) => {
+  await voyager.navigate(server.url('/home'))
+  await voyager.chrome.locator('body').press(`${primaryKey()}+Shift+O`)
+  const manager = voyager.chrome.getByRole('dialog', { name: 'Bookmarks Manager' })
+  await expect(manager).toBeVisible()
+
+  await manager.getByRole('button', { name: 'Add Folder', exact: true }).click()
+  const addDialog = voyager.chrome.getByRole('dialog', { name: 'Add Folder' })
+  await expect(addDialog).toBeVisible()
+  await addDialog.getByLabel('Name').fill('Research')
+  await addDialog.getByRole('button', { name: 'Add Folder' }).click()
+  await expect(addDialog).not.toBeVisible()
+
+  const state = await bookmarkItems(voyager)
+  const folder = state.folders.find((candidate) => candidate.title === 'Research')
+  expect(folder).toBeTruthy()
+  await expect(manager.getByRole('button', { name: 'Research' })).toBeVisible()
+  await manager.getByRole('button', { name: 'Research' }).click()
+
+  await manager.getByRole('button', { name: 'Add Page' }).click()
+  await expect
+    .poll(
+      async () => (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items
+        .length
+    )
+    .toBe(1)
+
+  const items = (await bookmarkItems(voyager)).items
+  expect(items).toHaveLength(1)
+  expect(items[0].folderId).toBe(folder?.id)
+
+  // The same URL can now live in two different folders at once.
+  await voyager.chrome.evaluate(
+    async (input: { title: string; url: string; folderId?: string }) => {
+      await window.voyager.bookmarks.add(input)
+    },
+    { title: server.url('/home'), url: server.url('/home') }
+  )
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length
+    )
+    .toBe(2)
+})
+
+test('bookmark context menu opens, edits, copies and deletes a bookmark', async ({
+  voyager,
+  server
+}) => {
+  await voyager.navigate(server.url('/home'))
+  await voyager.chrome.getByRole('button', { name: 'Bookmark this page' }).click()
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length
+    )
+    .toBe(1)
+
+  await voyager.chrome.locator('nav button').first().click({ button: 'right' })
+  const menu = voyager.chrome.getByRole('menu')
+  await expect(menu).toBeVisible()
+  await expect(menu.getByRole('menuitem', { name: 'Open in New Tab' })).toBeVisible()
+  await expect(menu.getByRole('menuitem', { name: 'Open in New Window' })).toBeVisible()
+  await expect(menu.getByRole('menuitem', { name: 'Edit…' })).toBeVisible()
+  await expect(menu.getByRole('menuitem', { name: 'Cut' })).toBeVisible()
+  await expect(menu.getByRole('menuitem', { name: 'Copy' })).toBeVisible()
+  await expect(menu.getByRole('menuitem', { name: 'Paste' })).toBeVisible()
+  await expect(menu.getByRole('menuitem', { name: 'Delete' })).toBeVisible()
+
+  // Opening in a new tab closes the menu and spins up a secondary tab.
+  await menu.getByRole('menuitem', { name: 'Open in New Tab' }).click()
+  await expect
+    .poll(async () => (await voyager.state()).tabs.length)
+    .toBe(2)
+  await expect.poll(async () => (await voyager.activeTab()).url).toBe(server.url('/home'))
+
+  // Reopen the context menu for the remaining actions.
+  await voyager.chrome.locator('nav button').first().click({ button: 'right' })
+  const editMenu = voyager.chrome.getByRole('menu')
+  await expect(editMenu.getByRole('menuitem', { name: 'Edit…' })).toBeVisible()
+  await editMenu.getByRole('menuitem', { name: 'Edit…' }).click()
+  const editDialog = voyager.chrome.getByRole('dialog', { name: 'Edit Bookmark' })
+  await expect(editDialog).toBeVisible()
+  await editDialog.getByLabel('Name').fill('Renamed Page')
+  await editDialog.getByRole('button', { name: 'Save' }).click()
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items[0]
+          ?.title
+    )
+    .toBe('Renamed Page')
+
+  await voyager.chrome.locator('nav button').first().click({ button: 'right' })
+  const copyMenu = voyager.chrome.getByRole('menu')
+  await expect(copyMenu.getByRole('menuitem', { name: 'Copy' })).toBeVisible()
+  await copyMenu.getByRole('menuitem', { name: 'Copy' }).click()
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).clipboard?.mode
+    )
+    .toBe('copy')
+
+  await voyager.chrome.locator('nav button').first().click({ button: 'right' })
+  const deleteMenu = voyager.chrome.getByRole('menu')
+  await expect(deleteMenu.getByRole('menuitem', { name: 'Delete' })).toBeVisible()
+  await deleteMenu.getByRole('menuitem', { name: 'Delete' }).click()
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length
+    )
+    .toBe(0)
+})
+
+test('moves a bookmark into another position', async ({ voyager, server }) => {
+  await voyager.navigate(server.url('/home'))
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length
+    )
+    .toBe(0)
+
+  await voyager.chrome.evaluate(async (urls: string[]) => {
+    for (const url of urls) {
+      await window.voyager.bookmarks.add({ title: url, url })
+    }
+  }, [server.url('/home'), server.url('/second')])
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length
+    )
+    .toBe(2)
+
+  const first = (await bookmarkItems(voyager)).items[0]
+  const second = (await bookmarkItems(voyager)).items[1]
+
+  const moveInput: BookmarkMoveInput = {
+    kind: 'bookmark',
+    id: second.id,
+    parentId: null,
+    beforeId: first.id
+  }
+  await voyager.chrome.evaluate(
+    async (input: BookmarkMoveInput) => {
+      await window.voyager.bookmarks.move(input)
+    },
+    moveInput
+  )
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items[0]
+          ?.id === second.id
+    )
+    .toBe(true)
 })

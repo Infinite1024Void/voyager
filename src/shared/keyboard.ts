@@ -20,6 +20,8 @@ export type BrowserAction =
   | 'back'
   | 'forward'
   | 'toggle-bookmarks-bar'
+  | 'bookmark-page'
+  | 'open-bookmarks-manager'
   | 'open-history'
   | 'open-downloads'
   | 'open-settings'
@@ -68,6 +70,8 @@ export const SHORTCUTS: readonly ShortcutDef[] = [
   chord('reload', 'r', { meta: true }),
   chord('force-reload', 'r', { meta: true, shift: true }),
   chord('toggle-bookmarks-bar', 'b', { meta: true, shift: true }),
+  chord('bookmark-page', 'd', { meta: true }),
+  chord('open-bookmarks-manager', 'o', { meta: true, shift: true }),
   chord('open-history', 'y', { meta: true }),
   chord('open-downloads', 'j', { meta: true, shift: true }),
   chord('open-settings', ',', { meta: true }),
