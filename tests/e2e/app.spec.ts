@@ -59,3 +59,22 @@ test('starts with no overlays open', async ({ voyager }) => {
   await expect(voyager.chrome.locator('input[placeholder="Search tabs"]')).toHaveCount(0)
   await expect(voyager.chrome.getByRole('menu')).toHaveCount(0)
 })
+
+test('adds a gear icon to the macOS Settings application-menu item', async ({ voyager }) => {
+  test.skip(process.platform !== 'darwin', 'The Settings item only exists on macOS')
+
+  const settings = await voyager.app.evaluate(({ Menu }) => {
+    const applicationMenu = Menu.getApplicationMenu()
+    const item = applicationMenu?.items
+      .flatMap((menuItem) => menuItem.submenu?.items ?? [])
+      .find((menuItem) => menuItem.label === 'Settings…')
+    return {
+      found: item !== undefined,
+      hasIcon:
+        item?.icon !== undefined &&
+        (typeof item.icon === 'string' || !item.icon.isEmpty())
+    }
+  })
+
+  expect(settings).toEqual({ found: true, hasIcon: true })
+})

@@ -1,4 +1,4 @@
-import { app, Menu, type MenuItemConstructorOptions } from 'electron'
+import { app, Menu, nativeImage, type MenuItemConstructorOptions } from 'electron'
 import type { WindowController } from '../window/WindowController'
 import { getSettings } from '../store'
 import { openSettingsWindow } from '../window/settingsWindow'
@@ -40,7 +40,12 @@ export function createAppMenu(getController?: () => WindowController | null): vo
       submenu: [
         { role: 'about' },
         { type: 'separator' },
-        { label: 'Settings…', accelerator: 'CmdOrCtrl+Comma', click: () => openSettingsWindow() },
+        {
+          label: 'Settings…',
+          accelerator: 'CmdOrCtrl+Comma',
+          icon: nativeImage.createMenuSymbol('gearshape'),
+          click: () => openSettingsWindow()
+        },
         { type: 'separator' },
         { role: 'hide' },
         { role: 'hideOthers' },
