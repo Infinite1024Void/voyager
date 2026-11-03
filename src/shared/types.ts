@@ -209,6 +209,8 @@ export interface UserPreferences {
   searchEngine?: SearchEngineId
   /** Reopen the tabs from the previous session on startup (default off). */
   restoreSession: boolean
+  /** Cancel requests to known ad/tracker domains before they hit the network. */
+  contentBlocking: boolean
 }
 
 /** Site data categories cleared together from Settings. */

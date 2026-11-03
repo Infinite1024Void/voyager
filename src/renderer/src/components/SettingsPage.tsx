@@ -34,8 +34,8 @@ export function SettingsPage(): React.JSX.Element {
     clearCache: true,
     clearSitePermissions: true,
     openDownloadsWhenDone: false,
-    restoreSession: false
-
+    restoreSession: false,
+    contentBlocking: true
   })
   const [clearing, setClearing] = useState(false)
   const [initialRoute] = useState(sitePermissionsRoute)
@@ -71,6 +71,7 @@ export function SettingsPage(): React.JSX.Element {
   }, [])
 
   const setPreference = async (key: keyof UserPreferences, value: boolean) => {
+    setPreferences((current) => ({ ...current, [key]: value }))
     const prefs = await window.voyager.settings.set(key, value)
     setPreferences(prefs)
     if (key === 'incognito') useBrowserStore.getState().setIncognito(prefs.incognito ?? false)
@@ -167,7 +168,7 @@ export function SettingsPage(): React.JSX.Element {
 
           <section className="rounded-lg border border-border bg-surface p-5">
             <h2 className="mb-4 text-[15px] font-semibold text-fg">Privacy and security</h2>
-            <label className="flex items-center gap-2 text-[13px] text-fg">
+            <label className="mb-2 flex items-center gap-2 text-[13px] text-fg">
               <input
                 type="checkbox"
                 checked={preferences.incognito ?? false}
@@ -175,6 +176,15 @@ export function SettingsPage(): React.JSX.Element {
               />
               <span>Run the browser in incognito mode (in-memory profile)</span>
             </label>
+            <label className="mb-2 flex items-center gap-2 text-[13px] text-fg">
+              <input
+                type="checkbox"
+                checked={preferences.contentBlocking}
+                onChange={(event) => setPreference('contentBlocking', event.target.checked)}
+              />
+              <span>Block ads and trackers</span>
+            </label>
+
             <button
               type="button"
               className="mt-2 flex w-full items-center justify-between gap-4 rounded-md border border-border bg-bg px-3 py-2.5 text-left transition-colors hover:bg-hover"

@@ -3,7 +3,9 @@ import { autoUpdater } from 'electron-updater'
 import { join } from 'node:path'
 import { registerIpcHandlers } from './ipc/register'
 import { attachPermissionHandlers } from './permissions/permissions'
+import { attachContentBlocking } from './contentBlocking/contentBlocking'
 import { flushAllStores, getSettings } from './store'
+
 import { WindowController } from './window/WindowController'
 import { registerWindow } from './window/windowRegistry'
 import { attachDownloadsTracking } from './downloads/downloads'
@@ -67,6 +69,7 @@ app.whenReady().then(async (): Promise<void> => {
   })
 
   attachPermissionHandlers(session.defaultSession)
+  attachContentBlocking(session.defaultSession)
   controller = new WindowController({ incognito: getSettings('incognito', false) === true })
   registerWindow(controller)
   createAppMenu(() => controller)
