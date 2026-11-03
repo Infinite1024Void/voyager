@@ -44,6 +44,23 @@ export function safeParseUrl(raw: string): URL | null {
   }
 }
 
+/**
+ * Chrome-style address shown while the omnibox is idle: no scheme, no `www.`
+ * prefix, and no trailing slash for a site root. The full URL is restored as
+ * soon as the field is focused for editing.
+ */
+export function displayUrl(raw: string): string {
+  const trimmed = raw.trim()
+  if (trimmed === '' || trimmed === 'about:blank') return ''
+  const parsed = safeParseUrl(trimmed)
+  if (!parsed || (parsed.protocol !== 'http:' && parsed.protocol !== 'https:')) {
+    return trimmed
+  }
+  const host = parsed.host.replace(/^www\./i, '')
+  const path = parsed.pathname === '/' ? '' : parsed.pathname
+  return `${host}${path}${parsed.search}${parsed.hash}`
+}
+
 export type SecurityLevel = 'secure' | 'insecure' | 'neutral'
 
 /** Coarse connection security for a URL, for the omnibox indicator. */
