@@ -1,10 +1,20 @@
+import { displayUrl } from '../../src/shared/url'
 import { expect, test } from './fixtures'
 import { interceptSearch, searchRequests } from './helpers/voyager'
 
-test('shows the active URL and clears it for a new tab', async ({ voyager, server }) => {
+test('condenses the scheme, www prefix and site-root slash', () => {
+  expect(displayUrl('https://www.example.com/')).toBe('example.com')
+  expect(displayUrl('https://www.example.com/path?q=1#top')).toBe(
+    'example.com/path?q=1#top'
+  )
+  expect(displayUrl('http://localhost:4321/')).toBe('localhost:4321')
+  expect(displayUrl('about:blank')).toBe('')
+})
+
+test('shows a condensed active URL and clears it for a new tab', async ({ voyager, server }) => {
   const input = voyager.chrome.locator('#omnibox-input')
   await voyager.navigate(server.url('/home'))
-  await expect(input).toHaveValue(server.url('/home'))
+  await expect(input).toHaveValue(displayUrl(server.url('/home')))
 
   await voyager.chrome.getByRole('button', { name: 'New tab', exact: true }).click()
   await voyager.waitForTab((tab) => tab.url === 'about:blank')
@@ -15,6 +25,7 @@ test('selects the whole address when focused', async ({ voyager, server }) => {
   await voyager.navigate(server.url('/home'))
   const input = voyager.chrome.locator('#omnibox-input')
   await input.focus()
+  await expect(input).toHaveValue(server.url('/home'))
 
   const selection = await input.evaluate((element) => {
     const field = element as HTMLInputElement
@@ -35,7 +46,7 @@ test('Escape abandons edits and restores the active URL', async ({ voyager, serv
   await expect(input).toHaveValue('not the real address')
 
   await input.press('Escape')
-  await expect(input).toHaveValue(server.url('/home'))
+  await expect(input).toHaveValue(displayUrl(server.url('/home')))
   const focused = await voyager.chrome.evaluate(
     () => document.activeElement?.id === 'omnibox-input'
   )

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Globe, Search } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { useOverlaySignal } from '../lib/overlay'
@@ -8,6 +8,7 @@ import {
   buildSearchUrl,
   parseSuggestions
 } from '../../../shared/search'
+import { displayUrl } from '../../../shared/url'
 import { useActiveTab, useBrowserStore } from '../state/browserStore'
 import { PageInfoPopover } from './PageInfoPopover'
 import { SecurityBadge } from './SecurityBadge'
@@ -47,7 +48,7 @@ export function Omnibox(): React.JSX.Element {
   const inputRef = useRef<HTMLInputElement>(null)
   const rootRef = useRef<HTMLDivElement>(null)
 
-  const [value, setValue] = useState(activeTab?.url ?? '')
+  const [value, setValue] = useState(displayUrl(activeTab?.url ?? ''))
   const [focused, setFocused] = useState(false)
   const [highlight, setHighlight] = useState(0)
   const [pageInfoOpen, setPageInfoOpen] = useState(false)
@@ -55,8 +56,13 @@ export function Omnibox(): React.JSX.Element {
   const activeUrl = activeTab?.url ?? ''
   const activeTitle = activeTab?.title ?? ''
   useEffect(() => {
-    if (!focused) setValue(activeUrl === 'about:blank' ? '' : activeUrl)
+    if (!focused) setValue(displayUrl(activeUrl))
   }, [activeUrl, focused])
+
+  // Select the full URL after the focused state swaps in the editable value.
+  useLayoutEffect(() => {
+    if (focused) inputRef.current?.select()
+  }, [focused])
 
   const suggestions = useSuggestions(value, focused && value.trim().length > 0)
   const showDropdown = focused && value.trim() !== '' && !pageInfoOpen
@@ -96,15 +102,15 @@ export function Omnibox(): React.JSX.Element {
           spellCheck={false}
           value={value}
           placeholder="Search or enter address"
-          onFocus={(event) => {
+          onFocus={() => {
+            setValue(activeUrl === 'about:blank' ? '' : activeUrl)
             setFocused(true)
             setPageInfoOpen(false)
-            event.currentTarget.select()
           }}
           onBlur={(event) => {
             if (rootRef.current?.contains(event.relatedTarget as Node)) return
             setFocused(false)
-            setValue(activeUrl === 'about:blank' ? '' : activeUrl)
+            setValue(displayUrl(activeUrl))
           }}
           onChange={(event) => {
             setValue(event.target.value)
@@ -122,6 +128,7 @@ export function Omnibox(): React.JSX.Element {
               runRow(highlight)
             } else if (event.key === 'Escape') {
               setFocused(false)
+              setValue(displayUrl(activeUrl))
               inputRef.current?.blur()
             }
           }}

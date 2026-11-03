@@ -1,3 +1,4 @@
+import { displayUrl } from '../../src/shared/url'
 import { expect, test } from './fixtures'
 import {
   activeZoom,
@@ -18,7 +19,7 @@ test('navigates from the omnibox and reflects the page title', async ({ voyager,
     .poll(async () => (await voyager.activeTab()).title, { timeout: 15_000 })
     .toBe('Voyager Test Home')
   await expect(voyager.tab.locator('#heading')).toHaveText('Test Home')
-  await expect(input).toHaveValue(server.url('/home'))
+  await expect(input).toHaveValue(displayUrl(server.url('/home')))
 })
 
 test('treats a bare host and port as an HTTP address', async ({ voyager, server }) => {
