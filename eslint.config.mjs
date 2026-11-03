@@ -12,6 +12,7 @@ export default tseslint.config(
       'dist/**',
       'release/**',
       'node_modules/**',
+      '.github/scripts/**',
       'coverage/**',
       'test-results/**',
       'playwright-report/**',
