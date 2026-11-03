@@ -30,8 +30,8 @@ export function ThemeProvider({ children }: { children: ReactNode }): React.JSX.
         if (window.voyager?.theme) {
           void window.voyager.theme.set(mode).then(setState)
         } else {
-          setState((prev) => {
-            let dark = prev.dark
+          setState(() => {
+            let dark: boolean
             if (mode === 'dark') dark = true
             else if (mode === 'light') dark = false
             else dark = window.matchMedia('(prefers-color-scheme: dark)').matches
