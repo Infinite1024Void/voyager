@@ -43,9 +43,9 @@ export function PageInfoPopover({ url, title }: PageInfoPopoverProps): React.JSX
           </p>
           <p className="mt-0.5 text-[12px] leading-relaxed text-muted">
             {level === 'secure' &&
-              "Your information (for example, passwords or credit card numbers) is private when it is sent to this site."}
+              'Your information (for example, passwords or credit card numbers) is private when it is sent to this site.'}
             {level === 'insecure' &&
-              "Information sent over this connection could be read or changed by others. Consider using HTTPS."}
+              'Information sent over this connection could be read or changed by others. Consider using HTTPS.'}
             {level === 'neutral' && 'This is a page owned by the browser itself.'}
           </p>
         </div>

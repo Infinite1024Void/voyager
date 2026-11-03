@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Globe, Search } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { useOverlaySignal } from '../lib/overlay'
-import { DEFAULT_SEARCH_ENGINE, SEARCH_ENGINES, buildSearchUrl, parseSuggestions } from '../../../shared/search'
+import {
+  DEFAULT_SEARCH_ENGINE,
+  SEARCH_ENGINES,
+  buildSearchUrl,
+  parseSuggestions
+} from '../../../shared/search'
 import { useActiveTab, useBrowserStore } from '../state/browserStore'
 import { PageInfoPopover } from './PageInfoPopover'
 import { SecurityBadge } from './SecurityBadge'

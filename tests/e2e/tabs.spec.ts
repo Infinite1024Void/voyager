@@ -20,17 +20,21 @@ test('creates new tabs and activates the latest one', async ({ voyager }) => {
 
   await voyager.chrome.getByRole('button', { name: 'New tab', exact: true }).click()
   await expect.poll(async () => (await voyager.state()).tabs.length).toBe(tabsBefore + 1)
-  await expect.poll(async () => {
-    const url = (await voyager.activeTab()).url
-    return url === 'about:blank' || url === ''
-  }).toBe(true)
+  await expect
+    .poll(async () => {
+      const url = (await voyager.activeTab()).url
+      return url === 'about:blank' || url === ''
+    })
+    .toBe(true)
 
   await voyager.chrome.locator('body').press(`${primaryKey()}+T`)
   await expect.poll(async () => (await voyager.state()).tabs.length).toBe(tabsBefore + 2)
-  await expect.poll(async () => {
-    const url = (await voyager.activeTab()).url
-    return url === 'about:blank' || url === ''
-  }).toBe(true)
+  await expect
+    .poll(async () => {
+      const url = (await voyager.activeTab()).url
+      return url === 'about:blank' || url === ''
+    })
+    .toBe(true)
 })
 
 test('closes tabs and recovers by reopening the last one', async ({ voyager, server }) => {
@@ -47,10 +51,12 @@ test('closes tabs and recovers by reopening the last one', async ({ voyager, ser
 
   await voyager.chrome.getByRole('button', { name: 'Close Voyager Test Home' }).click()
   await expect.poll(async () => (await voyager.state()).tabs.length).toBe(1)
-  await expect.poll(async () => {
-    const url = (await voyager.activeTab()).url
-    return url === 'about:blank' || url === ''
-  }).toBe(true)
+  await expect
+    .poll(async () => {
+      const url = (await voyager.activeTab()).url
+      return url === 'about:blank' || url === ''
+    })
+    .toBe(true)
 
   await voyager.chrome.locator('body').press(`${primaryKey()}+Shift+T`)
   await expect.poll(async () => (await voyager.state()).tabs.length).toBe(2)
@@ -151,7 +157,9 @@ test('closes other and right-hand tabs via the tab API', async ({ voyager, serve
 
   await voyager.chrome.locator('body').press(`${primaryKey()}+Shift+T`)
   await expect.poll(async () => (await voyager.state()).tabs.length).toBe(2)
-  await expect.poll(async () => ['', 'about:blank'].includes((await voyager.activeTab()).url)).toBe(true)
+  await expect
+    .poll(async () => ['', 'about:blank'].includes((await voyager.activeTab()).url))
+    .toBe(true)
 
   await voyager.chrome.evaluate(async () => {
     const state = await window.voyager.tabs.getState()
@@ -177,7 +185,9 @@ test('tab search palette filters and activates tabs', async ({ voyager, server }
   await expect(paInput).toBeVisible()
 
   await paInput.fill('Second')
-  await expect(voyager.chrome.locator('div.fixed.inset-0.z-40 button', { hasText: 'Second Page' })).toBeVisible()
+  await expect(
+    voyager.chrome.locator('div.fixed.inset-0.z-40 button', { hasText: 'Second Page' })
+  ).toBeVisible()
 
   await paInput.press('ArrowDown')
   await paInput.press('Enter')
@@ -210,5 +220,7 @@ test('reloads the active tab when requested', async ({ voyager, server }) => {
 
   await voyager.chrome.evaluate(() => window.voyager.navigation.reload())
   await expect.poll(async () => !(await voyager.activeTab()).loading)
-  await expect.poll(async () => Number(await voyager.tab.locator('#hits').textContent())).toBeGreaterThan(countBefore)
+  await expect
+    .poll(async () => Number(await voyager.tab.locator('#hits').textContent()))
+    .toBeGreaterThan(countBefore)
 })

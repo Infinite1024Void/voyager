@@ -85,9 +85,7 @@ export function installChromeShortcuts(): () => void {
     const target = event.target as HTMLElement | null
     const editable =
       target !== null &&
-      (target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable)
+      (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
 
     const matched = matchShortcut(
       {

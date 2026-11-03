@@ -184,7 +184,9 @@ test('reopens a recently closed tab from the History menu', async ({ voyager, se
   const reopened = await voyager.app.evaluate(({ Menu }) => {
     const menu = Menu.getApplicationMenu()
     const history = menu?.items.find((item: any) => item.label === 'History')
-    const recentlyClosed = history?.submenu?.items.find((item: any) => item.label === 'Recently Closed')
+    const recentlyClosed = history?.submenu?.items.find(
+      (item: any) => item.label === 'Recently Closed'
+    )
     const item = recentlyClosed?.submenu?.items?.[0]
     if (!item) return null
     const label = item.label

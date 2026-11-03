@@ -36,8 +36,7 @@ export const useBrowserStore = create<BrowserStore>()((set, get) => ({
   activeTabId: null,
   ready: false,
 
-  applyState: (state) =>
-    set({ tabs: state.tabs, activeTabId: state.activeTabId, ready: true }),
+  applyState: (state) => set({ tabs: state.tabs, activeTabId: state.activeTabId, ready: true }),
 
   activateTab: (id) => {
     void window.voyager.tabs.activate(id)
@@ -108,15 +107,11 @@ export const useBrowserStore = create<BrowserStore>()((set, get) => ({
     void window.voyager.navigation.toggleDevTools()
   },
   navigate: (input) => {
-    const url = resolveInput(input, (query) =>
-      buildSearchUrl(DEFAULT_SEARCH_ENGINE, query)
-    )
+    const url = resolveInput(input, (query) => buildSearchUrl(DEFAULT_SEARCH_ENGINE, query))
     void window.voyager.navigation.go(url)
   }
 }))
 
 export function useActiveTab(): TabState | undefined {
-  return useBrowserStore((state) =>
-    state.tabs.find((tab) => tab.id === state.activeTabId)
-  )
+  return useBrowserStore((state) => state.tabs.find((tab) => tab.id === state.activeTabId))
 }

@@ -3,16 +3,16 @@
 A modern, pretty web browser built with Electron.
 
 > [!WARNING]
-> This project is mostly vibe-coded with OpenCode and is just an experiment. Most of the code is written by AI *and reviewed by a human*, treat it with caution.
+> This project is mostly vibe-coded with OpenCode and is just an experiment. Most of the code is written by AI _and reviewed by a human_, treat it with caution.
 
 ## Stack
 
-| Layer      | Technology                                              |
-| ---------- | ------------------------------------------------------- |
-| Framing    | Electron 44, `BaseWindow` + `WebContentsView` per tab   |
-| Chrome UI  | React 19, TypeScript, Tailwind CSS, Zustand             |
-| Build tool | electron-vite 5 (Vite 7)                                |
-| Quality    | ESLint, Prettier, husky + commitlint hooks        |
+| Layer      | Technology                                            |
+| ---------- | ----------------------------------------------------- |
+| Framing    | Electron 44, `BaseWindow` + `WebContentsView` per tab |
+| Chrome UI  | React 19, TypeScript, Tailwind CSS, Zustand           |
+| Build tool | electron-vite 5 (Vite 7)                              |
+| Quality    | ESLint, Prettier, husky + commitlint hooks            |
 
 ## Getting started
 
@@ -30,14 +30,14 @@ node node_modules/electron/install.js
 
 ## Scripts
 
-| Command             | Purpose                                   |
-| ------------------- | ----------------------------------------- |
-| `npm run dev`       | Run in development with HMR               |
-| `npm run build`     | Build main, preload, and renderer         |
-| `npm run preview`   | Run the production build                  |
-| `npm run typecheck` | Type-check the whole codebase             |
-| `npm run lint`      | ESLint                                    |
-| `npm run format`    | Format with Prettier                      |
+| Command             | Purpose                           |
+| ------------------- | --------------------------------- |
+| `npm run dev`       | Run in development with HMR       |
+| `npm run build`     | Build main, preload, and renderer |
+| `npm run preview`   | Run the production build          |
+| `npm run typecheck` | Type-check the whole codebase     |
+| `npm run lint`      | ESLint                            |
+| `npm run format`    | Format with Prettier              |
 
 ## Layout
 

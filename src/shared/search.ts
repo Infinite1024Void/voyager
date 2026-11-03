@@ -15,7 +15,8 @@ export const SEARCH_ENGINES = {
   },
   brave: {
     name: 'Brave Search',
-    search: (query: string): string => `https://search.brave.com/search?q=${encodeURIComponent(query)}`,
+    search: (query: string): string =>
+      `https://search.brave.com/search?q=${encodeURIComponent(query)}`,
     suggest: (partial: string): string =>
       `https://search.brave.com/api/suggest?q=${encodeURIComponent(partial)}`
   }
@@ -44,9 +45,7 @@ export function parseSuggestions(text: string): string[] {
       (entry): entry is unknown[] => Array.isArray(entry) && typeof entry[0] === 'string'
     )
     if (!list) return []
-    return list
-      .filter((item): item is string => typeof item === 'string')
-      .slice(0, 6)
+    return list.filter((item): item is string => typeof item === 'string').slice(0, 6)
   } catch {
     return []
   }

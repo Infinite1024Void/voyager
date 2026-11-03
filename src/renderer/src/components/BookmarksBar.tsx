@@ -39,7 +39,7 @@ export function BookmarksBar(): React.JSX.Element | null {
                 setMenu({ id: bookmark.id, x: event.clientX, y: event.clientY })
               }
             }}
-          onContextMenu={(event) => {
+            onContextMenu={(event) => {
               event.preventDefault()
               setMenu({ id: bookmark.id, x: event.clientX, y: event.clientY })
             }}
@@ -51,11 +51,7 @@ export function BookmarksBar(): React.JSX.Element | null {
               className="flex h-[22px] max-w-full items-center gap-1.5 rounded-md px-2 text-[12px] text-fg transition-colors hover:bg-hover"
             >
               {bookmark.favicon ? (
-                <img
-                  src={bookmark.favicon}
-                  alt=""
-                  className="h-3.5 w-3.5 shrink-0 rounded-sm"
-                />
+                <img src={bookmark.favicon} alt="" className="h-3.5 w-3.5 shrink-0 rounded-sm" />
               ) : null}
               <span className="truncate">{bookmark.title}</span>
             </button>

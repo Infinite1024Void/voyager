@@ -80,7 +80,9 @@ test('does not expose Node or the preload API to tab pages', async ({ voyager })
 test('exposes the preload API inside the settings window', async ({ voyager }) => {
   const settings = await openSettings(voyager)
   const theme = await settings.evaluate(() => window.voyager.theme.get())
-  const systemDark = await voyager.app.evaluate(({ nativeTheme }) => nativeTheme.shouldUseDarkColors)
+  const systemDark = await voyager.app.evaluate(
+    ({ nativeTheme }) => nativeTheme.shouldUseDarkColors
+  )
   const globals = await settings.evaluate(() => ({
     require: 'require' in window,
     voyager: 'voyager' in window
