@@ -74,3 +74,13 @@ src/
   (run automatically on commit).
 - Commit scopes mirror the module touched (e.g. `feat(tabs): ...`,
   `fix(omnibox): ...`).
+
+## Performance
+This is a table of how Voyager performs on a MDN page:  
+
+| Resource | Amount |
+| -------- | ------ |
+| Memory | 265.5 MB |
+| CPU | ~0.6% |
+| Disk (write, after 5 minutes) | 14.2 MB |
+| Disk (read, after 5 minutes) | 957.55 MB |
