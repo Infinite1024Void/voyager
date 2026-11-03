@@ -35,7 +35,7 @@ export function SettingsPage(): React.JSX.Element {
     clearSitePermissions: true,
     openDownloadsWhenDone: false,
     restoreSession: false,
-    contentBlocking: true
+    contentBlocking: false
   })
   const [clearing, setClearing] = useState(false)
   const [initialRoute] = useState(sitePermissionsRoute)
@@ -167,6 +167,21 @@ export function SettingsPage(): React.JSX.Element {
           </section>
 
           <section className="rounded-lg border border-border bg-surface p-5">
+            <h2 className="mb-4 text-[15px] font-semibold text-fg">Content blocking</h2>
+            <label className="mb-2 flex items-center gap-2 text-[13px] text-fg">
+              <input
+                type="checkbox"
+                checked={preferences.contentBlocking}
+                onChange={(event) => setPreference('contentBlocking', event.target.checked)}
+              />
+              <span>Block ads and trackers</span>
+            </label>
+            <p className="text-[11.5px] text-muted">
+              Blocks requests to known advertising and tracking domains using a built-in filter list. Off by default.
+            </p>
+          </section>
+
+          <section className="rounded-lg border border-border bg-surface p-5">
             <h2 className="mb-4 text-[15px] font-semibold text-fg">Privacy and security</h2>
             <label className="mb-2 flex items-center gap-2 text-[13px] text-fg">
               <input
@@ -175,14 +190,6 @@ export function SettingsPage(): React.JSX.Element {
                 onChange={(event) => setPreference('incognito', event.target.checked)}
               />
               <span>Run the browser in incognito mode (in-memory profile)</span>
-            </label>
-            <label className="mb-2 flex items-center gap-2 text-[13px] text-fg">
-              <input
-                type="checkbox"
-                checked={preferences.contentBlocking}
-                onChange={(event) => setPreference('contentBlocking', event.target.checked)}
-              />
-              <span>Block ads and trackers</span>
             </label>
 
             <button
