@@ -43,6 +43,8 @@ export function BookmarkDialog({
       }}
     >
       <form
+        role="dialog"
+        aria-modal="true"
         aria-label={title}
         className="w-[420px] rounded-xl border border-border bg-surface p-5 shadow-2xl"
         onMouseDown={(event) => event.stopPropagation()}

@@ -126,7 +126,7 @@ async function installDownloadHandler(
   }, downloadDir)
 }
 
-const LAUNCH_RETRY_PATTERN = /ETXTBSY|EACCES|Failed to launch/
+const LAUNCH_RETRY_PATTERN = /ETXTBSY|EACCES|Failed to launch|failed to install correctly/
 
 /**
  * Launching several Electron instances at once can transiently fail on busy
