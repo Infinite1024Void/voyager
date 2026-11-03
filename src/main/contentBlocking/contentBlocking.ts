@@ -244,7 +244,7 @@ export function attachContentBlocking(ses: Session): void {
       callback({ cancel: false })
       return
     }
-    let hostname: string | null = null
+    let hostname: string | null
     try {
       hostname = new URL(details.url).hostname
     } catch {
