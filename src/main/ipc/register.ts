@@ -106,7 +106,8 @@ function userPreferences(): UserPreferences {
       const stored = getSettings<SearchEngineId>('searchEngine', DEFAULT_SEARCH_ENGINE)
       return isSearchEngineId(stored) ? stored : DEFAULT_SEARCH_ENGINE
     })(),
-    restoreSession: getSettings('restoreSession', false) === true
+    restoreSession: getSettings('restoreSession', false) === true,
+    contentBlocking: getSettings('contentBlocking', true) !== false
   }
 }
 
@@ -149,7 +150,8 @@ export function registerIpcHandlers(context: IpcContext): void {
     'openDownloadsWhenDone',
     'incognito',
     'searchEngine',
-    'restoreSession'
+    'restoreSession',
+    'contentBlocking'
   ])
 
   ipcMain.handle(
