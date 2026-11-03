@@ -42,6 +42,7 @@ test('settings page shows stats and lets theme change apply to itself', async ({
 
   await expect(settings.getByRole('heading', { name: 'Settings' })).toBeVisible()
   await expect(settings.getByText('Voyager Web Browser')).toBeVisible()
+  await expect(settings.getByText(/^Active tab:/)).toHaveCount(0)
   await expect(settings.getByText('Appearance')).toBeVisible()
 
   // Click dark theme.
