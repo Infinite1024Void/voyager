@@ -4,7 +4,7 @@ import { useBookmarksStore } from '../state/bookmarksStore'
 import { useHistoryStore } from '../state/historyStore'
 import { useDownloadsStore } from '../state/downloadsStore'
 import { useTheme } from './providers/theme-context'
-import type { ThemeMode, UserPreferences } from '../../../shared/types'
+import type { AppVersionInfo, ThemeMode, UserPreferences } from '../../../shared/types'
 import { SitePermissionsSettings } from './SitePermissionsSettings'
 
 function sitePermissionsRoute(): { open: boolean; origin?: string } {
@@ -30,6 +30,7 @@ export function SettingsPage(): React.JSX.Element {
   const [clearing, setClearing] = useState(false)
   const [initialRoute] = useState(sitePermissionsRoute)
   const [sitePermissionsOpen, setSitePermissionsOpen] = useState(initialRoute.open)
+  const [appInfo, setAppInfo] = useState<AppVersionInfo | null>(null)
 
   useEffect(() => {
     const bookmarks = useBookmarksStore.getState()
@@ -40,6 +41,7 @@ export function SettingsPage(): React.JSX.Element {
     void window.voyager.history.getState().then(useHistoryStore.getState().applyState)
     void window.voyager.downloads.getState().then(useDownloadsStore.getState().applyState)
     void window.voyager.settings.get().then(setPreferences)
+    void window.voyager.appInfo().then(setAppInfo)
 
     const unsubscribes = [
       window.voyager.bookmarks.onStateChanged(bookmarks.applyState),
@@ -211,6 +213,7 @@ export function SettingsPage(): React.JSX.Element {
             <h2 className="mb-4 text-[15px] font-semibold text-fg">About</h2>
             <div className="space-y-1 text-[13px] text-fg">
               <div>Voyager Web Browser</div>
+              <div>Voyager v{appInfo?.app ?? '0.0.0'}</div>
             </div>
           </section>
         </div>
