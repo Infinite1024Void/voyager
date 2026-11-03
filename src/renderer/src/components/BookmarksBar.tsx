@@ -238,6 +238,9 @@ export function BookmarksBar(): React.JSX.Element | null {
               event.dataTransfer.dropEffect = hasInternalDrag(event.dataTransfer) ? 'move' : 'copy'
             }}
             onDrop={(event) => void handleDrop(event, folder.id)}
+            onPointerDown={(event) => {
+              if (event.button === 2 || event.ctrlKey || event.metaKey) openMenu(event, 'folder', folder.id)
+            }}
             onClick={(event) => {
               if (event.ctrlKey || event.metaKey) openMenu(event, 'folder', folder.id)
             }}
@@ -277,6 +280,9 @@ export function BookmarksBar(): React.JSX.Element | null {
               event.dataTransfer.dropEffect = hasInternalDrag(event.dataTransfer) ? 'move' : 'copy'
             }}
             onDrop={(event) => void handleDrop(event, null, bookmark.id)}
+            onPointerDown={(event) => {
+              if (event.button === 2 || event.ctrlKey || event.metaKey) openMenu(event, 'bookmark', bookmark.id)
+            }}
             onClick={(event) => {
               if (event.ctrlKey || event.metaKey) openMenu(event, 'bookmark', bookmark.id)
             }}
@@ -284,6 +290,11 @@ export function BookmarksBar(): React.JSX.Element | null {
           >
             <button
               type="button"
+              onPointerDown={(event) => {
+                if (event.button === 2 || event.ctrlKey || event.metaKey) {
+                  openMenu(event, 'bookmark', bookmark.id)
+                }
+              }}
               onClick={(event) => {
                 if (event.ctrlKey || event.metaKey) {
                   openMenu(event, 'bookmark', bookmark.id)
