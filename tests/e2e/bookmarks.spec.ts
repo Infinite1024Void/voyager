@@ -151,8 +151,8 @@ test('bookmarks manager adds folders and bookmarks and allows duplicates per fol
       )
     )
     .toBe(true)
-  await expect(manager.getByRole('button', { name: 'Research' })).toBeVisible({ timeout: 15000 })
-  await manager.getByRole('button', { name: 'Research' }).click()
+  await expect(manager.getByRole('button', { name: 'Research' }).first()).toBeVisible({ timeout: 15000 })
+  await manager.getByRole('button', { name: 'Research' }).first().click()
 
   await manager.getByRole('button', { name: 'Add Page' }).click()
   await expect

@@ -64,7 +64,6 @@ export function BookmarksBar(): React.JSX.Element | null {
 
   const openMenu = (event: React.MouseEvent, kind: MenuState['kind'], id?: string): void => {
     event.preventDefault()
-    event.stopPropagation()
     setMenu({ x: event.clientX, y: event.clientY, kind, id })
   }
 
