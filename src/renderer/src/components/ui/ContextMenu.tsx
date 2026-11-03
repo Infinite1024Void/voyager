@@ -125,7 +125,6 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps): React.J
     const frame = requestAnimationFrame(() => {
       window.addEventListener('mousedown', close)
       window.addEventListener('blur', close)
-      window.addEventListener('resize', close, true)
       window.addEventListener('keydown', onKeyDown)
       window.addEventListener('scroll', close, true)
     })
@@ -133,7 +132,6 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps): React.J
       cancelAnimationFrame(frame)
       window.removeEventListener('mousedown', close)
       window.removeEventListener('blur', close)
-      window.removeEventListener('resize', close, true)
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('scroll', close, true)
     }
