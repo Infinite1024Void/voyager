@@ -29,7 +29,7 @@
     "appId": "com.voyager.browser",
     "productName": "Voyager",
     "artifactName": "Voyager-${version}-${os}-${arch}.${ext}",
-    "copyright": "Copyright © 2026 InfiniteVoid_",
+    "copyright": "Copyright \u00a9 2026 InfiniteVoid_",
     "asar": true,
     "npmRebuild": false,
     "directories": {
@@ -103,7 +103,9 @@
     "prettier": "^3.9.10",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.1",
-    "vite": "^8.3.5"
+    "vite": "^8.3.5",
+    "@tailwindcss/vite": "^4.3.3",
+    "tailwindcss": "^4.3.3"
   },
   "overrides": {
     "minimatch": "^11.0.1"
@@ -115,12 +117,10 @@
     "electron@44.7.0": true
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.3.3",
     "electron-updater": "^6.8.11",
     "lucide-react": "^1.55.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "tailwindcss": "^4.3.3",
     "zustand": "^5.0.16"
   }
 }
