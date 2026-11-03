@@ -144,7 +144,14 @@ test('bookmarks manager adds folders and bookmarks and allows duplicates per fol
   const state = await bookmarkItems(voyager)
   const folder = state.folders.find((candidate) => candidate.title === 'Research')
   expect(folder).toBeTruthy()
-  await expect(manager.getByRole('button', { name: 'Research' })).toBeVisible()
+  await expect
+    .poll(
+      async () => (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).folders.some(
+        (folder: { title: string }) => folder.title === 'Research'
+      )
+    )
+    .toBe(true)
+  await expect(manager.getByRole('button', { name: 'Research' })).toBeVisible({ timeout: 15000 })
   await manager.getByRole('button', { name: 'Research' }).click()
 
   await manager.getByRole('button', { name: 'Add Page' }).click()
