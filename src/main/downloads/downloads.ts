@@ -102,10 +102,16 @@ function openWhenDone(item: ElectronDownloadItem): void {
 
 export function attachDownloadsTracking(
   session: Session,
-  broadcast: (state: DownloadsState) => void
+  broadcast: (state: DownloadsState) => void,
+  options: { persist?: boolean } = {}
 ): void {
   if (trackedSessions.has(session)) return
   trackedSessions.add(session)
+  if (options.persist === false) {
+    // Incognito downloads keep Electron's default save behavior but are
+    // never written to the downloads history or broadcast to the UI.
+    return
+  }
 
   session.on('will-download', (_event, item) => {
     const id = randomUUID()

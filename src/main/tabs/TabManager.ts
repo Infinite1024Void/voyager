@@ -81,13 +81,19 @@ export class TabManager {
   }
 
   create(request: NewTabRequest = {}): string {
-    const view = new WebContentsView({
-      webPreferences: {
-        contextIsolation: true,
-        nodeIntegration: false,
-        sandbox: true
-      }
-    })
+    const webPreferences: {
+      contextIsolation: boolean
+      nodeIntegration: boolean
+      sandbox: boolean
+      partition?: string
+    } = {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true
+    }
+    const partition = this.window.partition
+    if (partition) webPreferences.partition = partition
+    const view = new WebContentsView({ webPreferences })
     const entry: TabEntry = {
       id: randomUUID(),
       view,
@@ -363,7 +369,7 @@ export class TabManager {
       const newTitle = wc.getTitle()
       entry.title = newTitle
       let changed = false
-      if (entry.url.startsWith('http') && !isNewTab(entry.url)) {
+      if (entry.url.startsWith('http') && !isNewTab(entry.url) && !this.window.isIncognito) {
         if (updateHistoryTitle(entry.url, newTitle)) changed = true
         try {
           if (!changed) {
@@ -402,7 +408,7 @@ export class TabManager {
     wc.on('did-navigate', (_event, url) => {
       entry.url = url
       // Record history for main frame navigations to real pages.
-      if (!isNewTab(url) && url.startsWith('http')) {
+      if (!isNewTab(url) && url.startsWith('http') && !this.window.isIncognito) {
         try {
           recordVisit({ url, title: wc.getTitle() || entry.title || url })
           this.window.sendToChrome(IpcChannels.HistoryStateChanged, currentHistoryState())
@@ -415,7 +421,7 @@ export class TabManager {
     wc.on('did-navigate-in-page', (_event, url, isMainFrame) => {
       if (isMainFrame) {
         entry.url = url
-        if (!isNewTab(url) && url.startsWith('http')) {
+        if (!isNewTab(url) && url.startsWith('http') && !this.window.isIncognito) {
           try {
             recordVisit({ url, title: entry.title || url })
             this.window.sendToChrome(IpcChannels.HistoryStateChanged, currentHistoryState())

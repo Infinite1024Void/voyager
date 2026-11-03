@@ -1,8 +1,12 @@
 import { join } from 'node:path'
-import { BaseWindow, WebContentsView, type WebContents } from 'electron'
+import { BaseWindow, WebContentsView, session, type WebContents } from 'electron'
+import { randomUUID } from 'node:crypto'
 import { IpcChannels } from '../../shared/ipc-channels'
 import type { BrowserState } from '../../shared/types'
+import { INCOGNITO_PARTITION_PREFIX } from '../../shared/constants'
 import { sessionStore } from '../store'
+import { attachDownloadsTracking } from '../downloads/downloads'
+import { attachPermissionHandlers } from '../permissions/permissions'
 
 import { currentBookmarksState, toggleBookmarksBar } from '../bookmarks/bookmarks'
 import { TabManager } from '../tabs/TabManager'
@@ -30,8 +34,16 @@ export class WindowController {
   private overlayOpen = false
   private layout: WindowLayout
   private disposed = false
+  private incognito: boolean
+  private incognitoPartition: string | null
 
-  constructor() {
+  constructor(options: { incognito?: boolean } = {}) {
+    this.incognito = options.incognito ?? false
+    // Incognito profiles live in an in-memory session and are never persisted.
+    this.incognitoPartition = this.incognito
+      ? `${INCOGNITO_PARTITION_PREFIX}${randomUUID()}`
+      : null
+    this.attachIncognitoSession()
     this.layout = computeLayout(1280, 800)
 
     this.window = new BaseWindow({
@@ -79,6 +91,44 @@ export class WindowController {
     })
     this.setBookmarksBarVisible(currentBookmarksState().barVisible)
     this.applyLayout()
+  }
+
+  /** Whether this window's profile runs in incognito (in-memory session). */
+  get isIncognito(): boolean {
+    return this.incognito
+  }
+
+  /** Session partition for this window; null means the default persistent session. */
+  get partition(): string | null {
+    return this.incognito ? this.incognitoPartition : null
+  }
+
+  /** Switch the window between normal and incognito browsing profiles. */
+  setIncognito(incognito: boolean): void {
+    this.incognito = incognito
+    if (incognito && !this.incognitoPartition) {
+      // Windows that started in normal mode get a fresh in-memory profile
+      // the first time incognito is enabled; switching back keeps the
+      // default persistent session for new tabs.
+      this.incognitoPartition = `${INCOGNITO_PARTITION_PREFIX}${randomUUID()}`
+    }
+    this.attachIncognitoSession()
+  }
+
+  /**
+   * Attach session-scoped integrations to the incognito partition: downloads
+   * (never persisted to history) and the permission prompt handlers, which
+   * are shared with the default session so behavior is consistent.
+   */
+  private attachIncognitoSession(): void {
+    if (!this.incognitoPartition) return
+    const ses = session.fromPartition(this.incognitoPartition)
+    attachDownloadsTracking(
+      ses,
+      (state) => this.sendToChrome(IpcChannels.DownloadsStateChanged, state),
+      { persist: false }
+    )
+    attachPermissionHandlers(ses)
   }
 
   /** Grow or shrink the chrome region for the bookmarks bar. */
@@ -173,6 +223,11 @@ export class WindowController {
 
   /** Replay the persisted tab set, falling back to a single blank tab. */
   private restoreSession(): void {
+    if (this.incognito) {
+      // Incognito starts with a clean slate and never restores persisted state.
+      this.tabs.create()
+      return
+    }
     const { tabs, activeIndex } = sessionStore.snapshot
     if (tabs.length === 0) {
       this.tabs.create()
@@ -190,6 +245,7 @@ export class WindowController {
 
   /** Save the current tab set so the next launch can restore it. */
   private persistSession(state: BrowserState): void {
+    if (this.incognito) return
     if (this.disposed) return
     const entries = state.tabs.map((tab) => ({
       url: tab.url,

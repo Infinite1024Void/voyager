@@ -14,6 +14,11 @@ import type {
   UserPreferences
 } from '../../shared/types'
 import {
+  DEFAULT_SEARCH_ENGINE,
+  isSearchEngineId,
+  type SearchEngineId
+} from '../../shared/search'
+import {
   addBookmark,
   clearBookmarks,
   currentBookmarksState,
@@ -79,7 +84,12 @@ function userPreferences(): UserPreferences {
     clearIndexedDb: (getSettings('clearIndexedDb', true) as boolean) !== false,
     clearCache: (getSettings('clearCache', true) as boolean) !== false,
     clearSitePermissions: (getSettings('clearSitePermissions', true) as boolean) !== false,
-    openDownloadsWhenDone: getSettings('openDownloadsWhenDone', false) === true
+    openDownloadsWhenDone: getSettings('openDownloadsWhenDone', false) === true,
+    incognito: getSettings('incognito', false) === true,
+    searchEngine: (() => {
+      const stored = getSettings<SearchEngineId>('searchEngine', DEFAULT_SEARCH_ENGINE)
+      return isSearchEngineId(stored) ? stored : DEFAULT_SEARCH_ENGINE
+    })()
   }
 }
 
@@ -119,16 +129,44 @@ export function registerIpcHandlers(context: IpcContext): void {
     'clearIndexedDb',
     'clearCache',
     'clearSitePermissions',
-    'openDownloadsWhenDone'
+    'openDownloadsWhenDone',
+    'incognito',
+    'searchEngine'
   ])
 
-  ipcMain.handle(IpcChannels.SettingsSet, (_event, key: keyof UserPreferences, value: boolean) => {
-    if (!supportedSettings.has(key)) {
-      throw new Error(`Unsupported setting: ${key}`)
+  ipcMain.handle(
+    IpcChannels.SettingsSet,
+    (_event, key: keyof UserPreferences, value: boolean | string) => {
+      if (!supportedSettings.has(key)) {
+        throw new Error(`Unsupported setting: ${key}`)
+      }
+      const respond = (): UserPreferences => {
+        const prefs = userPreferences()
+        context.send(IpcChannels.SettingsChanged, prefs)
+        return prefs
+      }
+      if (key === 'searchEngine') {
+        if (!isSearchEngineId(value)) {
+          throw new Error(`Unknown search engine: ${String(value)}`)
+        }
+        setSettings('searchEngine', value)
+        return respond()
+      }
+      if (key === 'incognito') {
+        const enabled = value === true
+        setSettings('incognito', enabled)
+        // Incognito switches apply to subsequently created tabs; tabs that
+        // already exist keep the session they were created with.
+        context.getWindow()?.setIncognito(enabled)
+        return respond()
+      }
+      if (typeof value !== 'boolean') {
+        throw new Error(`Expected a boolean for setting: ${key}`)
+      }
+      setSettings(key, value)
+      return respond()
     }
-    setSettings(key, value)
-    return userPreferences()
-  })
+  )
 
   /* ---- theme ----------------------------------------------------------- */
 

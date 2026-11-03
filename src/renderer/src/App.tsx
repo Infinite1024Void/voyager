@@ -9,6 +9,8 @@ import { TabSearchPalette } from './components/TabSearchPalette'
 import { TitleBar } from './components/TitleBar'
 import { Toolbar } from './components/Toolbar'
 import { focusOmnibox, installChromeShortcuts } from './lib/shortcuts'
+import { DEFAULT_SEARCH_ENGINE, isSearchEngineId } from '../../shared/search'
+import type { UserPreferences } from '../../shared/types'
 import { useBookmarksStore } from './state/bookmarksStore'
 import { useBrowserStore } from './state/browserStore'
 import { useDownloadsStore } from './state/downloadsStore'
@@ -55,6 +57,20 @@ export default function App(): React.JSX.Element {
 
   // Chrome-focused keyboard shortcuts.
   useEffect(() => installChromeShortcuts(), [])
+
+  // Keep the chrome in sync with persisted preferences; the settings window
+  // broadcasts changes over settings:changed.
+  useEffect(() => {
+    const applyPreferences = (prefs: UserPreferences): void => {
+      const store = useBrowserStore.getState()
+      store.setIncognito(Boolean(prefs.incognito))
+      store.setSearchEngine(
+        isSearchEngineId(prefs.searchEngine) ? prefs.searchEngine : DEFAULT_SEARCH_ENGINE
+      )
+    }
+    void window.voyager.settings.get().then(applyPreferences)
+    return window.voyager.settings.onChanged(applyPreferences)
+  }, [])
 
   // Shortcuts routed from the main process (page focused) and from the chrome
   // keydown handler share one set of window events.

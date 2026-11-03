@@ -1,12 +1,16 @@
 import { create } from 'zustand'
 import type { BrowserState, NewTabRequest, TabState } from '../../../shared/types'
 import { resolveInput } from '../../../shared/url'
-import { DEFAULT_SEARCH_ENGINE, buildSearchUrl } from '../../../shared/search'
+import { DEFAULT_SEARCH_ENGINE, buildSearchUrl, type SearchEngineId } from '../../../shared/search'
 
 interface BrowserStore extends BrowserState {
   ready: boolean
+  incognito: boolean
+  searchEngine: SearchEngineId
   /** Replace store state with the latest snapshot from the main process. */
   applyState: (state: BrowserState) => void
+  setIncognito: (incognito: boolean) => void
+  setSearchEngine: (engine: SearchEngineId) => void
   activateTab: (id: string) => void
   activateNext: () => void
   activatePrevious: () => void
@@ -35,8 +39,13 @@ export const useBrowserStore = create<BrowserStore>()((set, get) => ({
   tabs: [],
   activeTabId: null,
   ready: false,
+  incognito: false,
+  searchEngine: DEFAULT_SEARCH_ENGINE,
 
   applyState: (state) => set({ tabs: state.tabs, activeTabId: state.activeTabId, ready: true }),
+
+  setIncognito: (incognito) => set({ incognito }),
+  setSearchEngine: (engine) => set({ searchEngine: engine }),
 
   activateTab: (id) => {
     void window.voyager.tabs.activate(id)
@@ -107,11 +116,24 @@ export const useBrowserStore = create<BrowserStore>()((set, get) => ({
     void window.voyager.navigation.toggleDevTools()
   },
   navigate: (input) => {
-    const url = resolveInput(input, (query) => buildSearchUrl(DEFAULT_SEARCH_ENGINE, query))
+    // Incognito contexts scope the search setting to the default engine.
+    const state = get()
+    const engine = state.incognito ? DEFAULT_SEARCH_ENGINE : state.searchEngine
+    const url = resolveInput(input, (query) => buildSearchUrl(engine, query))
     void window.voyager.navigation.go(url)
   }
 }))
 
 export function useActiveTab(): TabState | undefined {
   return useBrowserStore((state) => state.tabs.find((tab) => tab.id === state.activeTabId))
+}
+
+/**
+ * Search engine that applies right now: the persisted preference, or the
+ * default engine when the window is in incognito mode.
+ */
+export function useScopedSearchEngine(): SearchEngineId {
+  const searchEngine = useBrowserStore((state) => state.searchEngine)
+  const incognito = useBrowserStore((state) => state.incognito)
+  return incognito ? DEFAULT_SEARCH_ENGINE : searchEngine
 }
