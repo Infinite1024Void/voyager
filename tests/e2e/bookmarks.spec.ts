@@ -181,7 +181,7 @@ test('bookmarks manager adds folders and bookmarks and allows duplicates per fol
     .toBe(2)
 })
 
-test.skip('bookmark context menu opens, edits, copies and deletes a bookmark (pending context-menu trigger fix)', async ({
+test('bookmark context menu opens, edits, copies and deletes a bookmark (pending context-menu trigger fix)', async ({
   voyager,
   server
 }) => {

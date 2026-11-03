@@ -238,6 +238,9 @@ export function BookmarksBar(): React.JSX.Element | null {
               event.dataTransfer.dropEffect = hasInternalDrag(event.dataTransfer) ? 'move' : 'copy'
             }}
             onDrop={(event) => void handleDrop(event, folder.id)}
+            onClick={(event) => {
+              if (event.ctrlKey || event.metaKey) openMenu(event, 'folder', folder.id)
+            }}
             onContextMenu={(event) => openMenu(event, 'folder', folder.id)}
           >
             <button
@@ -274,11 +277,20 @@ export function BookmarksBar(): React.JSX.Element | null {
               event.dataTransfer.dropEffect = hasInternalDrag(event.dataTransfer) ? 'move' : 'copy'
             }}
             onDrop={(event) => void handleDrop(event, null, bookmark.id)}
+            onClick={(event) => {
+              if (event.ctrlKey || event.metaKey) openMenu(event, 'bookmark', bookmark.id)
+            }}
             onContextMenu={(event) => openMenu(event, 'bookmark', bookmark.id)}
           >
             <button
               type="button"
-              onClick={() => navigate(bookmark.url)}
+              onClick={(event) => {
+                if (event.ctrlKey || event.metaKey) {
+                  openMenu(event, 'bookmark', bookmark.id)
+                  return
+                }
+                navigate(bookmark.url)
+              }}
               onContextMenu={(event) => openMenu(event, 'bookmark', bookmark.id)}
               title={bookmark.url}
               className="flex h-[22px] max-w-full items-center gap-1.5 rounded-md px-2 text-[12px] text-fg transition-colors hover:bg-hover"
