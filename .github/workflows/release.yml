@@ -54,7 +54,7 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
-      - name: Upload installer
+      - name: Upload installer and updater metadata
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
@@ -62,6 +62,8 @@ jobs:
             dist/*.AppImage
             dist/*.pkg
             dist/*.msi
+            dist/*.yml
+            dist/*.blockmap
           if-no-files-found: error
           retention-days: 7
 
@@ -81,6 +83,8 @@ jobs:
         with:
           generate_release_notes: true
           files: |
-            artifacts/*.AppImage
-            artifacts/*.pkg
-            artifacts/*.msi
+            artifacts/**/*.AppImage
+            artifacts/**/*.pkg
+            artifacts/**/*.msi
+            artifacts/**/*.yml
+            artifacts/**/*.blockmap
