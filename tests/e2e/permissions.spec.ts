@@ -30,7 +30,7 @@ test('dismissing a request does not persist and it can be asked again on refresh
   server
 }) => {
   await voyager.navigate(server.url('/permissions'))
-  await voyager.tab.getByRole('button', { name: 'Ask for camera' }).click()
+  await voyager.tab.getByRole('button', { name: 'Ask for notifications' }).click()
 
   const prompt = voyager.chrome.getByRole('dialog')
   await expect(prompt).toBeVisible()
@@ -38,7 +38,7 @@ test('dismissing a request does not persist and it can be asked again on refresh
   await expect(prompt).not.toBeVisible()
 
   await voyager.tab.reload()
-  await voyager.tab.getByRole('button', { name: 'Ask for camera' }).click()
+  await voyager.tab.getByRole('button', { name: 'Ask for notifications' }).click()
   await expect(prompt).toBeVisible()
 
   await prompt.getByRole('button', { name: 'Never allow' }).click()
@@ -50,7 +50,7 @@ test('allows a site persistently and manages the decision in Settings', async ({
   server
 }) => {
   await voyager.navigate(server.url('/permissions'))
-  await voyager.tab.getByRole('button', { name: 'Ask for camera' }).click()
+  await voyager.tab.getByRole('button', { name: 'Ask for notifications' }).click()
 
   const prompt = voyager.chrome.getByRole('dialog')
   await expect(prompt).toBeVisible()
@@ -85,13 +85,13 @@ test('allows a site persistently and manages the decision in Settings', async ({
 
 test('allows a request for this tab without persisting it', async ({ voyager, server }) => {
   await voyager.navigate(server.url('/permissions'))
-  await voyager.tab.getByRole('button', { name: 'Ask for camera' }).click()
+  await voyager.tab.getByRole('button', { name: 'Ask for notifications' }).click()
 
   const prompt = voyager.chrome.getByRole('dialog')
   await expect(prompt).toBeVisible()
   await prompt.getByRole('button', { name: 'Allow this time' }).click()
   await expect(prompt).not.toBeVisible()
-  await expect(voyager.tab.locator('#permission-result')).toHaveText(/Camera (allowed|failed)/)
+  await expect(voyager.tab.locator('#permission-result')).toHaveText('Notifications:granted')
 
   const state = await voyager.chrome.evaluate(() => window.voyager.permissions.getState())
   expect(state.decisions).toEqual([])

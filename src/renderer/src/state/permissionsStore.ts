@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { create } from 'zustand'
 import type {
   PermissionKind,
@@ -36,7 +37,12 @@ export const usePermissionsStore = create<PermissionsStore>()((set) => ({
 }))
 
 export function useOriginPermissions(origin: string | null): SitePermissionDecision[] {
-  return usePermissionsStore((state) =>
-    origin === null ? [] : state.decisions.filter((decision) => decision.origin === origin)
+  const decisions = usePermissionsStore((state) => state.decisions)
+  return useMemo(
+    () =>
+      origin === null
+        ? []
+        : decisions.filter((decision) => decision.origin === origin),
+    [decisions, origin]
   )
 }
