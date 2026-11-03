@@ -40,10 +40,18 @@ export function addBookmark(
         id: randomUUID(),
         title: input.title.trim() || input.url,
         url: input.url,
+        favicon: input.favicon ?? null,
         createdAt: Date.now()
       }
     ])
     added = true
+  } else if (input.favicon) {
+    // Keep an existing bookmark's icon fresh.
+    bookmarksStore.update('items', (list) =>
+      list.map((item) =>
+        item.url === input.url ? { ...item, favicon: input.favicon ?? item.favicon } : item
+      )
+    )
   }
 
   if (added && !resolveBookmarksBarVisibility()) {

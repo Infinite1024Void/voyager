@@ -3,7 +3,7 @@ import type { BookmarksState } from '../../../shared/types'
 
 interface BookmarksStore extends BookmarksState {
   applyState: (state: BookmarksState) => void
-  addBookmark: (title: string, url: string) => void
+  addBookmark: (title: string, url: string, favicon?: string | null) => void
   removeBookmark: (id: string) => void
   toggleBar: () => void
 }
@@ -14,8 +14,8 @@ export const useBookmarksStore = create<BookmarksStore>()((set, get) => ({
 
   applyState: (state) => set({ items: state.items, barVisible: state.barVisible }),
 
-  addBookmark: (title, url) => {
-    void window.voyager.bookmarks.add({ title, url }).then(get().applyState)
+  addBookmark: (title, url, favicon) => {
+    void window.voyager.bookmarks.add({ title, url, favicon }).then(get().applyState)
   },
   removeBookmark: (id) => {
     void window.voyager.bookmarks.remove(id).then(get().applyState)

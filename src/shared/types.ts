@@ -50,12 +50,14 @@ export interface NewTabRequest {
 export interface NewBookmarkInput {
   title: string
   url: string
+  favicon?: string | null
 }
 
 export interface BookmarkItem {
   id: string
   title: string
   url: string
+  favicon?: string | null
   createdAt: number
 }
 

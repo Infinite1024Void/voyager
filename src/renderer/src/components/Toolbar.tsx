@@ -85,7 +85,7 @@ export function Toolbar(): React.JSX.Element {
       const existing = useBookmarksStore.getState().items.find((item) => item.url === activeTab.url)
       if (existing) removeBookmark(existing.id)
     } else {
-      addBookmark(activeTab.title || activeTab.url, activeTab.url)
+      addBookmark(activeTab.title || activeTab.url, activeTab.url, activeTab.favicon)
     }
   }
 
