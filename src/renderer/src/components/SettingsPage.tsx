@@ -184,7 +184,7 @@ export function SettingsPage(): React.JSX.Element {
               <div>Built-in filter list: {BUILTIN_BLOCKED_DOMAINS.length} domains (bundled fallback)</div>
               <div>
                 Remote filter list: AdAway hosts from https://adaway.org/hosts.txt
-                (cached on first run while blocking is enabled)
+                (cached on first run; refreshed automatically every 7 days)
               </div>
             </div>
           </section>
