@@ -65,7 +65,7 @@ test('reports application and runtime versions', async ({ voyager }) => {
   }))
 
   expect(info).toEqual(runtime)
-  expect(info.app).toBe('0.1.0')
+  expect(info.app).toBe('1.0.0')
   expect(info.electron).toBeTruthy()
   expect(info.chrome).toBeTruthy()
   expect(info.node).toBeTruthy()
