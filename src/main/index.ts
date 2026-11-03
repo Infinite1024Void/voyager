@@ -3,7 +3,7 @@ import { autoUpdater } from 'electron-updater'
 import { join } from 'node:path'
 import { registerIpcHandlers } from './ipc/register'
 import { attachPermissionHandlers } from './permissions/permissions'
-import { attachContentBlocking } from './contentBlocking/contentBlocking'
+import { attachContentBlocking, primeContentBlocking } from './contentBlocking/contentBlocking'
 import { flushAllStores, getSettings } from './store'
 
 import { WindowController } from './window/WindowController'
@@ -69,6 +69,7 @@ app.whenReady().then(async (): Promise<void> => {
   })
 
   attachPermissionHandlers(session.defaultSession)
+  primeContentBlocking(app.getPath('userData'))
   attachContentBlocking(session.defaultSession)
   controller = new WindowController({ incognito: getSettings('incognito', false) === true })
   registerWindow(controller)
