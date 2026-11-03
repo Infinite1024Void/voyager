@@ -105,6 +105,61 @@ test('clear browsing data preferences persist', async ({ voyager }) => {
     .toBe(false)
 })
 
+test('site data clearing options default to on and persist', async ({ voyager }) => {
+  const settings = await openSettings(voyager)
+
+  for (const label of [
+    'Cookies',
+    'Local storage',
+    'IndexedDB',
+    'Cached images and files',
+    'Site permissions'
+  ]) {
+    await expect(settings.getByLabel(label)).toBeChecked()
+  }
+
+  await settings.getByLabel('Cookies').uncheck()
+  await expect
+    .poll(async () => (await settings.evaluate(() => window.voyager.settings.get())).clearCookies)
+    .toBe(false)
+})
+
+test('clear selected data removes cookies, local storage and IndexedDB', async ({
+  voyager,
+  server
+}) => {
+  await voyager.navigate(server.url('/home'))
+  await voyager.tab.evaluate(async () => {
+    document.cookie = 'voyager_test=1; path=/'
+    localStorage.setItem('voyager_test', '1')
+    await new Promise<void>((resolve, reject) => {
+      const request = indexedDB.open('voyager-test', 1)
+      request.onupgradeneeded = () => request.result.createObjectStore('store')
+      request.onsuccess = () => {
+        request.result.close()
+        resolve()
+      }
+      request.onerror = () => reject(request.error)
+    })
+  })
+
+  expect(await voyager.tab.evaluate(() => document.cookie)).toContain('voyager_test=1')
+  expect(await voyager.tab.evaluate(() => localStorage.getItem('voyager_test'))).toBe('1')
+
+  const settings = await openSettings(voyager)
+  await settings.getByRole('button', { name: 'Clear selected data' }).click()
+
+  await expect
+    .poll(async () => voyager.tab.evaluate(() => document.cookie))
+    .not.toContain('voyager_test=1')
+  await expect
+    .poll(async () => voyager.tab.evaluate(() => localStorage.getItem('voyager_test')))
+    .toBeNull()
+  await expect
+    .poll(async () => voyager.tab.evaluate(async () => (await indexedDB.databases()).length))
+    .toBe(0)
+})
+
 test('clear selected data removes history when selected', async ({ voyager, server }) => {
   await voyager.navigate(server.url('/home'))
   await expect

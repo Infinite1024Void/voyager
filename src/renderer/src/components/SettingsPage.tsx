@@ -25,6 +25,11 @@ export function SettingsPage(): React.JSX.Element {
     clearHistory: true,
     clearDownloads: true,
     clearBookmarks: false,
+    clearCookies: true,
+    clearLocalStorage: true,
+    clearIndexedDb: true,
+    clearCache: true,
+    clearSitePermissions: true,
     openDownloadsWhenDone: false
   })
   const [clearing, setClearing] = useState(false)
@@ -65,6 +70,13 @@ export function SettingsPage(): React.JSX.Element {
       if (preferences.clearHistory) await window.voyager.history.clear()
       if (preferences.clearDownloads) await window.voyager.downloads.clear()
       if (preferences.clearBookmarks) await window.voyager.bookmarks.clear()
+      await window.voyager.browsingData.clear({
+        cookies: preferences.clearCookies,
+        localStorage: preferences.clearLocalStorage,
+        indexedDb: preferences.clearIndexedDb,
+        cache: preferences.clearCache,
+        sitePermissions: preferences.clearSitePermissions
+      })
       void window.voyager.history.getState().then(useHistoryStore.getState().applyState)
       void window.voyager.downloads.getState().then(useDownloadsStore.getState().applyState)
       void window.voyager.bookmarks.getState().then(useBookmarksStore.getState().applyState)
@@ -180,6 +192,46 @@ export function SettingsPage(): React.JSX.Element {
                 />
                 <span>Bookmarks</span>
               </label>
+              <label className="flex items-center gap-2 text-[13px] text-fg">
+                <input
+                  type="checkbox"
+                  checked={preferences.clearCookies}
+                  onChange={(event) => setPreference('clearCookies', event.target.checked)}
+                />
+                <span>Cookies</span>
+              </label>
+              <label className="flex items-center gap-2 text-[13px] text-fg">
+                <input
+                  type="checkbox"
+                  checked={preferences.clearLocalStorage}
+                  onChange={(event) => setPreference('clearLocalStorage', event.target.checked)}
+                />
+                <span>Local storage</span>
+              </label>
+              <label className="flex items-center gap-2 text-[13px] text-fg">
+                <input
+                  type="checkbox"
+                  checked={preferences.clearIndexedDb}
+                  onChange={(event) => setPreference('clearIndexedDb', event.target.checked)}
+                />
+                <span>IndexedDB</span>
+              </label>
+              <label className="flex items-center gap-2 text-[13px] text-fg">
+                <input
+                  type="checkbox"
+                  checked={preferences.clearCache}
+                  onChange={(event) => setPreference('clearCache', event.target.checked)}
+                />
+                <span>Cached images and files</span>
+              </label>
+              <label className="flex items-center gap-2 text-[13px] text-fg">
+                <input
+                  type="checkbox"
+                  checked={preferences.clearSitePermissions}
+                  onChange={(event) => setPreference('clearSitePermissions', event.target.checked)}
+                />
+                <span>Site permissions</span>
+              </label>
             </div>
             <button
               type="button"
@@ -189,7 +241,12 @@ export function SettingsPage(): React.JSX.Element {
                 !(
                   preferences.clearHistory ||
                   preferences.clearDownloads ||
-                  preferences.clearBookmarks
+                  preferences.clearBookmarks ||
+                  preferences.clearCookies ||
+                  preferences.clearLocalStorage ||
+                  preferences.clearIndexedDb ||
+                  preferences.clearCache ||
+                  preferences.clearSitePermissions
                 )
               }
               onClick={clearSelected}

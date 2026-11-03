@@ -1,8 +1,9 @@
-import { app, BrowserWindow, clipboard, ipcMain, nativeTheme } from 'electron'
+import { app, BrowserWindow, clipboard, ipcMain, nativeTheme, session } from 'electron'
 import { IpcChannels } from '../../shared/ipc-channels'
 import { isPermissionKind, isPermissionRequestChoice } from '../../shared/permissions'
 import type {
   AppVersionInfo,
+  ClearBrowsingDataOptions,
   NewBookmarkInput,
   NewTabRequest,
   PermissionKind,
@@ -73,6 +74,11 @@ function userPreferences(): UserPreferences {
     clearHistory: (getSettings('clearHistory', true) as boolean) !== false,
     clearDownloads: (getSettings('clearDownloads', true) as boolean) !== false,
     clearBookmarks: getSettings('clearBookmarks', false) === true,
+    clearCookies: (getSettings('clearCookies', true) as boolean) !== false,
+    clearLocalStorage: (getSettings('clearLocalStorage', true) as boolean) !== false,
+    clearIndexedDb: (getSettings('clearIndexedDb', true) as boolean) !== false,
+    clearCache: (getSettings('clearCache', true) as boolean) !== false,
+    clearSitePermissions: (getSettings('clearSitePermissions', true) as boolean) !== false,
     openDownloadsWhenDone: getSettings('openDownloadsWhenDone', false) === true
   }
 }
@@ -108,6 +114,11 @@ export function registerIpcHandlers(context: IpcContext): void {
     'clearHistory',
     'clearDownloads',
     'clearBookmarks',
+    'clearCookies',
+    'clearLocalStorage',
+    'clearIndexedDb',
+    'clearCache',
+    'clearSitePermissions',
     'openDownloadsWhenDone'
   ])
 
@@ -279,6 +290,34 @@ export function registerIpcHandlers(context: IpcContext): void {
       const result = respondToPermissionRequest(id, choice)
       if (result.changed) publishPermissions()
       return result.handled
+    }
+  )
+
+  /* ---- browsing data --------------------------------------------------- */
+
+  type StorageKind = 'cookies' | 'localstorage' | 'indexdb'
+
+  ipcMain.handle(
+    IpcChannels.BrowsingDataClear,
+    async (_event, options: ClearBrowsingDataOptions): Promise<void> => {
+      if (!options || typeof options !== 'object') {
+        throw new Error('Invalid browsing data options')
+      }
+
+      const storages: StorageKind[] = []
+      if (options.cookies === true) storages.push('cookies')
+      if (options.localStorage === true) storages.push('localstorage')
+      if (options.indexedDb === true) storages.push('indexdb')
+
+      if (storages.length > 0) {
+        await session.defaultSession.clearStorageData({ storages })
+      }
+      if (options.cache === true) {
+        await session.defaultSession.clearCache()
+      }
+      if (options.sitePermissions === true && clearSitePermissions()) {
+        publishPermissions()
+      }
     }
   )
 
