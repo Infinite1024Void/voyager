@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto'
 import { IpcChannels } from '../../shared/ipc-channels'
 import type { BrowserState } from '../../shared/types'
 import { INCOGNITO_PARTITION_PREFIX } from '../../shared/constants'
-import { sessionStore } from '../store'
+import { sessionStore, getSettings } from '../store'
 import { attachDownloadsTracking } from '../downloads/downloads'
 import { attachPermissionHandlers } from '../permissions/permissions'
 
@@ -15,6 +15,7 @@ import {
   toggleBookmarksBar
 } from '../bookmarks/bookmarks'
 import { allWindows } from './windowRegistry'
+
 import { TabManager } from '../tabs/TabManager'
 import { createAppMenu } from '../menu/menu'
 import {
@@ -252,10 +253,21 @@ export class WindowController {
     this.window.show()
   }
 
-  /** Replay the persisted tab set, falling back to a single blank tab. */
+  /**
+   * Replay the persisted tab set when the opt-in "restore session" preference
+   * is enabled; otherwise start on the start page and drop any stale snapshot.
+   */
   private restoreSession(): void {
     if (this.incognito) {
       // Incognito starts with a clean slate and never restores persisted state.
+      this.tabs.create()
+      return
+    }
+    if (getSettings('restoreSession', false) !== true) {
+      // Drop any snapshot captured while restore was enabled so tabs do not
+      // reappear if the preference is toggled back on later.
+      sessionStore.set('tabs', [])
+      sessionStore.set('activeIndex', 0)
       this.tabs.create()
       return
     }
@@ -274,10 +286,11 @@ export class WindowController {
     if (ids[index]) this.tabs.activate(ids[index])
   }
 
-  /** Save the current tab set so the next launch can restore it. */
+  /** Save the current tab set so the next launch can restore it (opt-in). */
   private persistSession(state: BrowserState): void {
     if (this.incognito) return
     if (this.disposed) return
+    if (getSettings('restoreSession', false) !== true) return
     const entries = state.tabs.map((tab) => ({
       url: tab.url,
       title: tab.title,

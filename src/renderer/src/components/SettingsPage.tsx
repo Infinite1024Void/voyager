@@ -33,7 +33,9 @@ export function SettingsPage(): React.JSX.Element {
     clearIndexedDb: true,
     clearCache: true,
     clearSitePermissions: true,
-    openDownloadsWhenDone: false
+    openDownloadsWhenDone: false,
+    restoreSession: false
+
   })
   const [clearing, setClearing] = useState(false)
   const [initialRoute] = useState(sitePermissionsRoute)
@@ -130,6 +132,18 @@ export function SettingsPage(): React.JSX.Element {
                 </label>
               ))}
             </div>
+          </section>
+
+          <section className="rounded-lg border border-border bg-surface p-5">
+            <h2 className="mb-4 text-[15px] font-semibold text-fg">On startup</h2>
+            <label className="flex items-center gap-2 text-[13px] text-fg">
+              <input
+                type="checkbox"
+                checked={preferences.restoreSession}
+                onChange={(event) => setPreference('restoreSession', event.target.checked)}
+              />
+              <span>Continue where you left off (reopen tabs from the previous session)</span>
+            </label>
           </section>
 
           <section className="rounded-lg border border-border bg-surface p-5">

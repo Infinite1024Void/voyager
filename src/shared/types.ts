@@ -207,6 +207,8 @@ export interface UserPreferences {
   incognito?: boolean
   /** Active search engine; incognito contexts fall back to the default. */
   searchEngine?: SearchEngineId
+  /** Reopen the tabs from the previous session on startup (default off). */
+  restoreSession: boolean
 }
 
 /** Site data categories cleared together from Settings. */

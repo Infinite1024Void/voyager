@@ -15,4 +15,6 @@ export interface SettingsShape {
   openDownloadsWhenDone?: boolean
   incognito?: boolean
   searchEngine?: SearchEngineId
+  restoreSession?: boolean
+
 }
