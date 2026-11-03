@@ -119,13 +119,19 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps): React.J
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') onClose()
     }
-    window.addEventListener('mousedown', close)
-    window.addEventListener('blur', close)
-    window.addEventListener('contextmenu', close)
-    window.addEventListener('resize', close)
-    window.addEventListener('keydown', onKeyDown)
-    window.addEventListener('scroll', close, true)
+    // Defer installing the dismiss listeners until the gesture that opened
+    // the menu has finished propagating; otherwise this same mousedown /
+    // contextmenu reaches window and immediately closes it.
+    const frame = requestAnimationFrame(() => {
+      window.addEventListener('mousedown', close)
+      window.addEventListener('blur', close)
+      window.addEventListener('contextmenu', close)
+      window.addEventListener('resize', close)
+      window.addEventListener('keydown', onKeyDown)
+      window.addEventListener('scroll', close, true)
+    })
     return () => {
+      cancelAnimationFrame(frame)
       window.removeEventListener('mousedown', close)
       window.removeEventListener('blur', close)
       window.removeEventListener('contextmenu', close)
