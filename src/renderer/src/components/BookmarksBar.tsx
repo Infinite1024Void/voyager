@@ -246,6 +246,10 @@ export function BookmarksBar(): React.JSX.Element | null {
               title={folder.title}
               aria-label={`Folder ${folder.title}`}
               onClick={(event) => {
+                if (event.button === 2) {
+                  openMenu(event, 'folder', folder.id)
+                  return
+                }
                 const rect = event.currentTarget.getBoundingClientRect()
                 setFolderMenu({ x: rect.left, y: rect.bottom + 2, folderId: folder.id })
               }}
@@ -279,7 +283,14 @@ export function BookmarksBar(): React.JSX.Element | null {
           >
             <button
               type="button"
-              onClick={() => navigate(bookmark.url)}
+              onClick={(event) => {
+                if (event.button === 2) {
+                  openMenu(event, 'bookmark', bookmark.id)
+                  return
+                }
+                navigate(bookmark.url)
+              }}
+              onContextMenu={(event) => openMenu(event, 'bookmark', bookmark.id)}
               title={bookmark.url}
               className="flex h-[22px] max-w-full items-center gap-1.5 rounded-md px-2 text-[12px] text-fg transition-colors hover:bg-hover"
             >
