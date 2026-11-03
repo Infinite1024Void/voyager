@@ -168,6 +168,7 @@ export async function launchVoyager(options: LaunchOptions): Promise<VoyagerApp>
       '--no-sandbox',
       '--disable-dev-shm-usage',
       `--user-data-dir=${options.userDataDir}`,
+      '--host-resolver-rules=MAP insecure.test 127.0.0.1',
       ...(options.args ?? [])
     ],
     cwd: process.cwd(),

@@ -97,7 +97,8 @@ test('describes an insecure HTTP page in the site information popover', async ({
   voyager,
   server
 }) => {
-  await voyager.navigate(server.url('/home'))
+  const insecureUrl = server.url('/home').replace('127.0.0.1', 'insecure.test')
+  await voyager.navigate(insecureUrl)
   const badge = voyager.chrome.getByRole('button', { name: 'View site information' })
   await expect(badge).toBeVisible()
 
