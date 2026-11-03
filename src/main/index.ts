@@ -5,6 +5,7 @@ import { registerIpcHandlers } from './ipc/register'
 import { attachPermissionHandlers } from './permissions/permissions'
 import { flushAllStores, getSettings } from './store'
 import { WindowController } from './window/WindowController'
+import { registerWindow } from './window/windowRegistry'
 import { attachDownloadsTracking } from './downloads/downloads'
 import { IpcChannels } from '../shared/ipc-channels'
 
@@ -67,6 +68,7 @@ app.whenReady().then(async (): Promise<void> => {
 
   attachPermissionHandlers(session.defaultSession)
   controller = new WindowController({ incognito: getSettings('incognito', false) === true })
+  registerWindow(controller)
   createAppMenu(() => controller)
   autoUpdater.checkForUpdatesAndNotify()
   controller.onDestroyed(() => {
@@ -82,6 +84,7 @@ app.on('activate', () => {
   if (controller === null) {
     void (async () => {
       controller = new WindowController({ incognito: getSettings('incognito', false) === true })
+      registerWindow(controller)
       controller.onDestroyed(() => {
         controller = null
       })
