@@ -252,7 +252,7 @@ export function BookmarksBar(): React.JSX.Element | null {
               title={folder.title}
               aria-label={`Folder ${folder.title}`}
               onClick={(event) => {
-                if (event.button === 2) {
+                if (event.button === 2 || event.ctrlKey || event.metaKey) {
                   openMenu(event, 'folder', folder.id)
                   return
                 }
@@ -293,7 +293,7 @@ export function BookmarksBar(): React.JSX.Element | null {
             <button
               type="button"
               onClick={(event) => {
-                if (event.button === 2) {
+                if (event.button === 2 || event.ctrlKey || event.metaKey) {
                   openMenu(event, 'bookmark', bookmark.id)
                   return
                 }
