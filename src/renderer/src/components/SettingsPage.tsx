@@ -7,6 +7,7 @@ import { useTheme } from './providers/theme-context'
 import { useBrowserStore } from '../state/browserStore'
 import { DEFAULT_SEARCH_ENGINE, SEARCH_ENGINES, type SearchEngineId } from '../../../shared/search'
 import type { AppVersionInfo, ThemeMode, UserPreferences } from '../../../shared/types'
+import { BUILTIN_BLOCKED_DOMAINS } from '../../../shared/content-blocking'
 import { SitePermissionsSettings } from './SitePermissionsSettings'
 
 function sitePermissionsRoute(): { open: boolean; origin?: string } {
@@ -177,8 +178,12 @@ export function SettingsPage(): React.JSX.Element {
               <span>Block ads and trackers</span>
             </label>
             <p className="text-[11.5px] text-muted">
-              Blocks requests to known advertising and tracking domains using a built-in filter list. Off by default.
+              Blocks requests to known advertising and tracking domains using built-in and remote filter lists. Off by default.
             </p>
+            <div className="mt-2 space-y-1 text-[12px] text-muted">
+              <div>Built-in filter list: {BUILTIN_BLOCKED_DOMAINS.length} domains</div>
+              <div>Remote filter list: AdAway hosts, cached on first run when blocking is enabled</div>
+            </div>
           </section>
 
           <section className="rounded-lg border border-border bg-surface p-5">
