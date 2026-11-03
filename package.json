@@ -19,7 +19,62 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "dist": "npm run build && electron-builder",
+    "dist:linux": "npm run build && electron-builder --linux --publish never",
+    "dist:mac": "npm run build && electron-builder --mac --publish never",
+    "dist:win": "npm run build && electron-builder --win --publish never"
+  },
+  "build": {
+    "appId": "com.voyager.browser",
+    "productName": "Voyager",
+    "artifactName": "Voyager-${version}-${os}-${arch}.${ext}",
+    "copyright": "Copyright © 2026 InfiniteVoid_",
+    "asar": true,
+    "npmRebuild": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**/*"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "pkg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.icns"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "msi",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Network;WebBrowser",
+      "executableName": "voyager",
+      "icon": "build/icon.png"
+    }
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
@@ -31,6 +86,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^5.2.0",
     "electron": "^44.9.1",
+    "electron-builder": "^26.18.0",
     "electron-vite": "^6.0.0",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
