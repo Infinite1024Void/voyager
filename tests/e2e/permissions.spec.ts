@@ -69,7 +69,7 @@ test('allows a site persistently and manages the decision in Settings', async ({
   const settings = await openSettings(voyager)
   await settings.getByRole('button', { name: /Site permissions/ }).click()
   await expect(settings.getByRole('heading', { name: 'Site permissions' })).toBeVisible()
-  await expect(settings.getByText(host)).toBeVisible()
+  await expect(settings.getByText(host, { exact: true })).toBeVisible()
   await expect(settings.getByText('Allowed')).toBeVisible()
 
   await settings.getByRole('button', { name: /Remove .* permission for/ }).click()
