@@ -1,4 +1,5 @@
 import { app, protocol, session } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import { join } from 'node:path'
 import { registerIpcHandlers } from './ipc/register'
 import { attachPermissionHandlers } from './permissions/permissions'
@@ -67,6 +68,7 @@ app.whenReady().then(async (): Promise<void> => {
   attachPermissionHandlers(session.defaultSession)
   controller = new WindowController()
   createAppMenu(() => controller)
+  autoUpdater.checkForUpdatesAndNotify()
   controller.onDestroyed(() => {
     controller = null
   })
