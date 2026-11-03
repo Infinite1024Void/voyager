@@ -1,12 +1,10 @@
 import { useState } from 'react'
-import { Folder, MoreHorizontal } from 'lucide-react'
+import { Folder } from 'lucide-react'
 import { useBookmarksStore } from '../state/bookmarksStore'
 import { useActiveTab, useBrowserStore } from '../state/browserStore'
 import { useUiStore } from '../state/uiStore'
-import { flushSync } from 'react-dom'
 import { BookmarkDialog } from './BookmarkDialog'
 import { ContextMenu, type ContextMenuItem } from './ui/ContextMenu'
-import { IconButton } from './ui/IconButton'
 
 interface MenuState {
   x: number
@@ -66,9 +64,7 @@ export function BookmarksBar(): React.JSX.Element | null {
   const openMenu = (event: React.MouseEvent, kind: MenuState['kind'], id?: string): void => {
     event.preventDefault()
     event.stopPropagation()
-    flushSync(() => {
-      setMenu({ x: event.clientX, y: event.clientY, kind, id })
-    })
+    setMenu({ x: event.clientX, y: event.clientY, kind, id })
   }
 
   const folderMenuItems = (folderId: string): ContextMenuItem[] => {
@@ -242,9 +238,6 @@ export function BookmarksBar(): React.JSX.Element | null {
               event.dataTransfer.dropEffect = hasInternalDrag(event.dataTransfer) ? 'move' : 'copy'
             }}
             onDrop={(event) => void handleDrop(event, folder.id)}
-            onPointerDown={(event) => {
-              if (event.button === 2) openMenu(event, 'folder', folder.id)
-            }}
             onContextMenu={(event) => openMenu(event, 'folder', folder.id)}
           >
             <button
@@ -252,10 +245,6 @@ export function BookmarksBar(): React.JSX.Element | null {
               title={folder.title}
               aria-label={`Folder ${folder.title}`}
               onClick={(event) => {
-                if (event.button === 2 || event.ctrlKey || event.metaKey) {
-                  openMenu(event, 'folder', folder.id)
-                  return
-                }
                 const rect = event.currentTarget.getBoundingClientRect()
                 setFolderMenu({ x: rect.left, y: rect.bottom + 2, folderId: folder.id })
               }}
@@ -285,20 +274,11 @@ export function BookmarksBar(): React.JSX.Element | null {
               event.dataTransfer.dropEffect = hasInternalDrag(event.dataTransfer) ? 'move' : 'copy'
             }}
             onDrop={(event) => void handleDrop(event, null, bookmark.id)}
-            onPointerDown={(event) => {
-              if (event.button === 2) openMenu(event, 'bookmark', bookmark.id)
-            }}
             onContextMenu={(event) => openMenu(event, 'bookmark', bookmark.id)}
           >
             <button
               type="button"
-              onClick={(event) => {
-                if (event.button === 2 || event.ctrlKey || event.metaKey) {
-                  openMenu(event, 'bookmark', bookmark.id)
-                  return
-                }
-                navigate(bookmark.url)
-              }}
+              onClick={() => navigate(bookmark.url)}
               onContextMenu={(event) => openMenu(event, 'bookmark', bookmark.id)}
               title={bookmark.url}
               className="flex h-[22px] max-w-full items-center gap-1.5 rounded-md px-2 text-[12px] text-fg transition-colors hover:bg-hover"
@@ -314,14 +294,6 @@ export function BookmarksBar(): React.JSX.Element | null {
           <span className="px-2 text-[12px] text-muted">Bookmarks you add will live here</span>
         ) : null}
       </div>
-
-      <IconButton
-        label="Bookmark bar menu"
-        className="h-[22px] w-6 shrink-0"
-        onClick={() => setMenu({ x: window.innerWidth - 12, y: 72, kind: 'root' })}
-      >
-        <MoreHorizontal className="h-4 w-4" />
-      </IconButton>
 
       {dragOver && (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-sm border-2 border-dashed border-accent bg-accent/10 text-[12px] font-medium text-accent">
