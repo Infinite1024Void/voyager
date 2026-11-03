@@ -220,6 +220,7 @@ export function moveBookmarkNode(input: BookmarkMoveInput, broadcast: Broadcast)
     const folder = folders.find((candidate) => candidate.id === id)
     if (!folder) return publish(broadcast)
     if (parentId !== null && folderSubtree(id).has(parentId)) {
+      if (parentId === id) return publish(broadcast)
       throw new Error('Cannot move a folder into itself')
     }
     const next = folders.filter((candidate) => candidate.id !== id)
