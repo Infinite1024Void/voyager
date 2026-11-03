@@ -324,8 +324,7 @@ export function SettingsPage(): React.JSX.Element {
           <section className="rounded-lg border border-border bg-surface p-5">
             <h2 className="mb-4 text-[15px] font-semibold text-fg">About</h2>
             <div className="space-y-1 text-[13px] text-fg">
-              <div>Voyager Web Browser</div>
-              <div>Voyager v{appInfo?.app ?? '0.0.0'}</div>
+              <div>Voyager {appInfo?.app ?? '1.0.0'}</div>
             </div>
           </section>
         </div>
