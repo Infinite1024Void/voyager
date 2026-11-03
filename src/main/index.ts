@@ -69,7 +69,9 @@ app.whenReady().then(async (): Promise<void> => {
   })
 
   attachPermissionHandlers(session.defaultSession)
-  primeContentBlocking(app.getPath('userData'))
+  if (getSettings('contentBlocking', false) === true) {
+    primeContentBlocking(app.getPath('userData'))
+  }
   attachContentBlocking(session.defaultSession)
   controller = new WindowController({ incognito: getSettings('incognito', false) === true })
   registerWindow(controller)
