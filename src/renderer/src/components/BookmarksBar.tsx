@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Folder, MoreHorizontal } from 'lucide-react'
 import { useBookmarksStore } from '../state/bookmarksStore'
+import { flushSync } from 'react-dom'
 import { useActiveTab, useBrowserStore } from '../state/browserStore'
 import { useUiStore } from '../state/uiStore'
 import { BookmarkDialog } from './BookmarkDialog'
@@ -64,7 +65,9 @@ export function BookmarksBar(): React.JSX.Element | null {
 
   const openMenu = (event: React.MouseEvent, kind: MenuState['kind'], id?: string): void => {
     event.preventDefault()
-    setMenu({ x: event.clientX, y: event.clientY, kind, id })
+    flushSync(() => {
+      setMenu({ x: event.clientX, y: event.clientY, kind, id })
+    })
   }
 
   const folderMenuItems = (folderId: string): ContextMenuItem[] => {
