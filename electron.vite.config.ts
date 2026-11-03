@@ -13,13 +13,16 @@ export default defineConfig({
     }
   },
   preload: {
-    plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: {
         '@shared': resolve('src/shared')
       }
     },
     build: {
+      // Sandboxed preloads cannot require() shared chunks, so each entry must
+      // be built as one self-contained bundle.
+      isolatedEntries: true,
+      externalizeDeps: false,
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/preload/index.ts'),
