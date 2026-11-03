@@ -1,9 +1,13 @@
-import { app, clipboard, ipcMain, nativeTheme } from 'electron'
+import { app, BrowserWindow, clipboard, ipcMain, nativeTheme } from 'electron'
 import { IpcChannels } from '../../shared/ipc-channels'
+import { isPermissionKind, isPermissionRequestChoice } from '../../shared/permissions'
 import type {
   AppVersionInfo,
   NewBookmarkInput,
   NewTabRequest,
+  PermissionKind,
+  PermissionRequestChoice,
+  SettingsTarget,
   ThemeMode,
   ThemeState,
   UserPreferences
@@ -22,6 +26,14 @@ import {
   recordVisit,
   removeHistory
 } from '../history/history'
+import {
+  clearSitePermissions,
+  configurePermissionPromptRouter,
+  currentSitePermissions,
+  removeSitePermissions,
+  respondToPermissionRequest,
+  sitePermissionsForOrigin
+} from '../permissions/permissions'
 import type { WindowController } from '../window/WindowController'
 import { openSettingsWindow } from '../window/settingsWindow'
 import { getSettings, setSettings } from '../store'
@@ -70,6 +82,15 @@ export function registerIpcHandlers(context: IpcContext): void {
   const savedMode = (getSettings('themeMode') as ThemeMode | undefined) ?? 'system'
   nativeTheme.themeSource = savedMode
 
+  configurePermissionPromptRouter((webContents) => {
+    const window = context.getWindow()
+    if (!window) return null
+    return {
+      tabId: webContents ? window.tabIdForWebContents(webContents) : null,
+      send: (channel, payload) => window.sendToChrome(channel, payload)
+    }
+  })
+
   ipcMain.handle(IpcChannels.AppGetInfo, (): AppVersionInfo => ({
     app: app.getVersion(),
     electron: process.versions.electron ?? '',
@@ -77,7 +98,9 @@ export function registerIpcHandlers(context: IpcContext): void {
     node: process.versions.node ?? ''
   }))
 
-  ipcMain.handle(IpcChannels.SettingsOpen, () => openSettingsWindow())
+  ipcMain.handle(IpcChannels.SettingsOpen, (_event, target?: SettingsTarget) =>
+    openSettingsWindow(target)
+  )
 
   ipcMain.handle(IpcChannels.SettingsGet, () => userPreferences())
 
@@ -211,6 +234,52 @@ export function registerIpcHandlers(context: IpcContext): void {
       (state) => context.send(IpcChannels.BookmarksStateChanged, state),
       (visible) => context.getWindow()?.setBookmarksBarVisible(visible)
     )
+  )
+
+  /* ---- site permissions ------------------------------------------------ */
+
+  const publishPermissions = (): ReturnType<typeof currentSitePermissions> => {
+    const state = currentSitePermissions()
+    context.send(IpcChannels.PermissionsStateChanged, state)
+    for (const window of BrowserWindow.getAllWindows()) {
+      window.webContents.send(IpcChannels.PermissionsStateChanged, state)
+    }
+    return state
+  }
+
+  ipcMain.handle(IpcChannels.PermissionsGetState, () => currentSitePermissions())
+
+  ipcMain.handle(IpcChannels.PermissionsGetForOrigin, (_event, origin: string) =>
+    typeof origin === 'string' ? sitePermissionsForOrigin(origin) : { decisions: [] }
+  )
+
+  ipcMain.handle(
+    IpcChannels.PermissionsRemove,
+    (_event, origin: string, kind?: PermissionKind) => {
+      if (typeof origin !== 'string') throw new Error('Invalid permission origin')
+      if (kind !== undefined && !isPermissionKind(kind)) {
+        throw new Error(`Invalid permission kind: ${String(kind)}`)
+      }
+      const changed = removeSitePermissions(origin, kind)
+      return changed ? publishPermissions() : currentSitePermissions()
+    }
+  )
+
+  ipcMain.handle(IpcChannels.PermissionsClear, () => {
+    const changed = clearSitePermissions()
+    return changed ? publishPermissions() : currentSitePermissions()
+  })
+
+  ipcMain.handle(
+    IpcChannels.PermissionsRespond,
+    (_event, id: string, choice: PermissionRequestChoice) => {
+      if (typeof id !== 'string' || !isPermissionRequestChoice(choice)) {
+        throw new Error('Invalid permission response')
+      }
+      const result = respondToPermissionRequest(id, choice)
+      if (result.changed) publishPermissions()
+      return result.handled
+    }
   )
 
   /* ---- history --------------------------------------------------------- */

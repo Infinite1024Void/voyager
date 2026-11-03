@@ -49,6 +49,14 @@ export class TabManager {
     return this.activeId
   }
 
+  /** Resolve the tab that owns a WebContents, used for permission scoping. */
+  tabIdForWebContents(webContents: WebContents): string | null {
+    for (const [id, entry] of this.entries) {
+      if (entry.view.webContents.id === webContents.id) return id
+    }
+    return null
+  }
+
   snapshot(): BrowserState {
     const tabs: TabState[] = []
     for (const id of this.order) {

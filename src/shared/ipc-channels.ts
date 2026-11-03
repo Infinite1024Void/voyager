@@ -50,6 +50,15 @@ export const IpcChannels = {
   BookmarksClear: 'bookmarks:clear',
   BookmarksStateChanged: 'bookmarks:state-changed',
 
+  PermissionsGetState: 'permissions:get-state',
+  PermissionsGetForOrigin: 'permissions:get-for-origin',
+  PermissionsRemove: 'permissions:remove',
+  PermissionsClear: 'permissions:clear',
+  PermissionsRespond: 'permissions:respond',
+  PermissionsStateChanged: 'permissions:state-changed',
+  PermissionsRequest: 'permissions:request',
+  PermissionsRequestCancelled: 'permissions:request-cancelled',
+
   DownloadsGetState: 'downloads:get-state',
   DownloadsStateChanged: 'downloads:state-changed',
   DownloadsClear: 'downloads:clear',

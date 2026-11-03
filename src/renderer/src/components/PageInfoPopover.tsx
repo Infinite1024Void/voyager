@@ -1,6 +1,11 @@
 import { Globe, Lock, ShieldCheck, TriangleAlert } from 'lucide-react'
+import {
+  PERMISSION_LABELS,
+  permissionOriginForUrl
+} from '../../../shared/permissions'
 import { safeParseUrl, securityLevelFor } from '../../../shared/url'
 import { cn } from '../lib/cn'
+import { useOriginPermissions, usePermissionsStore } from '../state/permissionsStore'
 
 interface PageInfoPopoverProps {
   url: string
@@ -10,6 +15,8 @@ interface PageInfoPopoverProps {
 export function PageInfoPopover({ url, title }: PageInfoPopoverProps): React.JSX.Element {
   const level = securityLevelFor(url)
   const parsed = safeParseUrl(url)
+  const origin = permissionOriginForUrl(url)
+  const sitePermissions = useOriginPermissions(origin)
 
   return (
     <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-xl border border-border bg-surface shadow-xl shadow-black/15">
@@ -55,6 +62,62 @@ export function PageInfoPopover({ url, title }: PageInfoPopoverProps): React.JSX
         <p className="flex items-center gap-1.5 px-3.5 pb-3 text-[11.5px] text-danger">
           <Lock className="h-3 w-3" /> Use HTTPS to protect your data
         </p>
+      )}
+
+      {origin && (
+        <div className="border-t border-border px-3.5 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[12.5px] font-medium text-fg">Site permissions</p>
+            <button
+              type="button"
+              className="text-[11.5px] text-accent hover:underline"
+              onClick={() =>
+                void window.voyager.settings.open({ page: 'site-permissions', origin })
+              }
+            >
+              Manage
+            </button>
+          </div>
+
+          {sitePermissions.length === 0 ? (
+            <p className="mt-1.5 text-[11.5px] text-muted">
+              No saved permissions for this site.
+            </p>
+          ) : (
+            <ul className="mt-1.5 space-y-1">
+              {sitePermissions.map((permission) => (
+                <li
+                  key={permission.kind}
+                  className="flex items-center justify-between gap-3 text-[11.5px]"
+                >
+                  <span className="min-w-0 truncate text-muted">
+                    {PERMISSION_LABELS[permission.kind]}:{' '}
+                    <span
+                      className={cn(
+                        'font-medium',
+                        permission.decision === 'allow' ? 'text-fg' : 'text-danger'
+                      )}
+                    >
+                      {permission.decision === 'allow' ? 'Allowed' : 'Blocked'}
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={`Remove ${PERMISSION_LABELS[permission.kind]} permission`}
+                    className="shrink-0 text-muted hover:text-fg hover:underline"
+                    onClick={() =>
+                      void usePermissionsStore
+                        .getState()
+                        .remove(origin, permission.kind)
+                    }
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
     </div>
   )

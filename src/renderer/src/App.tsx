@@ -4,6 +4,7 @@ import { BookmarksBar } from './components/BookmarksBar'
 import { DownloadsPanel } from './components/DownloadsPanel'
 import { FindBar } from './components/FindBar'
 import { HistoryPanel } from './components/HistoryPanel'
+import { PermissionPrompt } from './components/PermissionPrompt'
 import { TabSearchPalette } from './components/TabSearchPalette'
 import { TitleBar } from './components/TitleBar'
 import { Toolbar } from './components/Toolbar'
@@ -12,6 +13,7 @@ import { useBookmarksStore } from './state/bookmarksStore'
 import { useBrowserStore } from './state/browserStore'
 import { useDownloadsStore } from './state/downloadsStore'
 import { useHistoryStore } from './state/historyStore'
+import { usePermissionsStore } from './state/permissionsStore'
 import { useUiStore } from './state/uiStore'
 
 export default function App(): React.JSX.Element {
@@ -43,6 +45,12 @@ export default function App(): React.JSX.Element {
     const { applyState } = useDownloadsStore.getState()
     void window.voyager.downloads.getState().then(applyState)
     return window.voyager.downloads.onStateChanged(applyState)
+  }, [])
+
+  useEffect(() => {
+    const { applyState } = usePermissionsStore.getState()
+    void window.voyager.permissions.getState().then(applyState)
+    return window.voyager.permissions.onStateChanged(applyState)
   }, [])
 
   // Chrome-focused keyboard shortcuts.
@@ -107,6 +115,7 @@ export default function App(): React.JSX.Element {
         }}
       />
       <FindBar open={findOpen} onClose={() => setFindOpen(false)} />
+      <PermissionPrompt />
     </ThemeProvider>
   )
 }

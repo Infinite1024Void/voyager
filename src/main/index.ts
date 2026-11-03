@@ -1,6 +1,7 @@
 import { app, protocol, session } from 'electron'
 import { join } from 'node:path'
 import { registerIpcHandlers } from './ipc/register'
+import { attachPermissionHandlers } from './permissions/permissions'
 import { flushAllStores } from './store'
 import { WindowController } from './window/WindowController'
 import { attachDownloadsTracking } from './downloads/downloads'
@@ -63,6 +64,7 @@ app.whenReady().then(async (): Promise<void> => {
     callback({ path: join(__dirname, '../renderer/', url) })
   })
 
+  attachPermissionHandlers(session.defaultSession)
   controller = new WindowController()
   createAppMenu(() => controller)
   controller.onDestroyed(() => {

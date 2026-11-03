@@ -71,6 +71,41 @@ const second = document(
 
 const popup = document('Popup Page', '<h1 id="heading">Popup Page</h1>')
 
+const permissionsPage = document(
+  'Permissions Page',
+  `<h1 id="heading">Permission Test Page</h1>
+  <button id="request-location" type="button">Ask for location</button>
+  <button id="request-camera" type="button">Ask for camera</button>
+  <button id="request-notifications" type="button">Ask for notifications</button>
+  <p id="permission-result">No request made</p>
+  <script>
+    const result = document.getElementById('permission-result')
+    document.getElementById('request-location').addEventListener('click', () => {
+      result.textContent = 'Location requested'
+      navigator.geolocation.getCurrentPosition(
+        () => { result.textContent = 'Location allowed' },
+        (error) => { result.textContent = 'Location failed:' + error.code }
+      )
+    })
+    document.getElementById('request-camera').addEventListener('click', () => {
+      result.textContent = 'Camera requested'
+      navigator.mediaDevices.getUserMedia({ video: true }).then(
+        (stream) => {
+          result.textContent = 'Camera allowed'
+          stream.getTracks().forEach((track) => track.stop())
+        },
+        (error) => { result.textContent = 'Camera failed:' + error.name }
+      )
+    })
+    document.getElementById('request-notifications').addEventListener('click', () => {
+      result.textContent = 'Notifications requested'
+      Notification.requestPermission().then((permission) => {
+        result.textContent = 'Notifications:' + permission
+      })
+    })
+  </script>`
+)
+
 const findPage = document(
   'Find Page',
   `<h1 id="heading">Find Page</h1>
@@ -98,6 +133,10 @@ async function handle(req: URL, res: ServerResponse, counts: Map<string, number>
   }
   if (path === '/find') {
     sendHtml(res, findPage)
+    return
+  }
+  if (path === '/permissions') {
+    sendHtml(res, permissionsPage)
     return
   }
   if (path === '/search') {
