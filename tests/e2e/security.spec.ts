@@ -14,7 +14,10 @@ test('opening a tab page keeps Node and preload globals absent', async ({ voyage
   expect(globals).toEqual({ require: false, process: false, module: false, voyager: false })
 })
 
-test('popups stay inside the browser instead of spawning a native window', async ({ voyager, server }) => {
+test('popups stay inside the browser instead of spawning a native window', async ({
+  voyager,
+  server
+}) => {
   await voyager.navigate(server.url('/home'))
   await expect.poll(async () => (await voyager.activeTab()).url).toBe(server.url('/home'))
 

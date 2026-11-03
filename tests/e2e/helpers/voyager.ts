@@ -1,4 +1,9 @@
-import { _electron as electron, expect, type ElectronApplication, type Page } from '@playwright/test'
+import {
+  _electron as electron,
+  expect,
+  type ElectronApplication,
+  type Page
+} from '@playwright/test'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
@@ -109,7 +114,10 @@ async function installClipboardStub(app: ElectronApplication): Promise<void> {
   })
 }
 
-async function installDownloadHandler(app: ElectronApplication, downloadDir: string): Promise<void> {
+async function installDownloadHandler(
+  app: ElectronApplication,
+  downloadDir: string
+): Promise<void> {
   mkdirSync(downloadDir, { recursive: true })
   await app.evaluate(({ session }, directory) => {
     session.defaultSession.on('will-download', (_event, item) => {
@@ -321,7 +329,12 @@ export async function pressPageShortcut(
         candidates[0]
       if (!target) throw new Error('No tab web contents available')
       target.focus()
-      const kc = input.keyCode === 'ArrowLeft' ? 'Left' : input.keyCode === 'ArrowRight' ? 'Right' : input.keyCode
+      const kc =
+        input.keyCode === 'ArrowLeft'
+          ? 'Left'
+          : input.keyCode === 'ArrowRight'
+            ? 'Right'
+            : input.keyCode
       target.sendInputEvent({ type: 'keyDown', keyCode: kc, modifiers: input.modifiers })
       target.sendInputEvent({ type: 'keyUp', keyCode: kc, modifiers: input.modifiers })
     },

@@ -1,8 +1,5 @@
 import { expect, test } from './fixtures'
-import {
-  pressPageShortcut,
-  primaryKey
-} from './helpers/voyager'
+import { pressPageShortcut, primaryKey } from './helpers/voyager'
 
 test('page-level shortcuts create, close and reopen tabs', async ({ voyager, server }) => {
   await voyager.navigate(server.url('/home'))
@@ -20,7 +17,9 @@ test('page-level shortcuts create, close and reopen tabs', async ({ voyager, ser
 
   await pressPageShortcut(voyager, 't', ['meta', 'shift'])
   await expect.poll(async () => (await voyager.state()).tabs.length).toBe(count0 + 1)
-  await expect.poll(async () => ['', 'about:blank'].includes((await voyager.activeTab()).url)).toBe(true)
+  await expect
+    .poll(async () => ['', 'about:blank'].includes((await voyager.activeTab()).url))
+    .toBe(true)
 })
 
 test('page-level tab navigation shortcuts', async ({ voyager, server }) => {
@@ -75,7 +74,9 @@ test('page-level reload and force-reload shortcuts', async ({ voyager, server })
 
   await pressPageShortcut(voyager, 'r', ['meta'])
   await expect.poll(async () => !(await voyager.activeTab()).loading)
-  await expect.poll(async () => Number(await voyager.tab.locator('#hits').textContent())).toBeGreaterThan(countBefore)
+  await expect
+    .poll(async () => Number(await voyager.tab.locator('#hits').textContent()))
+    .toBeGreaterThan(countBefore)
 })
 
 test('page-level find-in-page shortcut opens the find bar', async ({ voyager, server }) => {
@@ -111,24 +112,37 @@ test('page-level history and downloads shortcuts open overlays', async ({ voyage
 
 test('page-level bookmark-bar toggle shortcut changes visibility', async ({ voyager, server }) => {
   await voyager.navigate(server.url('/home'))
-  const stateBefore = (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible
+  const stateBefore = (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState()))
+    .barVisible
 
   await pressPageShortcut(voyager, 'b', ['meta', 'shift'])
-  await expect.poll(async () => (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible).toBe(!stateBefore)
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible
+    )
+    .toBe(!stateBefore)
 
   // Restore.
   await pressPageShortcut(voyager, 'b', ['meta', 'shift'])
-  await expect.poll(async () => (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible).toBe(stateBefore)
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible
+    )
+    .toBe(stateBefore)
 })
 
 test('chrome-level tab shortcuts on new/close/reload etc.', async ({ voyager, server }) => {
   await voyager.navigate(server.url('/home'))
   // Create a new blank tab and focus the omnibox with Cmd+L.
   await voyager.chrome.locator('body').press(`${primaryKey()}+T`)
-  await expect.poll(async () => {
-    const url = (await voyager.activeTab()).url
-    return url === 'about:blank' || url === ''
-  }).toBe(true)
+  await expect
+    .poll(async () => {
+      const url = (await voyager.activeTab()).url
+      return url === 'about:blank' || url === ''
+    })
+    .toBe(true)
 
   await voyager.chrome.locator('body').press(`${primaryKey()}+L`)
   await expect(voyager.chrome.locator('#omnibox-input')).toBeFocused()

@@ -65,9 +65,7 @@ export function TabItem({
         className={cn(
           'no-drag flex h-[31px] w-[36px] shrink-0 items-center justify-center rounded-t-[9px] border border-b-0',
           'transition-colors',
-          active
-            ? 'border-border bg-surface'
-            : 'border-transparent hover:bg-hover',
+          active ? 'border-border bg-surface' : 'border-transparent hover:bg-hover',
           dragging && 'opacity-40',
           dropTarget && 'border-l-2 border-l-accent'
         )}

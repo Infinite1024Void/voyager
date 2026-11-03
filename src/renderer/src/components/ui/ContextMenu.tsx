@@ -88,7 +88,9 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps): React.J
               item.disabled && 'pointer-events-none opacity-40'
             )}
           >
-            {item.icon && <span className="flex h-4 w-4 items-center justify-center">{item.icon}</span>}
+            {item.icon && (
+              <span className="flex h-4 w-4 items-center justify-center">{item.icon}</span>
+            )}
             <span className="flex-1 truncate">{item.label}</span>
             {item.checked && <span className="text-accent">✓</span>}
           </button>
