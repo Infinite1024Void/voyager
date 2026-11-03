@@ -110,7 +110,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps): React.J
     const { offsetWidth, offsetHeight } = el
     setPosition({
       left: Math.min(x, innerWidth - offsetWidth - MENU_PADDING),
-      top: Math.min(y, innerHeight - offsetHeight - MENU_PADDING)
+      top: Math.max(MENU_PADDING, Math.min(y, innerHeight - offsetHeight - MENU_PADDING))
     })
   }, [x, y])
 
