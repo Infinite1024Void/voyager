@@ -30,7 +30,7 @@
     "productName": "Voyager",
     "artifactName": "Voyager-${version}-${os}-${arch}.${ext}",
     "copyright": "Copyright \u00a9 2026 InfiniteVoid_",
-    "asar": true,
+    "asar": false,
     "npmRebuild": false,
     "directories": {
       "output": "dist",
