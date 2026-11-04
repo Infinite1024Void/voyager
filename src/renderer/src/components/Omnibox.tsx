@@ -102,9 +102,11 @@ export function Omnibox(): React.JSX.Element {
   }, [activeTabId, activeUrl, focused])
 
   // Select the full URL after the focused state swaps in the editable value.
+  // Keep this tied to focus only: re-selecting on every keystroke would make
+  // the next character replace everything typed so far.
   useLayoutEffect(() => {
     if (focused) inputRef.current?.select()
-  }, [focused, value])
+  }, [focused])
 
   const suggestions = useSuggestions(
     value,

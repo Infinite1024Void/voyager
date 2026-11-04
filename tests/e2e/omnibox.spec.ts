@@ -22,6 +22,16 @@ test('shows a condensed active URL and clears it for a new tab', async ({ voyage
   await expect(input).toHaveValue('')
 })
 
+test('keeps every character typed after opening a new tab', async ({ voyager }) => {
+  await voyager.chrome.getByRole('button', { name: 'New tab', exact: true }).click()
+  await voyager.waitForTab((tab) => tab.url === 'about:blank')
+
+  const input = voyager.chrome.locator('#omnibox-input')
+  await expect(input).toBeFocused()
+  await input.pressSequentially('ex')
+  await expect(input).toHaveValue('ex')
+})
+
 test('selects the whole address when focused', async ({ voyager, server }) => {
   await voyager.navigate(server.url('/home'))
   const input = voyager.chrome.locator('#omnibox-input')
