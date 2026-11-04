@@ -1,7 +1,7 @@
 import { matchShortcut } from '../../src/shared/keyboard'
 import { displayUrl } from '../../src/shared/url'
 import { expect, test } from './fixtures'
-import { interceptSearch, searchRequests } from './helpers/voyager'
+import { interceptSearch, pressPageShortcut, searchRequests } from './helpers/voyager'
 
 test('condenses the scheme, www prefix and site-root slash', () => {
   expect(displayUrl('https://www.example.com/')).toBe('example.com')
@@ -50,6 +50,30 @@ test('Alt+D focuses the address bar and selects it', async ({ voyager, server })
   })
   expect(selection.start).toBe(0)
   expect(selection.end).toBe(selection.length)
+})
+
+test('Alt+D hands keyboard focus from the page to the address bar', async ({ voyager, server }) => {
+  await voyager.navigate(server.url('/home'))
+  await expect.poll(async () => (await voyager.activeTab()).url).toBe(server.url('/home'))
+
+  await pressPageShortcut(voyager, 'd', ['alt'])
+
+  const input = voyager.chrome.locator('#omnibox-input')
+  await expect(input).toBeFocused()
+  await expect
+    .poll(() =>
+      voyager.app.evaluate(({ webContents }) => {
+        const chrome = webContents
+          .getAllWebContents()
+          .find((contents) => contents.getURL().startsWith('file:'))
+        return chrome?.isFocused() ?? false
+      })
+    )
+    .toBe(true)
+
+  // The shortcut must leave the bar ready for typing, not just visually focused.
+  await voyager.chrome.keyboard.type('example.com')
+  await expect(input).toHaveValue('example.com')
 })
 
 test('Alt+D matches by physical key, including Option+D on macOS', () => {
