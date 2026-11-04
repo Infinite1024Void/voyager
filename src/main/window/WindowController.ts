@@ -242,10 +242,14 @@ export class WindowController {
     this.chrome.webContents.send(channel, payload)
   }
 
-  /** Focus the chrome view and ask the omnibox input to select its contents. */
+  /**
+   * Focus the chrome view and ask the omnibox input to select its contents.
+   * The page webContents owns keyboard focus while a page shortcut is handled,
+   * so the view itself must be focused before the input can accept typing.
+   */
   focusOmnibox(): void {
     if (this.disposed) return
-    this.chrome.webContents.focus()
+    this.focusChrome()
     this.sendToChrome(IpcChannels.UiFocusOmnibox)
   }
 
