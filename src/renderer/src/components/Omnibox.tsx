@@ -60,14 +60,51 @@ export function Omnibox(): React.JSX.Element {
 
   const activeUrl = activeTab?.url ?? ''
   const activeTitle = activeTab?.title ?? ''
+  const activeTabId = activeTab?.id
+
+  const prevUrlRef = useRef(activeUrl)
+  useEffect(() => {
+    if (prevUrlRef.current !== activeUrl) {
+      if (activeUrl !== 'about:blank' && activeUrl !== '') {
+        setFocused(false)
+        inputRef.current?.blur()
+        setValue(displayUrl(activeUrl))
+      }
+      prevUrlRef.current = activeUrl
+    }
+  }, [activeUrl])
+
   useEffect(() => {
     if (!focused) setValue(displayUrl(activeUrl))
   }, [activeUrl, focused])
 
+  useEffect(() => {
+    const handleFocus = (): void => {
+      setValue(activeUrl === 'about:blank' ? '' : activeUrl)
+      setFocused(true)
+      setPageInfoOpen(false)
+      inputRef.current?.focus()
+      inputRef.current?.select()
+    }
+    window.addEventListener('voyager:focus-omnibox', handleFocus)
+    return () => window.removeEventListener('voyager:focus-omnibox', handleFocus)
+  }, [activeUrl])
+
+  const prevTabIdRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (prevTabIdRef.current !== null && prevTabIdRef.current !== activeTabId) {
+      if (focused) {
+        setValue(activeUrl === 'about:blank' ? '' : activeUrl)
+        inputRef.current?.select()
+      }
+    }
+    prevTabIdRef.current = activeTabId ?? null
+  }, [activeTabId, activeUrl, focused])
+
   // Select the full URL after the focused state swaps in the editable value.
   useLayoutEffect(() => {
     if (focused) inputRef.current?.select()
-  }, [focused])
+  }, [focused, value])
 
   const suggestions = useSuggestions(
     value,

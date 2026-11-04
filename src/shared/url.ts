@@ -1,3 +1,5 @@
+import { DEFAULT_NEW_TAB_URL } from './constants'
+
 /** Heuristics for whether omnibox input is a URL or a search query. */
 
 // An explicit scheme such as https://, about: or mailto:.
@@ -83,3 +85,9 @@ export function securityLevelFor(url: string): SecurityLevel {
   }
   return 'neutral'
 }
+
+/** Whether a URL represents an empty / new tab. */
+export function isNewTab(url: string): boolean {
+  return url === DEFAULT_NEW_TAB_URL || url === ''
+}
+

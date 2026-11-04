@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import type { BrowserState, NewTabRequest, TabState } from '../../../shared/types'
-import { resolveInput } from '../../../shared/url'
+import { isNewTab, resolveInput } from '../../../shared/url'
 import { DEFAULT_SEARCH_ENGINE, buildSearchUrl, type SearchEngineId } from '../../../shared/search'
+import { focusOmnibox } from '../lib/shortcuts'
 
 interface BrowserStore extends BrowserState {
   ready: boolean
@@ -72,6 +73,9 @@ export const useBrowserStore = create<BrowserStore>()((set, get) => ({
   },
   createTab: (request) => {
     void window.voyager.tabs.create(request)
+    if (!request?.url || isNewTab(request.url)) {
+      focusOmnibox()
+    }
   },
   reorderTabs: (ids) => {
     void window.voyager.tabs.reorder(ids)

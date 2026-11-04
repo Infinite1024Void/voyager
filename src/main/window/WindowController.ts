@@ -242,6 +242,13 @@ export class WindowController {
     this.chrome.webContents.send(channel, payload)
   }
 
+  /** Focus the chrome view and ask the omnibox input to select its contents. */
+  focusOmnibox(): void {
+    if (this.disposed) return
+    this.chrome.webContents.focus()
+    this.sendToChrome(IpcChannels.UiFocusOmnibox)
+  }
+
   onDestroyed(callback: () => void): void {
     this.window.once('closed', callback)
   }
