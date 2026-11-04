@@ -523,6 +523,10 @@ export class TabManager {
         this.activateNth(this.order.length)
         break
       case 'focus-omnibox':
+        // The page webContents owns keyboard focus while a shortcut is handled
+        // here, so focusing the input is not enough: hand the view itself the
+        // focus first or the user cannot type into the address bar.
+        this.window.focusChrome()
         this.window.sendToChrome(IpcChannels.UiFocusOmnibox)
         break
       case 'find-in-page':

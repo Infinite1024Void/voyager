@@ -230,6 +230,12 @@ export class WindowController {
     this.applyLayout()
   }
 
+  /** Give keyboard focus to the chrome UI (tab strip + toolbar) view. */
+  focusChrome(): void {
+    if (this.disposed) return
+    this.chrome.webContents.focus()
+  }
+
   /** Send an event to the chrome renderer process. */
   sendToChrome(channel: string, payload?: unknown): void {
     if (this.disposed) return
