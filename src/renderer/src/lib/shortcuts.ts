@@ -7,6 +7,8 @@ import { useUiStore } from '../state/uiStore'
 export function focusOmnibox(): void {
   const input = document.getElementById('omnibox-input') as HTMLInputElement | null
   input?.focus()
+  input?.select()
+  window.dispatchEvent(new Event('voyager:focus-omnibox'))
 }
 
 function dispatch(action: BrowserAction, index?: number): void {

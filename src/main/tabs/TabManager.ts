@@ -119,6 +119,9 @@ export class TabManager {
 
     if (request.active ?? true) {
       this.activate(entry.id)
+      if (isNewTab(request.url ?? DEFAULT_NEW_TAB_URL)) {
+        this.window.focusOmnibox()
+      }
     } else {
       this.window.hideTabView(entry.view)
     }
@@ -523,11 +526,7 @@ export class TabManager {
         this.activateNth(this.order.length)
         break
       case 'focus-omnibox':
-        // The page webContents owns keyboard focus while a shortcut is handled
-        // here, so focusing the input is not enough: hand the view itself the
-        // focus first or the user cannot type into the address bar.
-        this.window.focusChrome()
-        this.window.sendToChrome(IpcChannels.UiFocusOmnibox)
+        this.window.focusOmnibox()
         break
       case 'find-in-page':
         this.window.sendToChrome(IpcChannels.UiFindInPage)
