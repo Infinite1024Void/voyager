@@ -29,6 +29,8 @@ export type BrowserAction =
 
 export interface ChordInput {
   key: string
+  /** Physical key (KeyboardEvent.code). Needed where modifiers change `key`, e.g. Option+D on macOS. */
+  code?: string
   meta: boolean
   ctrl: boolean
   shift: boolean
@@ -38,6 +40,8 @@ export interface ChordInput {
 interface ShortcutDef {
   action: BrowserAction
   key: string
+  /** When set, match the physical key instead of `key`. */
+  code?: string
   /** Primary modifier: Cmd on macOS, Ctrl elsewhere. */
   meta?: boolean
   shift?: boolean
@@ -65,6 +69,9 @@ export const SHORTCUTS: readonly ShortcutDef[] = [
   chord('back', 'ArrowLeft', { alt: true }),
   chord('forward', 'ArrowRight', { alt: true }),
   chord('focus-omnibox', 'l', { meta: true }),
+  // Alt+D (Option+D on macOS). Matched by physical key because Option+D types
+  // a different character; `meta: false` keeps Ctrl/Cmd+Alt+D free.
+  chord('focus-omnibox', 'd', { code: 'KeyD', meta: false, alt: true }),
   chord('find-in-page', 'f', { meta: true }),
   chord('open-tab-search', 'a', { meta: true, shift: true }),
   chord('reload', 'r', { meta: true }),
@@ -111,7 +118,9 @@ export function matchShortcut(
   const primaryAny = primary || (isMac && chordInput.ctrl)
 
   for (const def of SHORTCUTS) {
-    const keyMatches = def.key.toLowerCase() === normalizeKey(chordInput.key)
+    const keyMatches = def.code
+      ? def.code === chordInput.code
+      : def.key.toLowerCase() === normalizeKey(chordInput.key)
     const metaMatches = def.meta === undefined || primaryAny === def.meta
     const shiftMatches = (def.shift ?? false) === chordInput.shift
     const altMatches = (def.alt ?? false) === chordInput.alt
