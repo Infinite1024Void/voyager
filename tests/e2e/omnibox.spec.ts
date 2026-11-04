@@ -1,3 +1,4 @@
+import { matchShortcut } from '../../src/shared/keyboard'
 import { displayUrl } from '../../src/shared/url'
 import { expect, test } from './fixtures'
 import { interceptSearch, searchRequests } from './helpers/voyager'
@@ -35,6 +36,35 @@ test('selects the whole address when focused', async ({ voyager, server }) => {
   expect(selection.start).toBe(0)
   expect(selection.end).toBe(selection.length)
   expect(selection.length).toBeGreaterThan(0)
+})
+
+test('Alt+D focuses the address bar and selects it', async ({ voyager, server }) => {
+  await voyager.navigate(server.url('/home'))
+  await voyager.chrome.locator('body').press('Alt+d')
+
+  const input = voyager.chrome.locator('#omnibox-input')
+  await expect(input).toBeFocused()
+  const selection = await input.evaluate((element) => {
+    const field = element as HTMLInputElement
+    return { start: field.selectionStart, end: field.selectionEnd, length: field.value.length }
+  })
+  expect(selection.start).toBe(0)
+  expect(selection.end).toBe(selection.length)
+})
+
+test('Alt+D matches by physical key, including Option+D on macOS', () => {
+  const chord = { shift: false, meta: false, ctrl: false, alt: true }
+  // Option+D reports key '∂' on macOS; the physical key is still KeyD.
+  expect(matchShortcut({ ...chord, key: '∂', code: 'KeyD' }, 'darwin')?.action).toBe(
+    'focus-omnibox'
+  )
+  expect(matchShortcut({ ...chord, key: 'd', code: 'KeyD' }, 'linux')?.action).toBe('focus-omnibox')
+  // Cmd/Ctrl+Alt+D must stay unbound, and Cmd/Ctrl+D is still "bookmark page".
+  expect(matchShortcut({ ...chord, meta: true, key: 'd', code: 'KeyD' }, 'darwin')).toBeNull()
+  expect(matchShortcut({ ...chord, ctrl: true, key: 'd', code: 'KeyD' }, 'linux')).toBeNull()
+  expect(
+    matchShortcut({ ...chord, alt: false, ctrl: true, key: 'd', code: 'KeyD' }, 'linux')?.action
+  ).toBe('bookmark-page')
 })
 
 test('Escape abandons edits and restores the active URL', async ({ voyager, server }) => {

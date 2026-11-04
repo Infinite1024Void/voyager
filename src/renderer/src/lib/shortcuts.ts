@@ -96,6 +96,7 @@ export function installChromeShortcuts(): () => void {
     const matched = matchShortcut(
       {
         key: event.key,
+        code: event.code,
         meta: event.metaKey,
         ctrl: event.ctrlKey,
         shift: event.shiftKey,

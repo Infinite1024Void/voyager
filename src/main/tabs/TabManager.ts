@@ -474,6 +474,7 @@ export class TabManager {
     const matched = matchShortcut(
       {
         key: input.key,
+        code: input.code,
         meta: input.meta,
         ctrl: input.control,
         shift: input.shift,
