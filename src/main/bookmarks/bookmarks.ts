@@ -89,6 +89,18 @@ function revealBarIfNeeded(added: boolean, setBarExtent?: (visible: boolean) => 
   }
 }
 
+/**
+ * Hide the bar once the last bookmark or folder is gone, so an empty bar never
+ * lingers after the user removes their bookmarks.
+ */
+function hideBarIfEmpty(setBarExtent?: (visible: boolean) => void): void {
+  if (storedItems().length > 0 || storedFolders().length > 0) return
+  if (getSettings('bookmarksBarVisible') === true) {
+    setSettings('bookmarksBarVisible', false)
+  }
+  setBarExtent?.(false)
+}
+
 /** Add a bookmark (dedupes by URL within the target folder). */
 export function addBookmark(
   input: NewBookmarkInput,
@@ -129,8 +141,13 @@ export function addBookmark(
   return publish(broadcast)
 }
 
-export function removeBookmark(id: string, broadcast: Broadcast): BookmarksState {
+export function removeBookmark(
+  id: string,
+  broadcast: Broadcast,
+  setBarExtent?: (visible: boolean) => void
+): BookmarksState {
   bookmarksStore.update('items', (list) => list.filter((item) => item.id !== id))
+  hideBarIfEmpty(setBarExtent)
   return publish(broadcast)
 }
 
@@ -189,7 +206,11 @@ export function updateFolder(
 }
 
 /** Remove a folder and everything inside it. */
-export function removeFolder(id: string, broadcast: Broadcast): BookmarksState {
+export function removeFolder(
+  id: string,
+  broadcast: Broadcast,
+  setBarExtent?: (visible: boolean) => void
+): BookmarksState {
   const doomed = folderSubtree(id)
   bookmarksStore.set(
     'folders',
@@ -207,6 +228,7 @@ export function removeFolder(id: string, broadcast: Broadcast): BookmarksState {
         : storedItems().some((item) => item.id === bookmarkClipboard?.id)
     if (!kindExists) bookmarkClipboard = null
   }
+  hideBarIfEmpty(setBarExtent)
   return publish(broadcast)
 }
 
@@ -330,10 +352,14 @@ export function pasteBookmarkNode(parentId: string | null, broadcast: Broadcast)
   return publish(broadcast)
 }
 
-export function clearBookmarks(broadcast: Broadcast): BookmarksState {
+export function clearBookmarks(
+  broadcast: Broadcast,
+  setBarExtent?: (visible: boolean) => void
+): BookmarksState {
   bookmarksStore.set('items', [])
   bookmarksStore.set('folders', [])
   bookmarkClipboard = null
+  hideBarIfEmpty(setBarExtent)
   return publish(broadcast)
 }
 

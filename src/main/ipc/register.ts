@@ -290,7 +290,9 @@ export function registerIpcHandlers(context: IpcContext): void {
   )
 
   ipcMain.handle(IpcChannels.BookmarksRemove, (_event, id: string) =>
-    removeBookmark(id, broadcastBookmarks)
+    removeBookmark(id, broadcastBookmarks, (visible) =>
+      context.getWindow()?.setBookmarksBarVisible(visible)
+    )
   )
 
   ipcMain.handle(IpcChannels.BookmarksUpdate, (_event, id: string, patch: BookmarkPatch) =>
@@ -383,7 +385,9 @@ export function registerIpcHandlers(context: IpcContext): void {
   )
 
   ipcMain.handle(IpcChannels.BookmarksRemoveFolder, (_event, id: string) =>
-    removeFolder(id, broadcastBookmarks)
+    removeFolder(id, broadcastBookmarks, (visible) =>
+      context.getWindow()?.setBookmarksBarVisible(visible)
+    )
   )
 
   ipcMain.handle(IpcChannels.BookmarksMove, (_event, input: BookmarkMoveInput) =>
@@ -411,7 +415,11 @@ export function registerIpcHandlers(context: IpcContext): void {
     context.openWindow?.(url)
   })
 
-  ipcMain.handle(IpcChannels.BookmarksClear, () => clearBookmarks(broadcastBookmarks))
+  ipcMain.handle(IpcChannels.BookmarksClear, () =>
+    clearBookmarks(broadcastBookmarks, (visible) =>
+      context.getWindow()?.setBookmarksBarVisible(visible)
+    )
+  )
 
   ipcMain.handle(IpcChannels.BookmarksToggleBar, () =>
     toggleBookmarksBar(broadcastBookmarks, (visible) =>

@@ -302,9 +302,6 @@ export function BookmarksBar(): React.JSX.Element | null {
             </button>
           </div>
         ))}
-        {rootFolders.length === 0 && rootItems.length === 0 ? (
-          <span className="px-2 text-[12px] text-muted">Bookmarks you add will live here</span>
-        ) : null}
       </div>
 
       {dragOver && (

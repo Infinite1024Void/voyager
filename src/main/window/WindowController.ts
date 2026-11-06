@@ -165,7 +165,7 @@ export class WindowController {
       }
     }
     if (existing) {
-      removeBookmark(existing.id, publish)
+      removeBookmark(existing.id, publish, (visible) => this.setBookmarksBarVisible(visible))
       return
     }
     addBookmark(

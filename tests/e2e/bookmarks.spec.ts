@@ -19,7 +19,7 @@ test('bookmark bar toggles from the keyboard', async ({ voyager }) => {
         (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible
     )
     .toBe(true)
-  await expect(voyager.chrome.locator('nav')).toContainText('Bookmarks you add will live here')
+  await expect(voyager.chrome.locator('nav')).toBeVisible()
 
   await voyager.chrome.locator('body').press(`${mod}+Shift+B`)
   await expect
@@ -90,6 +90,15 @@ test('adds, dedupes, navigates and removes a bookmark', async ({ voyager, server
         (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).items.length
     )
     .toBe(0)
+  // Removing the last bookmark hides the bar again instead of leaving an
+  // empty strip behind.
+  await expect
+    .poll(
+      async () =>
+        (await voyager.chrome.evaluate(() => window.voyager.bookmarks.getState())).barVisible
+    )
+    .toBe(false)
+  await expect(voyager.chrome.locator('nav')).toHaveCount(0)
 })
 
 test('disables bookmark button on a blank tab', async ({ voyager }) => {
