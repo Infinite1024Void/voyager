@@ -10,6 +10,7 @@ test('exposes the typed preload API to the chrome renderer', async ({ voyager })
     navigation: Object.keys(window.voyager.navigation),
     bookmarks: Object.keys(window.voyager.bookmarks),
     browsingData: Object.keys(window.voyager.browsingData),
+    defaultBrowser: Object.keys(window.voyager.defaultBrowser),
     history: Object.keys(window.voyager.history),
     downloads: Object.keys(window.voyager.downloads),
     permissions: Object.keys(window.voyager.permissions),
@@ -21,6 +22,7 @@ test('exposes the typed preload API to the chrome renderer', async ({ voyager })
     'appInfo',
     'bookmarks',
     'browsingData',
+    'defaultBrowser',
     'downloads',
     'history',
     'navigation',
@@ -33,6 +35,7 @@ test('exposes the typed preload API to the chrome renderer', async ({ voyager })
   ])
   expect(api.settings).toEqual(['get', 'open', 'set', 'onChanged'])
   expect(api.browsingData).toEqual(['clear'])
+  expect(api.defaultBrowser).toEqual(['isDefault', 'setDefault'])
   expect(api.tabs).toEqual(
     expect.arrayContaining(['getState', 'create', 'close', 'activate', 'reorder', 'pinToggle'])
   )
