@@ -10,6 +10,7 @@ import { WindowController } from './window/WindowController'
 import { registerWindow } from './window/windowRegistry'
 import { attachDownloadsTracking } from './downloads/downloads'
 import { IpcChannels } from '../shared/ipc-channels'
+import { findLaunchUrl } from './launch/urlArgument'
 
 app.setName('Voyager')
 
@@ -30,6 +31,31 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 let controller: WindowController | null = null
+let pendingUrl: string | null = findLaunchUrl(process.argv)
+
+const hasSingleInstanceLock = app.requestSingleInstanceLock()
+if (!hasSingleInstanceLock) {
+  app.quit()
+} else {
+  // Windows and Linux hand links to the already running process as a new
+  // command-line argument; focus the window and open the link as a new tab.
+  app.on('second-instance', (_event, argv) => {
+    const url = findLaunchUrl(argv)
+    if (url) {
+      if (controller) controller.openUrl(url)
+      else pendingUrl = url
+    } else {
+      controller?.window.focus()
+    }
+  })
+}
+
+// macOS delivers links (including default-browser clicks) through open-url.
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  if (controller) controller.openUrl(url)
+  else pendingUrl = url
+})
 
 registerIpcHandlers({
   send: (channel, payload) => {
@@ -46,6 +72,8 @@ app.on('will-quit', () => {
 import { createAppMenu } from './menu/menu'
 
 app.whenReady().then(async (): Promise<void> => {
+  if (!hasSingleInstanceLock) return
+
   protocol.registerFileProtocol('voyager', (request, callback) => {
     const url = request.url.replace('voyager://', '')
     if (url === 'settings' || url === 'settings/') {
@@ -83,7 +111,13 @@ app.whenReady().then(async (): Promise<void> => {
   attachDownloadsTracking(session.defaultSession, (state) =>
     controller?.sendToChrome(IpcChannels.DownloadsStateChanged, state)
   )
-  await controller.show()
+  const initialUrl = pendingUrl
+  pendingUrl = null
+  await controller.show(initialUrl ?? undefined)
+  if (pendingUrl) {
+    controller.openUrl(pendingUrl)
+    pendingUrl = null
+  }
 })
 
 app.on('activate', () => {
