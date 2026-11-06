@@ -2,7 +2,7 @@ import { app } from 'electron'
 import { execFileSync } from 'node:child_process'
 
 /** URL schemes Voyager can own, including normal web browsing. */
-export const SUPPORTED_PROTOCOLS = ['http', 'https', 'voyager'] as const
+export const SUPPORTED_PROTOCOLS = ['http', 'https'] as const
 
 const LINUX_DESKTOP_FILE = 'voyager.desktop'
 
@@ -66,13 +66,4 @@ export async function setDefaultBrowser(): Promise<boolean> {
     }
   }
   return isDefaultBrowser()
-}
-
-/** Register Voyager's own protocol on every launch (web schemes stay opt-in). */
-export function registerVoyagerProtocol(): void {
-  try {
-    app.setAsDefaultProtocolClient('voyager')
-  } catch {
-    // Not fatal: command-line and second-instance URLs still work.
-  }
 }
