@@ -20,8 +20,10 @@ import { TabManager } from '../tabs/TabManager'
 import { createAppMenu } from '../menu/menu'
 import {
   DEFAULT_CHROME_HEIGHT,
+  TOOLBAR_HEIGHT,
   bookmarksBarExtent,
   computeLayout,
+  verticalRailExtent,
   type WindowLayout
 } from './ChromeLayout'
 
@@ -38,6 +40,9 @@ export class WindowController {
   private readonly tabViews = new Set<WebContentsView>()
   private activeTabView: WebContentsView | null = null
   private chromeHeight = DEFAULT_CHROME_HEIGHT
+  private bookmarksVisible = false
+  private verticalTabs = false
+  private railExpanded = false
   private overlayOpen = false
   private layout: WindowLayout
   private disposed = false
@@ -50,6 +55,7 @@ export class WindowController {
     this.incognitoPartition = this.incognito
       ? `${INCOGNITO_PARTITION_PREFIX}${randomUUID()}`
       : null
+    this.verticalTabs = getSettings('verticalTabs', false) === true
     this.attachIncognitoSession()
     this.layout = computeLayout(1280, 800)
 
@@ -140,7 +146,38 @@ export class WindowController {
 
   /** Grow or shrink the chrome region for the bookmarks bar. */
   setBookmarksBarVisible(visible: boolean): void {
-    this.setChromeHeight(DEFAULT_CHROME_HEIGHT + bookmarksBarExtent(visible))
+    this.bookmarksVisible = visible
+    this.updateChromeHeight()
+    this.applyLayout()
+  }
+
+  /** Switch between the horizontal tab strip and the vertical tab rail. */
+  setVerticalTabs(enabled: boolean): void {
+    if (this.verticalTabs === enabled) return
+    this.verticalTabs = enabled
+    if (!enabled) this.railExpanded = false
+    this.updateChromeHeight()
+    this.applyLayout()
+  }
+
+  /**
+   * Expand the vertical rail over the page while the pointer is inside it so
+   * the compact favicon strip can reveal tab labels without reflowing the page.
+   */
+  setRailExpanded(expanded: boolean): void {
+    if (!this.verticalTabs || this.railExpanded === expanded) return
+    this.railExpanded = expanded
+    this.applyLayout()
+  }
+
+  /**
+   * Recompute the chrome height for the current tab-strip mode and bookmarks
+   * bar state. Vertical tabs put the toolbar at the top of the content area and
+   * use the rail for tabs, so the horizontal tab strip height is not reserved.
+   */
+  private updateChromeHeight(): void {
+    const base = this.verticalTabs ? TOOLBAR_HEIGHT : DEFAULT_CHROME_HEIGHT
+    this.chromeHeight = base + bookmarksBarExtent(this.bookmarksVisible)
   }
 
   /** Flip the bookmarks bar and tell the chrome renderer about the new state. */
@@ -181,12 +218,6 @@ export class WindowController {
 
   tabIdForWebContents(webContents: WebContents): string | null {
     return this.tabs.tabIdForWebContents(webContents)
-  }
-
-  /** Grow or shrink the chrome region (e.g. when the bookmarks bar toggles). */
-  setChromeHeight(height: number): void {
-    this.chromeHeight = height
-    this.applyLayout()
   }
 
   /**
@@ -339,18 +370,35 @@ export class WindowController {
   private applyLayout(): void {
     if (this.disposed) return
     const [width, height] = this.window.getContentSize()
-    this.layout = computeLayout(width, height, this.chromeHeight)
+    const railWidth = verticalRailExtent(this.verticalTabs)
+    this.layout = computeLayout(width, height, this.chromeHeight, railWidth)
+
+    // Vertical tabs need a full-window chrome view so the rail can run down the
+    // left edge. The page view normally sits above it (leaving the rail and
+    // toolbar visible) and is raised again whenever an overlay closes.
+    const chromeOnTop = this.overlayOpen || (this.verticalTabs && this.railExpanded)
+    const fullHeightChrome = this.verticalTabs || this.overlayOpen
+
     this.chrome.setBounds({
       x: 0,
       y: 0,
       width: this.layout.width,
       // Overlay mode spans the window so popups escape the chrome strip.
-      height: this.overlayOpen ? this.layout.height : this.layout.chromeHeight
+      height: fullHeightChrome ? this.layout.height : this.layout.chromeHeight
     })
+
+    if (chromeOnTop) {
+      this.window.contentView.addChildView(this.chrome)
+    } else if (this.activeTabView) {
+      // Raise the page above the transparent full-window chrome so clicks and
+      // scrolling reach the page rather than the chrome renderer.
+      this.window.contentView.addChildView(this.activeTabView)
+    }
+
     this.activeTabView?.setBounds({
-      x: 0,
+      x: this.layout.contentX,
       y: this.layout.contentY,
-      width: this.layout.width,
+      width: this.layout.contentWidth,
       height: this.layout.contentHeight
     })
   }

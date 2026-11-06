@@ -98,7 +98,8 @@ export const IpcChannels = {
   UiOpenHistory: 'ui:open-history',
   UiOpenDownloads: 'ui:open-downloads',
   UiOpenBookmarksManager: 'ui:open-bookmarks-manager',
-  UiSetOverlayOpen: 'ui:set-overlay-open'
+  UiSetOverlayOpen: 'ui:set-overlay-open',
+  UiSetRailExpanded: 'ui:set-rail-expanded'
 } as const
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels]

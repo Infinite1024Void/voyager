@@ -144,7 +144,7 @@ export function TabItem({
   )
 }
 
-function TabIcon({ tab }: { tab: TabState }): React.JSX.Element {
+export function TabIcon({ tab }: { tab: TabState }): React.JSX.Element {
   if (tab.crashed) {
     return <span className="flex h-4 w-4 items-center justify-center text-[10px]">⚠️</span>
   }

@@ -36,6 +36,7 @@ export function SettingsPage(): React.JSX.Element {
     clearSitePermissions: true,
     openDownloadsWhenDone: false,
     restoreSession: false,
+    verticalTabs: false,
     contentBlocking: false
   })
   const [clearing, setClearing] = useState(false)
@@ -135,6 +136,16 @@ export function SettingsPage(): React.JSX.Element {
                   <span className="capitalize">{m}</span>
                 </label>
               ))}
+            </div>
+            <div className="mt-4 border-t border-border pt-4">
+              <label className="flex items-center gap-2 text-[13px] text-fg">
+                <input
+                  type="checkbox"
+                  checked={preferences.verticalTabs}
+                  onChange={(event) => setPreference('verticalTabs', event.target.checked)}
+                />
+                <span>Use vertical tabs (compact favicon rail that expands on hover)</span>
+              </label>
             </div>
             <div className="mt-4 flex items-center justify-between gap-4 border-t border-border pt-4">
               <div>

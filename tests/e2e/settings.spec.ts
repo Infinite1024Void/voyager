@@ -97,6 +97,22 @@ test('theme changes broadcast to the chrome window', async ({ voyager }) => {
     .toBe('system')
 })
 
+test('vertical tabs toggle persists and updates the chrome window', async ({ voyager }) => {
+  const settings = await openSettings(voyager)
+
+  await settings.getByLabel(/Use vertical tabs/).check()
+  await expect
+    .poll(async () => (await settings.evaluate(() => window.voyager.settings.get())).verticalTabs)
+    .toBe(true)
+  await expect(voyager.chrome.locator('aside[aria-label="Tabs"]')).toBeVisible()
+
+  await settings.getByLabel(/Use vertical tabs/).uncheck()
+  await expect
+    .poll(async () => (await settings.evaluate(() => window.voyager.settings.get())).verticalTabs)
+    .toBe(false)
+  await expect(voyager.chrome.locator('aside[aria-label="Tabs"]')).toHaveCount(0)
+})
+
 test('clear browsing data preferences persist', async ({ voyager }) => {
   const settings = await openSettings(voyager)
 
