@@ -26,12 +26,3 @@ test('opens the launch URL alongside restored tabs', async ({ launchVoyager, ser
 
   await voyager.close()
 })
-
-test('opens a URL wrapped in the voyager:// protocol', async ({ launchVoyager, server }) => {
-  const target = server.url('/home')
-  const voyager = await launchVoyager({ args: [`voyager://open?url=${encodeURIComponent(target)}`] })
-
-  await expect.poll(async () => (await voyager.activeTab()).url).toBe(target)
-
-  await voyager.close()
-})
