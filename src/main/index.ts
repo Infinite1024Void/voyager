@@ -11,6 +11,7 @@ import { registerWindow } from './window/windowRegistry'
 import { attachDownloadsTracking } from './downloads/downloads'
 import { IpcChannels } from '../shared/ipc-channels'
 import { findLaunchUrl } from './launch/urlArgument'
+import { registerVoyagerProtocol } from './defaultBrowser'
 
 app.setName('Voyager')
 
@@ -97,6 +98,7 @@ app.whenReady().then(async (): Promise<void> => {
   })
 
   attachPermissionHandlers(session.defaultSession)
+  registerVoyagerProtocol()
   if (getSettings('contentBlocking', false) === true) {
     primeContentBlocking(app.getPath('userData'))
   }

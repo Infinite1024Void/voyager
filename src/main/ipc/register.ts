@@ -58,6 +58,7 @@ import type { WindowController } from '../window/WindowController'
 import { openSettingsWindow } from '../window/settingsWindow'
 import { consumePendingDragUrl, setPendingDragUrl } from '../bookmarks/drag'
 import { getSettings, setSettings } from '../store'
+import { isDefaultBrowser, setDefaultBrowser } from '../defaultBrowser'
 import {
   cancelDownload,
   clearDownloads,
@@ -131,6 +132,9 @@ export function registerIpcHandlers(context: IpcContext): void {
     chrome: process.versions.chrome ?? '',
     node: process.versions.node ?? ''
   }))
+
+  ipcMain.handle(IpcChannels.DefaultBrowserGet, () => isDefaultBrowser())
+  ipcMain.handle(IpcChannels.DefaultBrowserSet, () => setDefaultBrowser())
 
   ipcMain.handle(IpcChannels.SettingsOpen, (_event, target?: SettingsTarget) =>
     openSettingsWindow(target)
