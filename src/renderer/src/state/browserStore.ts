@@ -8,10 +8,13 @@ interface BrowserStore extends BrowserState {
   ready: boolean
   incognito: boolean
   searchEngine: SearchEngineId
+  verticalTabs: boolean
   /** Replace store state with the latest snapshot from the main process. */
   applyState: (state: BrowserState) => void
   setIncognito: (incognito: boolean) => void
   setSearchEngine: (engine: SearchEngineId) => void
+  setVerticalTabs: (enabled: boolean) => void
+  toggleVerticalTabs: () => void
   activateTab: (id: string) => void
   activateNext: () => void
   activatePrevious: () => void
@@ -42,11 +45,18 @@ export const useBrowserStore = create<BrowserStore>()((set, get) => ({
   ready: false,
   incognito: false,
   searchEngine: DEFAULT_SEARCH_ENGINE,
+  verticalTabs: false,
 
   applyState: (state) => set({ tabs: state.tabs, activeTabId: state.activeTabId, ready: true }),
 
   setIncognito: (incognito) => set({ incognito }),
   setSearchEngine: (engine) => set({ searchEngine: engine }),
+  setVerticalTabs: (enabled) => set({ verticalTabs: enabled }),
+  toggleVerticalTabs: () => {
+    const enabled = !get().verticalTabs
+    set({ verticalTabs: enabled })
+    void window.voyager.settings.set('verticalTabs', enabled)
+  },
 
   activateTab: (id) => {
     void window.voyager.tabs.activate(id)

@@ -9,6 +9,7 @@ import { PermissionPrompt } from './components/PermissionPrompt'
 import { TabSearchPalette } from './components/TabSearchPalette'
 import { TitleBar } from './components/TitleBar'
 import { Toolbar } from './components/Toolbar'
+import { VerticalTabStrip } from './components/VerticalTabStrip'
 import { focusOmnibox, installChromeShortcuts } from './lib/shortcuts'
 import { DEFAULT_SEARCH_ENGINE, isSearchEngineId } from '../../shared/search'
 import type { UserPreferences } from '../../shared/types'
@@ -25,6 +26,7 @@ export default function App(): React.JSX.Element {
   const [downloadsOpen, setDownloadsOpen] = useState(false)
   const [findOpen, setFindOpen] = useState(false)
   const bookmarksManagerOpen = useUiStore((state) => state.bookmarksManagerOpen)
+  const verticalTabs = useBrowserStore((state) => state.verticalTabs)
 
   useEffect(() => {
     const { applyState } = useBrowserStore.getState()
@@ -68,6 +70,7 @@ export default function App(): React.JSX.Element {
       store.setSearchEngine(
         isSearchEngineId(prefs.searchEngine) ? prefs.searchEngine : DEFAULT_SEARCH_ENGINE
       )
+      store.setVerticalTabs(Boolean(prefs.verticalTabs))
     }
     void window.voyager.settings.get().then(applyPreferences)
     return window.voyager.settings.onChanged(applyPreferences)
@@ -116,11 +119,21 @@ export default function App(): React.JSX.Element {
 
   return (
     <ThemeProvider>
-      <div className="flex h-full flex-col overflow-hidden">
-        <TitleBar />
-        <Toolbar />
-        <BookmarksBar />
-      </div>
+      {verticalTabs ? (
+        <div className="flex h-full overflow-hidden">
+          <VerticalTabStrip />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <Toolbar />
+            <BookmarksBar />
+          </div>
+        </div>
+      ) : (
+        <div className="flex h-full flex-col overflow-hidden">
+          <TitleBar />
+          <Toolbar />
+          <BookmarksBar />
+        </div>
+      )}
       <TabSearchPalette />
       <HistoryPanel
         open={historyOpen}

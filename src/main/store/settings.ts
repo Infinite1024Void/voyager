@@ -16,6 +16,7 @@ export interface SettingsShape {
   incognito?: boolean
   searchEngine?: SearchEngineId
   restoreSession?: boolean
+  verticalTabs?: boolean
   contentBlocking?: boolean
 
 

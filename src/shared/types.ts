@@ -209,6 +209,8 @@ export interface UserPreferences {
   searchEngine?: SearchEngineId
   /** Reopen the tabs from the previous session on startup (default off). */
   restoreSession: boolean
+  /** Show tabs in a vertical rail instead of the horizontal tab strip. */
+  verticalTabs: boolean
   /** Cancel requests to known ad/tracker domains before they hit the network. */
   contentBlocking: boolean
 }

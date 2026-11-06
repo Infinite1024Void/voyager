@@ -210,7 +210,9 @@ const api = {
     onOpenBookmarksManager: (listener: () => void): Unsubscribe =>
       subscribe<void>(IpcChannels.UiOpenBookmarksManager, listener),
     setOverlayOpen: (open: boolean): Promise<void> =>
-      ipcRenderer.invoke(IpcChannels.UiSetOverlayOpen, open)
+      ipcRenderer.invoke(IpcChannels.UiSetOverlayOpen, open),
+    setRailExpanded: (expanded: boolean): Promise<void> =>
+      ipcRenderer.invoke(IpcChannels.UiSetRailExpanded, expanded)
   }
 } as const
 

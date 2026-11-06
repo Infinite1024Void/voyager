@@ -56,6 +56,7 @@ import {
 } from '../permissions/permissions'
 import type { WindowController } from '../window/WindowController'
 import { openSettingsWindow } from '../window/settingsWindow'
+import { allWindows } from '../window/windowRegistry'
 import { consumePendingDragUrl, setPendingDragUrl } from '../bookmarks/drag'
 import { getSettings, setSettings } from '../store'
 import { isDefaultBrowser, setDefaultBrowser } from '../defaultBrowser'
@@ -108,6 +109,7 @@ function userPreferences(): UserPreferences {
       return isSearchEngineId(stored) ? stored : DEFAULT_SEARCH_ENGINE
     })(),
     restoreSession: getSettings('restoreSession', false) === true,
+    verticalTabs: getSettings('verticalTabs', false) === true,
     contentBlocking: getSettings('contentBlocking', false) !== false
   }
 }
@@ -155,6 +157,7 @@ export function registerIpcHandlers(context: IpcContext): void {
     'incognito',
     'searchEngine',
     'restoreSession',
+    'verticalTabs',
     'contentBlocking'
   ])
 
@@ -182,6 +185,12 @@ export function registerIpcHandlers(context: IpcContext): void {
         // Incognito switches apply to subsequently created tabs; tabs that
         // already exist keep the session they were created with.
         context.getWindow()?.setIncognito(enabled)
+        return respond()
+      }
+      if (key === 'verticalTabs') {
+        const enabled = value === true
+        setSettings('verticalTabs', enabled)
+        for (const window of allWindows()) window.setVerticalTabs(enabled)
         return respond()
       }
       if (typeof value !== 'boolean') {
@@ -503,5 +512,8 @@ export function registerIpcHandlers(context: IpcContext): void {
   )
   ipcMain.handle(IpcChannels.UiSetOverlayOpen, (_event, open: boolean) =>
     context.getWindow()?.setOverlayOpen(open)
+  )
+  ipcMain.handle(IpcChannels.UiSetRailExpanded, (_event, expanded: boolean) =>
+    context.getWindow()?.setRailExpanded(expanded)
   )
 }

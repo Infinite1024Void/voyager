@@ -1,15 +1,16 @@
 import { useState } from 'react'
-import { Copy, Pin, Plus, RotateCw, Volume2, VolumeX, X } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import type { TabState } from '../../../shared/types'
 import { useBrowserStore } from '../state/browserStore'
-import { ContextMenu, type ContextMenuItem } from './ui/ContextMenu'
+import { buildTabMenuItems } from './tabContextMenu'
+import { ContextMenu } from './ui/ContextMenu'
 import { TabItem } from './TabItem'
 
 /**
  * Reorder `tabs` so that `drag` lands next to `over`, keeping pinned and
  * regular tabs in their own contiguous blocks (pinned always left).
  */
-function reorderTabs(drag: TabState, over: TabState, tabs: TabState[]): string[] {
+export function reorderTabs(drag: TabState, over: TabState, tabs: TabState[]): string[] {
   const ids = tabs.map((tab) => tab.id)
   const rest = ids.filter((id) => id !== drag.id)
   const at = rest.indexOf(over.id)
@@ -46,20 +47,13 @@ export function TabStrip(): React.JSX.Element {
   const activeTabId = useBrowserStore((state) => state.activeTabId)
   const createTab = useBrowserStore((state) => state.createTab)
   const reorderSelected = useBrowserStore((state) => state.reorderTabs)
-  const pinToggle = useBrowserStore((state) => state.pinToggle)
   const activateTab = useBrowserStore((state) => state.activateTab)
+  const verticalTabs = useBrowserStore((state) => state.verticalTabs)
+  const toggleVerticalTabs = useBrowserStore((state) => state.toggleVerticalTabs)
 
   const [dragId, setDragId] = useState<string | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
   const [menu, setMenu] = useState<TabMenuState | null>(null)
-
-  const duplicateSelected = useBrowserStore((state) => state.duplicateTab)
-  const muteSelected = useBrowserStore((state) => state.muteToggle)
-  const closeSelected = useBrowserStore((state) => state.closeTab)
-  const closeOthersSelected = useBrowserStore((state) => state.closeOthers)
-  const closeToRightSelected = useBrowserStore((state) => state.closeToRight)
-  const copyTabUrl = useBrowserStore((state) => state.copyTabUrl)
-  const reload = useBrowserStore((state) => state.reload)
 
   const handleDrop = (targetId: string): void => {
     if (dragId && dragId !== targetId) {
@@ -74,60 +68,11 @@ export function TabStrip(): React.JSX.Element {
   }
 
   const menuTab = menu ? tabs.find((tab) => tab.id === menu.tabId) : undefined
-  const menuItems: ContextMenuItem[] = menuTab
-    ? [
-        {
-          label: 'New tab',
-          icon: <Plus className="h-3.5 w-3.5" />,
-          onSelect: () => createTab()
-        },
-        { separator: true },
-        {
-          label: 'Reload',
-          icon: <RotateCw className="h-3.5 w-3.5" />,
-          onSelect: () => reload()
-        },
-        {
-          label: 'Duplicate',
-          icon: <Copy className="h-3.5 w-3.5" />,
-          onSelect: () => duplicateSelected(menuTab.id)
-        },
-        {
-          label: menuTab.pinned ? 'Unpin tab' : 'Pin tab',
-          icon: <Pin className="h-3.5 w-3.5" />,
-          onSelect: () => pinToggle(menuTab.id)
-        },
-        {
-          label: menuTab.muted ? 'Unmute tab' : 'Mute tab',
-          icon: menuTab.muted ? (
-            <VolumeX className="h-3.5 w-3.5" />
-          ) : (
-            <Volume2 className="h-3.5 w-3.5" />
-          ),
-          onSelect: () => muteSelected(menuTab.id)
-        },
-        { separator: true },
-        {
-          label: 'Copy URL',
-          icon: <Copy className="h-3.5 w-3.5" />,
-          disabled: menuTab.url === 'about:blank' || menuTab.url === '',
-          onSelect: () => copyTabUrl(menuTab.id)
-        },
-        { separator: true },
-        {
-          label: 'Close tab',
-          icon: <X className="h-3.5 w-3.5" />,
-          onSelect: () => closeSelected(menuTab.id)
-        },
-        {
-          label: 'Close other tabs',
-          onSelect: () => closeOthersSelected(menuTab.id)
-        },
-        {
-          label: 'Close tabs to the right',
-          onSelect: () => closeToRightSelected(menuTab.id)
-        }
-      ]
+  const menuItems = menuTab
+    ? buildTabMenuItems(menuTab, {
+        verticalTabs,
+        onToggleVerticalTabs: toggleVerticalTabs
+      })
     : []
 
   return (
