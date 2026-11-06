@@ -265,19 +265,28 @@ export class WindowController {
     } else {
       await this.chrome.webContents.loadFile(join(__dirname, '../renderer/index.html'))
     }
-    if (initialUrl) this.tabs.create({ url: initialUrl })
-    else this.restoreSession()
+    this.restoreSession(initialUrl)
     this.window.show()
+  }
+
+  /** Focus this window and open `url` in a new active tab. */
+  openUrl(url: string): void {
+    if (this.disposed) return
+    this.window.focus()
+    this.tabs.create({ url, active: true })
   }
 
   /**
    * Replay the persisted tab set when the opt-in "restore session" preference
    * is enabled; otherwise start on the start page and drop any stale snapshot.
+   * A URL passed on the command line opens as an extra active tab, regardless
+   * of the restore preference.
    */
-  private restoreSession(): void {
+  private restoreSession(initialUrl?: string): void {
+    const start = initialUrl ? { url: initialUrl } : {}
     if (this.incognito) {
       // Incognito starts with a clean slate and never restores persisted state.
-      this.tabs.create()
+      this.tabs.create(start)
       return
     }
     if (getSettings('restoreSession', false) !== true) {
@@ -285,12 +294,12 @@ export class WindowController {
       // reappear if the preference is toggled back on later.
       sessionStore.set('tabs', [])
       sessionStore.set('activeIndex', 0)
-      this.tabs.create()
+      this.tabs.create(start)
       return
     }
     const { tabs, activeIndex } = sessionStore.snapshot
     if (tabs.length === 0) {
-      this.tabs.create()
+      this.tabs.create(start)
       return
     }
     const ids: string[] = []
@@ -301,6 +310,7 @@ export class WindowController {
     }
     const index = Math.min(Math.max(activeIndex, 0), ids.length - 1)
     if (ids[index]) this.tabs.activate(ids[index])
+    if (initialUrl) this.tabs.create({ url: initialUrl, active: true })
   }
 
   /** Save the current tab set so the next launch can restore it (opt-in). */
