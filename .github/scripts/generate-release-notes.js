@@ -117,6 +117,37 @@ async function resolveTagCommitSha(repository, tag, token) {
   return commit && commit.sha ? commit.sha : null
 }
 
+/**
+ * Read the annotated tag message created alongside the tag (for example with
+ * `git tag -a v1.2.3 -m "..."` or lazygit's tag description prompt). Lightweight
+ * tags have no message, so this returns null for them.
+ */
+async function fetchTagDescription(repository, tag, token) {
+  const { owner, name } = repositoryParts(repository)
+
+  try {
+    const ref = await githubFetch(
+      `/repos/${owner}/${name}/git/ref/tags/${encodeURIComponent(tag)}`,
+      token
+    )
+    if (!ref || !ref.object || ref.object.type !== 'tag' || !ref.object.sha) {
+      return null
+    }
+    const annotated = await githubFetch(
+      `/repos/${owner}/${name}/git/tags/${ref.object.sha}`,
+      token
+    )
+    if (!annotated || typeof annotated.message !== 'string') {
+      return null
+    }
+    const description = annotated.message.trim()
+    return description || null
+  } catch (error) {
+    // A missing tag ref (or an API hiccup) should not stop the release.
+    return null
+  }
+}
+
 async function getCommitsForRange(repository, previousTag, currentTag, token) {
   const previousCommitSha = previousTag ? await resolveTagCommitSha(repository, previousTag, token) : null
   const commitsNewestFirst = []
@@ -317,7 +348,7 @@ async function collectReleaseGroups(options) {
   return { groups, previousTag }
 }
 
-function renderReleaseNotes(groups) {
+function renderReleaseNotes(groups, tagDescription) {
   const categories = {
     features: [],
     improvements: [],
@@ -332,11 +363,12 @@ function renderReleaseNotes(groups) {
     }
   }
 
-  const lines = [
-    'Thank you to all the contributors that made this release possible!',
-    '',
-    '# Features'
-  ]
+  const description = typeof tagDescription === 'string' ? tagDescription.trim() : ''
+  const lines = []
+  if (description) {
+    lines.push(description, '')
+  }
+  lines.push('Thank you to all the contributors that made this release possible!', '', '# Features')
 
   lines.push(...categories.features)
   lines.push('', '# Improvements')
@@ -361,7 +393,13 @@ async function generateReleaseNotes(options) {
   }
 
   const { groups } = await collectReleaseGroups(parsedOptions)
-  return renderReleaseNotes(groups)
+  const token = tokenFromEnvironment()
+  const tagDescription = await fetchTagDescription(
+    parsedOptions.repository,
+    parsedOptions.to,
+    token
+  )
+  return renderReleaseNotes(groups, tagDescription)
 }
 
 async function main() {
