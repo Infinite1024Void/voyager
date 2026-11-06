@@ -39,6 +39,33 @@
     "files": [
       "out/**/*"
     ],
+    "protocols": [
+      {
+        "name": "Web Browser",
+        "schemes": [
+          "http",
+          "https"
+        ],
+        "role": "Viewer"
+      },
+      {
+        "name": "Voyager Link",
+        "schemes": [
+          "voyager"
+        ],
+        "role": "Viewer"
+      }
+    ],
+    "fileAssociations": [
+      {
+        "ext": [
+          "html",
+          "htm"
+        ],
+        "name": "HTML Document",
+        "role": "Viewer"
+      }
+    ],
     "mac": {
       "target": [
         {
@@ -49,7 +76,9 @@
         }
       ],
       "category": "public.app-category.productivity",
-      "icon": "build/icon.svg"
+      "icon": "build/icon.svg",
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "win": {
       "target": [
@@ -73,6 +102,12 @@
       ],
       "category": "Network;WebBrowser",
       "executableName": "voyager",
+      "mimeTypes": [
+        "x-scheme-handler/http",
+        "x-scheme-handler/https",
+        "x-scheme-handler/voyager",
+        "text/html"
+      ],
       "icon": "build/icon.svg"
     },
     "publish": {

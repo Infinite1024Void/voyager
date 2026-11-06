@@ -51,6 +51,11 @@ const api = {
   /** Read-only platform/version info resolved in the main process. */
   appInfo: (): Promise<AppVersionInfo> => ipcRenderer.invoke(IpcChannels.AppGetInfo),
 
+  defaultBrowser: {
+    isDefault: (): Promise<boolean> => ipcRenderer.invoke(IpcChannels.DefaultBrowserGet),
+    setDefault: (): Promise<boolean> => ipcRenderer.invoke(IpcChannels.DefaultBrowserSet)
+  },
+
   settings: {
     get: (): Promise<UserPreferences> => ipcRenderer.invoke(IpcChannels.SettingsGet),
     open: (target?: SettingsTarget): Promise<void> =>

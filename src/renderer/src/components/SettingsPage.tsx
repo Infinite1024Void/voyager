@@ -42,6 +42,7 @@ export function SettingsPage(): React.JSX.Element {
   const [initialRoute] = useState(sitePermissionsRoute)
   const [sitePermissionsOpen, setSitePermissionsOpen] = useState(initialRoute.open)
   const [appInfo, setAppInfo] = useState<AppVersionInfo | null>(null)
+  const [isDefaultBrowser, setIsDefaultBrowser] = useState<boolean | null>(null)
 
   useEffect(() => {
     const bookmarks = useBookmarksStore.getState()
@@ -58,6 +59,7 @@ export function SettingsPage(): React.JSX.Element {
       browser.setSearchEngine(prefs.searchEngine ?? DEFAULT_SEARCH_ENGINE)
     })
     void window.voyager.appInfo().then(setAppInfo)
+    void window.voyager.defaultBrowser.isDefault().then(setIsDefaultBrowser)
 
     const unsubscribes = [
       window.voyager.bookmarks.onStateChanged(bookmarks.applyState),
@@ -133,6 +135,28 @@ export function SettingsPage(): React.JSX.Element {
                   <span className="capitalize">{m}</span>
                 </label>
               ))}
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-4 border-t border-border pt-4">
+              <div>
+                <div className="text-[13px] text-fg">Default browser</div>
+                <div className="mt-0.5 text-[11.5px] text-muted">
+                  {isDefaultBrowser === null
+                    ? 'Checking…'
+                    : isDefaultBrowser
+                      ? 'Voyager opens web links by default.'
+                      : 'Voyager is not your default browser yet.'}
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={isDefaultBrowser === true}
+                onClick={() => {
+                  void window.voyager.defaultBrowser.setDefault().then(setIsDefaultBrowser)
+                }}
+                className="shrink-0 rounded-md bg-accent px-3 py-1.5 text-[13px] text-accent-foreground disabled:opacity-50"
+              >
+                {isDefaultBrowser === true ? 'Default' : 'Set as default'}
+              </button>
             </div>
           </section>
 

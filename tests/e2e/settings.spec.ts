@@ -33,11 +33,18 @@ test('opens settings in a separate managed popup window', async ({ voyager }) =>
   expect(await windowCount(voyager.app)).toBe(before + 1)
 })
 
+test('settings exposes default browser controls', async ({ voyager }) => {
+  const settings = await openSettings(voyager)
+
+  await expect(settings.getByText('Default browser', { exact: true })).toBeVisible()
+  const current = await settings.evaluate(() => window.voyager.defaultBrowser.isDefault())
+  expect(typeof current).toBe('boolean')
+})
+
 test('settings page shows stats and lets theme change apply to itself', async ({
   voyager,
   server
-}) => {
-  await voyager.navigate(server.url('/home'))
+}) => {  await voyager.navigate(server.url('/home'))
   const settings = await openSettings(voyager)
 
   await expect(settings.getByRole('heading', { name: 'Settings' })).toBeVisible()
