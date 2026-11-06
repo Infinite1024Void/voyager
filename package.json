@@ -47,13 +47,6 @@
           "https"
         ],
         "role": "Viewer"
-      },
-      {
-        "name": "Voyager Link",
-        "schemes": [
-          "voyager"
-        ],
-        "role": "Viewer"
       }
     ],
     "fileAssociations": [
@@ -77,8 +70,10 @@
       ],
       "category": "public.app-category.productivity",
       "icon": "build/icon.svg",
+      "hardenedRuntime": true,
       "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist"
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "notarize": true
     },
     "win": {
       "target": [
@@ -105,7 +100,6 @@
       "mimeTypes": [
         "x-scheme-handler/http",
         "x-scheme-handler/https",
-        "x-scheme-handler/voyager",
         "text/html"
       ],
       "icon": "build/icon.svg"
