@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Plus } from 'lucide-react'
 import type { TabState } from '../../../shared/types'
 import { useBrowserStore } from '../state/browserStore'
@@ -78,26 +78,46 @@ export function TabStrip(): React.JSX.Element {
   return (
     <>
       <div role="tablist" className="no-drag flex h-full min-w-0 items-end gap-0.5">
-        {tabs.map((tab) => (
-          <TabItem
-            key={tab.id}
-            tab={tab}
-            active={tab.id === activeTabId}
-            dragging={dragId === tab.id}
-            dropTarget={overId === tab.id}
-            onDragStart={setDragId}
-            onDragOver={setOverId}
-            onDrop={handleDrop}
-            onDragEnd={() => {
-              setDragId(null)
-              setOverId(null)
-            }}
-            onContextMenu={(x, y) => {
-              activateTab(tab.id)
-              setMenu({ x, y, tabId: tab.id })
-            }}
-          />
-        ))}
+        {tabs.map((tab, index) => {
+          const previous = tabs[index - 1]
+          // Decorative separators make adjacent tabs easier to tell apart, but
+          // the active tab already has its own surface and border.
+          const showSeparator =
+            previous !== undefined &&
+            previous.id !== activeTabId &&
+            tab.id !== activeTabId
+
+          return (
+            <Fragment key={tab.id}>
+              {showSeparator && (
+                <span
+                  role="separator"
+                  aria-orientation="vertical"
+                  aria-hidden="true"
+                  data-testid="tab-separator"
+                  className="h-4 w-px shrink-0 self-center bg-border"
+                />
+              )}
+              <TabItem
+                tab={tab}
+                active={tab.id === activeTabId}
+                dragging={dragId === tab.id}
+                dropTarget={overId === tab.id}
+                onDragStart={setDragId}
+                onDragOver={setOverId}
+                onDrop={handleDrop}
+                onDragEnd={() => {
+                  setDragId(null)
+                  setOverId(null)
+                }}
+                onContextMenu={(x, y) => {
+                  activateTab(tab.id)
+                  setMenu({ x, y, tabId: tab.id })
+                }}
+              />
+            </Fragment>
+          )
+        })}
         <button
           type="button"
           aria-label="New tab"
