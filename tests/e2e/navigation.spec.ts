@@ -143,3 +143,41 @@ test('toggles DevTools for the active tab', async ({ voyager, server }) => {
   await voyager.chrome.evaluate(() => window.voyager.navigation.toggleDevTools())
   await expect.poll(() => devToolsOpen(voyager.app)).toBe(false)
 })
+
+test('View menu actions target the active page, not the chrome', async ({ voyager, server }) => {
+  await voyager.navigate(server.url('/count'))
+  await expect.poll(async () => (await voyager.activeTab()).url).toBe(server.url('/count'))
+
+  const clickViewItem = async (label: string): Promise<void> => {
+    await voyager.app.evaluate(({ Menu }, itemLabel) => {
+      const view = Menu.getApplicationMenu()?.items.find((item) => item.label === 'View')
+      view?.submenu?.items.find((item) => item.label === itemLabel)?.click()
+    }, label)
+  }
+
+  const hitsBefore = server.hits('/count')
+  await clickViewItem('Reload')
+  await expect.poll(() => server.hits('/count')).toBeGreaterThan(hitsBefore)
+
+  await clickViewItem('Zoom In')
+  await expect.poll(async () => Math.round((await activeZoom(voyager)) * 100)).toBe(110)
+
+  await clickViewItem('Actual Size')
+  await expect.poll(async () => Math.round((await activeZoom(voyager)) * 100)).toBe(100)
+
+  await clickViewItem('Toggle Developer Tools')
+  await expect
+    .poll(async () =>
+      voyager.app.evaluate(({ webContents }) => {
+        const inspected = webContents
+          .getAllWebContents()
+          .find((contents) => contents.isDevToolsOpened())
+        return inspected?.getURL() ?? null
+      })
+    )
+    .toBe(server.url('/count'))
+
+  await clickViewItem('Toggle Developer Tools')
+  await expect.poll(() => devToolsOpen(voyager.app)).toBe(false)
+})
+

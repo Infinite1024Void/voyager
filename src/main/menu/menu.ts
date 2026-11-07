@@ -69,12 +69,32 @@ export function createAppMenu(getController?: () => WindowController | null): vo
   template.push({
     label: 'View',
     submenu: [
-      { role: 'reload' },
-      { role: 'toggleDevTools' },
+      {
+        label: 'Reload',
+        accelerator: 'CmdOrCtrl+R',
+        click: () => controller()?.tabs.reload()
+      },
+      {
+        label: 'Toggle Developer Tools',
+        accelerator: 'Alt+CmdOrCtrl+I',
+        click: () => controller()?.tabs.toggleDevTools()
+      },
       { type: 'separator' },
-      { role: 'resetZoom' },
-      { role: 'zoomIn' },
-      { role: 'zoomOut' },
+      {
+        label: 'Actual Size',
+        accelerator: 'CmdOrCtrl+0',
+        click: () => controller()?.tabs.zoomReset()
+      },
+      {
+        label: 'Zoom In',
+        accelerator: 'CmdOrCtrl+Plus',
+        click: () => controller()?.tabs.zoomIn()
+      },
+      {
+        label: 'Zoom Out',
+        accelerator: 'CmdOrCtrl+-',
+        click: () => controller()?.tabs.zoomOut()
+      },
       { type: 'separator' },
       {
         label: 'Show Bookmarks Bar',
