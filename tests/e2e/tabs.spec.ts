@@ -37,6 +37,30 @@ test('creates new tabs and activates the latest one', async ({ voyager }) => {
     .toBe(true)
 })
 
+test('shows separators between adjacent inactive horizontal tabs', async ({ voyager }) => {
+  const separators = voyager.chrome.getByTestId('tab-separator')
+  await expect(separators).toHaveCount(0)
+
+  for (let count = 1; count <= 3; count += 1) {
+    await voyager.chrome.locator('body').press(`${primaryKey()}+T`)
+    await expect.poll(async () => (await voyager.state()).tabs.length).toBe(count + 1)
+  }
+
+  // The newest tab is active, so only the two separators between the three
+  // inactive tabs are rendered.
+  await expect(separators).toHaveCount(2)
+
+  const tabIds = (await voyager.state()).tabs.map((tab) => tab.id)
+
+  await voyager.chrome.locator('body').press(`${primaryKey()}+2`)
+  await expect.poll(async () => (await voyager.state()).activeTabId).toBe(tabIds[1])
+  await expect(separators).toHaveCount(1)
+
+  await voyager.chrome.locator('body').press(`${primaryKey()}+1`)
+  await expect.poll(async () => (await voyager.state()).activeTabId).toBe(tabIds[0])
+  await expect(separators).toHaveCount(2)
+})
+
 test('closes tabs and recovers by reopening the last one', async ({ voyager, server }) => {
   await voyager.navigate(server.url('/home'))
   await vyWait(voyager, server.url('/home'))
